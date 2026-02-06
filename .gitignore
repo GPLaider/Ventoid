@@ -1,0 +1,15 @@
+# Build & IDE
+.gradle/
+build/
+*.apk
+*.aar
+*.ap_
+*.aab
+local.properties
+.idea/
+*.iml
+.DS_Store
+
+# Optional: 대용량 참조 폴더 (필요시 주석 해제)
+# ventoy_decompiled/
+# Ventoy/
