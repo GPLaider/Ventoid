@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s को Google Play सेवाओं के साथ समस्या आ रही है. कृपया फिर से कोशिश करें.</string>
+    <string name="offline_notification_text">विज्ञापन खोलने के लिए टैप करें</string>
+    <string name="offline_notification_title">वह विज्ञापन देखें जिसे आपने तब सेव किया था, जब आप ऑफ़लाइन थे</string>
+    <string name="offline_opt_in_confirm">ठीक है</string>
+    <string name="offline_opt_in_confirmation">वापस ऑनलाइन आने पर, आपको एक सूचना मिलेगी जिसमें लिंक होगा</string>
+    <string name="offline_opt_in_decline">रहने दें</string>
+    <string name="offline_opt_in_message">हम आपको एक सूचना भेजेंगे जिसमें विज्ञापन देने वाले की साइट का लिंक होगा.</string>
+    <string name="offline_opt_in_title">वापस ऑनलाइन आने पर, विज्ञापन खोलें.</string>
+    <string name="s1">इमेज सेव करें</string>
+    <string name="s2">विज्ञापन को तस्वीर गैलरी में इमेज सेव करने का अनुमति देना चाहते हैं?</string>
+    <string name="s3">मंज़ूरी दें</string>
+    <string name="s4">खारिज करें</string>
+    <string name="s5">कैलेंडर इवेंट बनाएं</string>
+    <string name="s6">विज्ञापन को कैलेंडर इवेंट बनाने दें?</string>
+    <string name="s7">जाँच विज्ञापन</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

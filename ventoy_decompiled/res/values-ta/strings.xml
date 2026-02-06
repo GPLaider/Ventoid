@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Google Play சேவைகளில் சிக்கல் ஏற்பட்டதால், %1$s ஆப்ஸை அணுக முடியவில்லை. மீண்டும் முயலவும்.</string>
+    <string name="offline_notification_text">விளம்பரத்தைத் திறக்க தட்டுக</string>
+    <string name="offline_notification_title">ஆஃப்லைனில் இருந்தபோது சேமிக்கப்பட்ட விளம்பரத்தைக் காண்க</string>
+    <string name="offline_opt_in_confirm">சரி</string>
+    <string name="offline_opt_in_confirmation">மீண்டும் ஆன்லைனுக்கு வரும்போது இணைப்புடன் கூடிய அறிவிப்பைப் பெறுவீர்கள்</string>
+    <string name="offline_opt_in_decline">வேண்டாம்</string>
+    <string name="offline_opt_in_message">விளம்பரதாரரின் தளத்திற்கான இணைப்புடன் கூடிய அறிவிப்பை உங்களுக்கு அனுப்புவோம்.</string>
+    <string name="offline_opt_in_title">மீண்டும் ஆன்லைனுக்கு வரும்போது விளம்பரம் திறக்கப்படும்.</string>
+    <string name="s1">படத்தைச் சேமி</string>
+    <string name="s2">பட கேலரியில் படத்தைச் சேமிக்க, விளம்பரத்தை அனுமதிக்கவா?</string>
+    <string name="s3">அனுமதி</string>
+    <string name="s4">நிராகரி</string>
+    <string name="s5">கேலெண்டர் நிகழ்வை உருவாக்கு</string>
+    <string name="s6">கேலெண்டர் நிகழ்வை உருவாக்க, விளம்பரத்தை அனுமதிக்கவா?</string>
+    <string name="s7">சோதனை விளம்பரம்</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

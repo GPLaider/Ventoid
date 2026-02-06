@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s มีปัญหาเกี่ยวกับบริการของ Google Play โปรดลองอีกครั้ง</string>
+    <string name="offline_notification_text">แตะเพื่อเปิดโฆษณา</string>
+    <string name="offline_notification_title">ดูโฆษณาที่คุณบันทึกไว้ขณะออฟไลน์</string>
+    <string name="offline_opt_in_confirm">ตกลง</string>
+    <string name="offline_opt_in_confirmation">คุณจะได้รับการแจ้งเตือนพร้อมลิงก์เมื่อกลับมาออนไลน์</string>
+    <string name="offline_opt_in_decline">ไม่เป็นไร</string>
+    <string name="offline_opt_in_message">เราจะส่งการแจ้งเตือนให้คุณพร้อมลิงก์ไปยังเว็บไซต์ของผู้ลงโฆษณา</string>
+    <string name="offline_opt_in_title">เปิดโฆษณาเมื่อคุณกลับมาออนไลน์</string>
+    <string name="s1">บันทึกรูปภาพ</string>
+    <string name="s2">อนุญาตให้โฆษณาจัดเก็บรูปภาพในแกลเลอรีภาพไหม</string>
+    <string name="s3">ยอมรับ</string>
+    <string name="s4">ปฏิเสธ</string>
+    <string name="s5">สร้างกิจกรรมในปฏิทิน</string>
+    <string name="s6">อนุญาตให้โฆษณาสร้างกิจกรรมในปฏิทินไหม</string>
+    <string name="s7">โฆษณาทดสอบ</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

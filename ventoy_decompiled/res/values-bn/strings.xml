@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Google Play পরিষেবাগুলির সাথে %1$s এর সমস্যা হচ্ছে৷ অনুগ্রহ করে আবার চেষ্টা করুন৷</string>
+    <string name="offline_notification_text">বিজ্ঞাপন খোলার জন্য ট্যাপ করুন</string>
+    <string name="offline_notification_title">অফলাইন থাকাকালীন আপনার সেভ করা বিজ্ঞাপন দেখুন</string>
+    <string name="offline_opt_in_confirm">বুঝেছি</string>
+    <string name="offline_opt_in_confirmation">আপনি আবার অনলাইন হলে লিঙ্ক সহ বিজ্ঞপ্তি পাবেন</string>
+    <string name="offline_opt_in_decline">না থাক</string>
+    <string name="offline_opt_in_message">আমরা বিজ্ঞাপনদাতার সাইটে লিঙ্ক সহ একটি বিজ্ঞপ্তি পাঠাব।</string>
+    <string name="offline_opt_in_title">আপনি আবার যখন অনলাইন হবেন তখন বিজ্ঞাপনে ক্লিক করুন।</string>
+    <string name="s1">ছবি সেভ করুন</string>
+    <string name="s2">বিজ্ঞাপনকে ছবির গ্যালারিতে ছবি সংরক্ষণ করার অনুমতি দেবেন?</string>
+    <string name="s3">গ্রহণ করুন</string>
+    <string name="s4">প্রত্যাখ্যান করুন</string>
+    <string name="s5">ক্যালেন্ডার ইভেন্ট তৈরি করুন</string>
+    <string name="s6">বিজ্ঞাপনকে একটি ক্যালেন্ডার ইভেন্ট তৈরি করার অনুমতি দেবেন?</string>
+    <string name="s7">পরীক্ষামূলক বিজ্ঞাপন</string>
+    <string name="status_bar_notification_info_overflow">৯৯৯+</string>
+</resources>

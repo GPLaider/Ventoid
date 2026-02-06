@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s သည် Google Play ဝန်ဆောင်မှုများနှင့် ပြဿနာအနည်းငယ် ရှိနေပါသည်။ ထပ်လုပ်ကြည့်ပါ။</string>
+    <string name="offline_notification_text">ကြော်ငြာဖွင့်ရန် တို့ပါ</string>
+    <string name="offline_notification_title">သင်အော့ဖ်လိုင်းရှိနေစဉ်တွင် သိမ်းထားခဲ့သော ကြော်ငြာကို ကြည့်ရှုပါ</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">သင်အွန်လိုင်းပြန်တက်သည့်အခါ လင့်ခ်ပါသော အကြောင်းအကြားချက်တစ်ခု ရရှိပါမည်</string>
+    <string name="offline_opt_in_decline">မလိုပါ</string>
+    <string name="offline_opt_in_message">ကြော်ငြာရှင်၏ဆိုက်သို့သွားသော လင့်ခ်တစ်ခုနှင့်အတူ အကြောင်းကြားချက်တစ်ခုကို ကျွန်ုပ်တို့ပို့ပေးပါမည်။</string>
+    <string name="offline_opt_in_title">သင်အွန်လိုင်းပြန်တက်သည့်အခါ ကြော်ငြာဖွင့်ပါ။</string>
+    <string name="s1">ဓာတ်ပုံကို သိမ်းရန်</string>
+    <string name="s2">ကြော်ငြာအား ဓာတ်ပုံပြခန်းတွင် ပုံကိုသိမ်းဆည်းခွင့် ပြုလိုပါသလား။</string>
+    <string name="s3">လက်ခံရန်</string>
+    <string name="s4">ငြင်းပယ်ရန်</string>
+    <string name="s5">ပြက္ခဒိန်တွင် အစီအစဉ်ထည့်သွင်းရန်</string>
+    <string name="s6">ကြော်ငြာအား ပြက္ခဒိန်တွင် အစီအစဉ်ထည့်သွင်းခွင့် ပြုပါသလား။</string>
+    <string name="s7">စမ်းသပ်ကြော်ငြာ</string>
+    <string name="status_bar_notification_info_overflow">၉၉၉+</string>
+</resources>

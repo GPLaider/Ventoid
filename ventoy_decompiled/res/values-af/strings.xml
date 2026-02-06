@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s ondervind probleme met Google Play Dienste. Probeer asseblief weer.</string>
+    <string name="offline_notification_text">Tik om advertensie oop te maak</string>
+    <string name="offline_notification_title">Bekyk die advertensie wat jy gestoor het toe jy vanlyn was</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">"Jy sal 'n kennisgewing met die skakel kry wanneer jy weer aanlyn is"</string>
+    <string name="offline_opt_in_decline">Nee, dankie</string>
+    <string name="offline_opt_in_message">"Ons sal vir jou 'n kennisgewing stuur met 'n skakel na die adverteerder se werf toe."</string>
+    <string name="offline_opt_in_title">Maak advertensie oop wanneer jy weer aanlyn is.</string>
+    <string name="s1">Stoor prent</string>
+    <string name="s2">Laat advertensie toe om prent in Prentgalery te stoor?</string>
+    <string name="s3">Aanvaar</string>
+    <string name="s4">Wys af</string>
+    <string name="s5">Skep kalendergeleentheid</string>
+    <string name="s6">"Laat advertensie toe om 'n kalendergeleentheid te skep?"</string>
+    <string name="s7">Toetsadvertensie</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

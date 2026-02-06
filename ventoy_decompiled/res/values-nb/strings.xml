@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s har problemer med Google Play-tjenester. Prøv på nytt.</string>
+    <string name="offline_notification_text">Trykk for å åpne annonsen</string>
+    <string name="offline_notification_title">Se annonsen du lagret mens du var uten nett</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Du får et varsel med linken når du er på nettet igjen</string>
+    <string name="offline_opt_in_decline">Nei takk</string>
+    <string name="offline_opt_in_message">Vi sender deg et varsel med en link til annonsørnettstedet.</string>
+    <string name="offline_opt_in_title">Åpne annonsen når du er på nettet igjen.</string>
+    <string name="s1">Lagre bilde</string>
+    <string name="s2">Vil du la annonsen lagre bildet i bildegalleriet?</string>
+    <string name="s3">Godta</string>
+    <string name="s4">Avslå</string>
+    <string name="s5">Opprett kalenderaktivitet</string>
+    <string name="s6">Vil du la annonsen opprette en kalenderaktivitet?</string>
+    <string name="s7">Testannonse</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

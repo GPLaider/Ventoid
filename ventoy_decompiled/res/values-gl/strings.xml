@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s ten problemas cos servizos de Google Play. Téntao de novo.</string>
+    <string name="offline_notification_text">Toca para abrir o anuncio</string>
+    <string name="offline_notification_title">Mira o anuncio que gardaches cando estabas sen conexión</string>
+    <string name="offline_opt_in_confirm">Si</string>
+    <string name="offline_opt_in_confirmation">Recibirás unha notificación coa ligazón cando volvas estar en liña</string>
+    <string name="offline_opt_in_decline">Non</string>
+    <string name="offline_opt_in_message">Enviarémosche unha notificación cunha ligazón ao sitio do anunciante.</string>
+    <string name="offline_opt_in_title">Abrir o anuncio cando volvas estar en liña.</string>
+    <string name="s1">Gardar imaxe</string>
+    <string name="s2">Queres permitir que o anuncio almacene imaxes na galería de imaxes?</string>
+    <string name="s3">Aceptar</string>
+    <string name="s4">Rexeitar</string>
+    <string name="s5">Crear evento do calendario</string>
+    <string name="s6">Queres permitir que o anuncio cree un evento do calendario?</string>
+    <string name="s7">Probar anuncio</string>
+    <string name="status_bar_notification_info_overflow">>999</string>
+</resources>

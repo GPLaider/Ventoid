@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s에서 Google Play 서비스를 사용하는 데 문제가 있습니다. 다시 시도하세요.</string>
+    <string name="offline_notification_text">광고를 열려면 탭하세요.</string>
+    <string name="offline_notification_title">오프라인 상태에서 저장한 광고 보기</string>
+    <string name="offline_opt_in_confirm">확인</string>
+    <string name="offline_opt_in_confirmation">다시 온라인 상태가 되면 링크와 함께 알림을 받습니다.</string>
+    <string name="offline_opt_in_decline">나중에</string>
+    <string name="offline_opt_in_message">광고주 사이트로 연결되는 링크와 함께 알림을 보내 드리겠습니다.</string>
+    <string name="offline_opt_in_title">다시 온라인 상태가 될 때 광고 열기</string>
+    <string name="s1">이미지 저장</string>
+    <string name="s2">광고에서 사진 갤러리에 이미지를 저장하도록 허용하시겠습니까?</string>
+    <string name="s3">동의</string>
+    <string name="s4">거부</string>
+    <string name="s5">캘린더 일정 만들기</string>
+    <string name="s6">광고에서 캘린더 일정을 만들도록 허용하시겠습니까?</string>
+    <string name="s7">테스트 광고</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

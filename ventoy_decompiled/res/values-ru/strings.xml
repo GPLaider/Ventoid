@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Приложению \"%1$s\" не удается подключиться к сервисам Google Play. Повторите попытку.</string>
+    <string name="offline_notification_text">Чтобы открыть его, нажмите на уведомление.</string>
+    <string name="offline_notification_title">Вы хотели посмотреть объявление, когда были офлайн</string>
+    <string name="offline_opt_in_confirm">ОК</string>
+    <string name="offline_opt_in_confirmation">Вы получите уведомление со ссылкой, когда появится подключение к Интернету.</string>
+    <string name="offline_opt_in_decline">Нет, спасибо</string>
+    <string name="offline_opt_in_message">Когда вы подключитесь к Интернету, мы отправим вам уведомление со ссылкой на сайт рекламодателя.</string>
+    <string name="offline_opt_in_title">Посмотрите объявление, когда будете в Сети</string>
+    <string name="s1">Сохранить изображение</string>
+    <string name="s2">Разрешить объявлению сохранить изображение в галерее?</string>
+    <string name="s3">Разрешить</string>
+    <string name="s4">Отклонить</string>
+    <string name="s5">Создать мероприятие</string>
+    <string name="s6">Разрешить объявлению создать мероприятие в календаре?</string>
+    <string name="s7">Тестовое объявление</string>
+    <string name="status_bar_notification_info_overflow">>999</string>
+</resources>

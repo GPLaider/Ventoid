@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$sର Google Play ସେବା ସହ ଏକ ସମସ୍ୟା ରହିଛି। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।</string>
+    <string name="offline_notification_text">ବିଜ୍ଞାପନ ଖୋଲିବାକୁ ଟାପ୍ କରନ୍ତୁ</string>
+    <string name="offline_notification_title">ଆପଣ ଅଫଲାଇନ୍ ଥିବା ସମୟରେ ସେଭ୍ କରିଥିବା ବିଜ୍ଞାପନ ଦେଖନ୍ତୁ</string>
+    <string name="offline_opt_in_confirm">ଠିକ୍ ଅଛି</string>
+    <string name="offline_opt_in_confirmation">ଆପଣ ପୁଣି ଅନଲାଇନ୍ ହେଲେ ଲିଙ୍କ୍ ସହ ଏକ ବିଜ୍ଞପ୍ତି ପାଇବେ</string>
+    <string name="offline_opt_in_decline">ନାଁ, ଥାଉ</string>
+    <string name="offline_opt_in_message">ବିଜ୍ଞାପନଦାତାଙ୍କ ସାଇଟର ଏକ ଲିଙ୍କ୍ ସହ ଆମେ ଆପଣଙ୍କୁ ଏକ ବିଜ୍ଞପ୍ତି ପଠାଇବୁ।</string>
+    <string name="offline_opt_in_title">ଆପଣ ପୁଣି ଅନଲାଇନ୍ ହେଲେ ବିଜ୍ଞାପନ ଖୋଲନ୍ତୁ।</string>
+    <string name="s1">ଇମେଜ୍ ସେଭ୍‌ କରନ୍ତୁ</string>
+    <string name="s2">ପିକ୍‌ଚର୍‌ ଗ୍ୟାଲେରୀରେ ଇମେଜ୍‌ଗୁଡ଼ିକ ଷ୍ଟୋର୍‌ କରିବା ପାଇଁ ବିଜ୍ଞାପନକୁ ଅନୁମତି ଦେବେ?</string>
+    <string name="s3">ଗ୍ରହଣ କରନ୍ତୁ</string>
+    <string name="s4">ପ୍ରତ୍ୟାଖ୍ୟାନ କରନ୍ତୁ</string>
+    <string name="s5">କ୍ୟାଲେଣ୍ଡର୍‌ ଇଭେଣ୍ଟ ତିଆରି କରନ୍ତୁ</string>
+    <string name="s6">ଏକ କ୍ୟାଲେଣ୍ଡର୍ ଇଭେଣ୍ଟ ତିଆରି କରିବା ପାଇଁ ବିଜ୍ଞାପନକୁ ଅନୁମତି ଦେବେ କି?</string>
+    <string name="s7">ପରୀକ୍ଷାମୂଳକ ବିଜ୍ଞାପନ</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

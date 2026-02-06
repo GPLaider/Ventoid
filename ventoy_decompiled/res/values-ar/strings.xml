@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">‏لدى %1$s مشكلة في خدمات Google Play. يُرجى إعادة المحاولة.</string>
+    <string name="offline_notification_text">انقر لفتح الإعلان</string>
+    <string name="offline_notification_title">عرض الإعلان الذي حفظته عند عدم الاتصال بالإنترنت</string>
+    <string name="offline_opt_in_confirm">حسنًا</string>
+    <string name="offline_opt_in_confirmation">ستتلقّى إشعارًا يحتوي على الرابط عند إعادة الاتصال بالإنترنت.</string>
+    <string name="offline_opt_in_decline">لا، شكرًا</string>
+    <string name="offline_opt_in_message">سنرسل إليك إشعارًا يحتوي على رابط إلى الموقع الإلكتروني للمعلِن.</string>
+    <string name="offline_opt_in_title">فتح العنوان عند إعادة الاتصال بالإنترنت</string>
+    <string name="s1">حفظ الصورة</string>
+    <string name="s2">هل تريد السماح للإعلان بتخزين الصورة في معرض الصور؟</string>
+    <string name="s3">قبول</string>
+    <string name="s4">رفض</string>
+    <string name="s5">إنشاء حدث في التقويم</string>
+    <string name="s6">هل تريد السماح للإعلان بإنشاء حدث في التقويم؟</string>
+    <string name="s7">إعلان تجريبي</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

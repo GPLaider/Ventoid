@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Lietotnē %1$s ir radusies problēma ar Google Play pakalpojumu darbību. Lūdzu, mēģiniet vēlreiz.</string>
+    <string name="offline_notification_text">Pieskarieties, lai atvērtu reklāmu</string>
+    <string name="offline_notification_title">Skatiet reklāmu, ko saglabājāt bezsaistē</string>
+    <string name="offline_opt_in_confirm">Labi</string>
+    <string name="offline_opt_in_confirmation">Jūs saņemsiet paziņojumu ar saiti, kad atkal būsiet tiešsaistē.</string>
+    <string name="offline_opt_in_decline">Nē, paldies</string>
+    <string name="offline_opt_in_message">Mēs nosūtīsim jums paziņojumu ar saiti uz reklāmdevēja vietni.</string>
+    <string name="offline_opt_in_title">Atveriet reklāmu, kad būsiet atkal tiešsaistē.</string>
+    <string name="s1">Attēla saglabāšana</string>
+    <string name="s2">Vai atļaut reklāmai saglabāt attēlu galerijā?</string>
+    <string name="s3">Piekrist</string>
+    <string name="s4">Noraidīt</string>
+    <string name="s5">Kalendāra pasākuma izveide</string>
+    <string name="s6">Vai atļaut reklāmai izveidot kalendāra pasākumu?</string>
+    <string name="s7">Testa reklāma</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s កំពុងមានបញ្ហាជាមួយសេវាកម្មរបស់ Google Play ។ សូមព្យាយាមម្តងទៀតនៅពេលក្រោយ។</string>
+    <string name="offline_notification_text">ចុចដើម្បីបើក​ការផ្សាយពាណិជ្ជកម្ម</string>
+    <string name="offline_notification_title">មើល​ការផ្សាយពាណិជ្ជកម្ម​ដែលអ្នកបានរក្សាទុក នៅពេលអ្នកគ្មានអ៊ីនធឺណិត</string>
+    <string name="offline_opt_in_confirm">យល់ព្រម</string>
+    <string name="offline_opt_in_confirmation">អ្នកនឹងទទួលបាន​ការជូនដំណឹងដែលមានតំណ នៅពេលអ្នកមាន​ការតភ្ជាប់អ៊ីនធឺណិតវិញ</string>
+    <string name="offline_opt_in_decline">ទេ អរគុណ</string>
+    <string name="offline_opt_in_message">យើងនឹងផ្ញើ​ការជូនដំណឹង​ដែលមាន​តំណ​ទៅកាន់​គេហទំព័ររបស់​អ្នកផ្សាយពាណិជ្ជកម្មដល់អ្នក។</string>
+    <string name="offline_opt_in_title">បើក​ការផ្សាយពាណិជ្ជកម្ម នៅពេលអ្នក​មាន​ការតភ្ជាប់​អ៊ីនធឺណិតវិញ។</string>
+    <string name="s1">រក្សាទុក​រូបភាព</string>
+    <string name="s2">អនុញ្ញាត​ឲ្យ​ពាណិជ្ជកម្ម​ផ្ទុក​រូបភាព​នៅក្នុង​វិចិត្រសាល​រូបភាព​ដែរទេ?</string>
+    <string name="s3">យល់ព្រម</string>
+    <string name="s4">បដិសេធ</string>
+    <string name="s5">បង្កើត​ព្រឹត្តិការណ៍​ក្នុង​ប្រតិទិន</string>
+    <string name="s6">អនុញ្ញាត​ឲ្យ​ពាណិជ្ជកម្ម​បង្កើត​ព្រឹត្តិការណ៍​ក្នុង​ប្រតិទិន​ដែរទេ?</string>
+    <string name="s7">ពាណិជ្ជកម្ម​សាកល្បង</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s ला Google Play सेवांमध्ये समस्या येत आहे. कृपया पुन्हा प्रयत्न करा.</string>
+    <string name="offline_notification_text">जाहिरात उघडण्यासाठी टॅप करा</string>
+    <string name="offline_notification_title">तुम्ही ऑफलाइन असताना तुम्ही सेव्ह केलेली जाहिरात पाहा</string>
+    <string name="offline_opt_in_confirm">ओके</string>
+    <string name="offline_opt_in_confirmation">तुम्ही पुन्हा ऑनलाइन याल तेव्हा तुम्हाला लिंकसह सूचना मिळेल</string>
+    <string name="offline_opt_in_decline">नाही, नको</string>
+    <string name="offline_opt_in_message">आम्ही तुम्हाला जाहिरातदाराच्या साइटच्या लिंकसह एक सूचना पाठवू.</string>
+    <string name="offline_opt_in_title">तुम्ही पुन्हा ऑनलाइन याल तेव्हा जाहिरात उघडा.</string>
+    <string name="s1">इमेज सेव्ह करा</string>
+    <string name="s2">चित्र गॅलरीत इमेज संग्रहित करण्याची जाहिरातीस अनुमती द्यायची?</string>
+    <string name="s3">स्वीकारा</string>
+    <string name="s4">नकार द्या</string>
+    <string name="s5">कॅलेंडर इव्हेंट तयार करा</string>
+    <string name="s6">जाहिरातीस कॅलेंडर इव्हेंट तयार करण्याची परवानगी द्यायची?</string>
+    <string name="s7">चाचणी जाहिरात</string>
+    <string name="status_bar_notification_info_overflow">९९९+</string>
+</resources>

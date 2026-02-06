@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Google Play സേവനങ്ങളുമായി ബന്ധപ്പെട്ട് %1$s ആപ്പിനെന്തോ പ്രശ്നമുണ്ട്. വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="offline_notification_text">പരസ്യം തുറക്കാൻ ടാപ്പ് ചെയ്യുക</string>
+    <string name="offline_notification_title">നിങ്ങൾ ഓഫ്‌ലൈനിൽ ആയിരുന്നപ്പോൾ സംരക്ഷിച്ച പരസ്യം കാണുക</string>
+    <string name="offline_opt_in_confirm">ശരി</string>
+    <string name="offline_opt_in_confirmation">ഓൺലൈനിൽ തിരിച്ചെത്തുമ്പോൾ ലിങ്ക് അടങ്ങിയ അറിയിപ്പ് നിങ്ങൾക്ക് ലഭിക്കും</string>
+    <string name="offline_opt_in_decline">വേണ്ട</string>
+    <string name="offline_opt_in_message">പരസ്യദാതാവിന്റെ സൈറ്റിലേക്കുള്ള ലിങ്ക് അടങ്ങിയ അറിയിപ്പ് ഞങ്ങൾ നിങ്ങൾക്ക് അയയ്‌ക്കും</string>
+    <string name="offline_opt_in_title">നിങ്ങൾ ഓൺലൈനിൽ തിരിച്ചെത്തുമ്പോൾ പരസ്യം തുറക്കുക.</string>
+    <string name="s1">ചിത്രം സംരക്ഷിക്കുക</string>
+    <string name="s2">"'ചിത്ര ഗാലറി'യിൽ ചിത്രം സംഭരിക്കാൻ പരസ്യത്തെ അനുവദിക്കണോ?"</string>
+    <string name="s3">അംഗീകരിക്കുക</string>
+    <string name="s4">നിരസിക്കുക</string>
+    <string name="s5">കലണ്ടർ ഇവന്റ് സൃഷ്ടിക്കുക</string>
+    <string name="s6">കലണ്ടർ ഇവന്റ് സൃഷ്ടിക്കാൻ പരസ്യത്തെ അനുവദിക്കണോ?</string>
+    <string name="s7">പരസ്യം പരീക്ഷിക്കുക</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

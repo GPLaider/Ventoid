@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Nagkakaproblema ang %1$s sa mga serbisyo ng Google Play. Pakisubukan ulit.</string>
+    <string name="offline_notification_text">I-tap para buksan ang ad</string>
+    <string name="offline_notification_title">Tingnan ang ad na na-save mo noong offline ka</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Makakatanggap ka ng notification na may link kapag online ka na ulit</string>
+    <string name="offline_opt_in_decline">Huwag na lang</string>
+    <string name="offline_opt_in_message">Papadalhan ka namin ng notification na may link sa site ng advertiser.</string>
+    <string name="offline_opt_in_title">Buksan ang ad kapag online ka na ulit.</string>
+    <string name="s1">I-save ang larawan</string>
+    <string name="s2">Pahintulutan ang Ad na iimbak ang larawan sa Gallery ng larawan?</string>
+    <string name="s3">Tanggapin</string>
+    <string name="s4">Tanggihan</string>
+    <string name="s5">Gumawa ng event sa kalendaryo</string>
+    <string name="s6">Pahintulutan ang Ad na gumawa ng event sa kalendaryo?</string>
+    <string name="s7">Pansubok na Ad</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s-ს Google Play Services-თან პრობლემა შეექმნა. გთხოვთ, ცადოთ ხელახლა.</string>
+    <string name="offline_notification_text">შეეხეთ რეკლამის გასახსნელად</string>
+    <string name="offline_notification_title">ნახეთ თქვენ მიერ ხაზგარეშე ყოფნისას შენახული რეკლამა</string>
+    <string name="offline_opt_in_confirm">კარგი</string>
+    <string name="offline_opt_in_confirmation">თქვენ მიიღებთ შეტყობინებას ბმულით, როდესაც ონლაინ დაბრუნდებით</string>
+    <string name="offline_opt_in_decline">არა, გმადლობთ</string>
+    <string name="offline_opt_in_message">ჩვენ გამოგიგზავნით შეტყობინებას რეკლამის განმთავსების საიტის ბმულით.</string>
+    <string name="offline_opt_in_title">გახსენით რეკლამა, როდესაც ონლაინ დაბრუნდებით.</string>
+    <string name="s1">სურათის შენახვა</string>
+    <string name="s2">აძლევთ ნებას რეკლამას, შეინახოს სურათი გალერეაში?</string>
+    <string name="s3">მიღება</string>
+    <string name="s4">უარყოფა</string>
+    <string name="s5">კალენდარში მოვლენის შექმნა</string>
+    <string name="s6">აძლევთ ნებას რეკლამას, შექმნას მოვლენა კალენდარში?</string>
+    <string name="s7">სატესტო რეკლამა</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

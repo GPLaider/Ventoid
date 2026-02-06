@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s колдонмосунун Google Play кызматтары менен иштөөдө көйгөй чыкты. Кайталап көрүңүз.</string>
+    <string name="offline_notification_text">Жарнаманы ачуу үчүн таптаңыз</string>
+    <string name="offline_notification_title">Оффлайн режиминде сактаган жарнамаңызды көрүңүз</string>
+    <string name="offline_opt_in_confirm">ЖАРАЙТ</string>
+    <string name="offline_opt_in_confirmation">Онлайн режимине кайтып келгенде, шилтеме камтылган билдирме аласыз</string>
+    <string name="offline_opt_in_decline">Жок, рахмат</string>
+    <string name="offline_opt_in_message">Сизге жарнамачынын сайтына шилтеме камтылган билдирме жөнөтөбүз.</string>
+    <string name="offline_opt_in_title">Жарнама сиз онлайн режимине кайтып келгенде ачылат.</string>
+    <string name="s1">Сүрөттү сактоо</string>
+    <string name="s2">Жарнамадан Сүрөт галереясына сүрөт сакталсынбы?</string>
+    <string name="s3">Кабыл алуу</string>
+    <string name="s4">Баш тартуу</string>
+    <string name="s5">Жылнаама окуясын түзүү</string>
+    <string name="s6">Жарнамада жылнаама окуясы түзүлсүнбү?</string>
+    <string name="s7">Жарнаманы сынап көрүңүз</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

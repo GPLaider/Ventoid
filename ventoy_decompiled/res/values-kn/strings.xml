@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s ಆ್ಯಪ್‍‍ಗೆ Google Play ಸೇವೆಗಳಲ್ಲಿ ಸಮಸ್ಯೆ ಉಂಟಾಗಿದೆ. ದಯವಿಟ್ಟು ಇನ್ನೊಮ್ಮೆ ಪ್ರಯತ್ನಿಸಿ.</string>
+    <string name="offline_notification_text">ಜಾಹೀರಾತನ್ನು ತೆರೆಯಲು ಟ್ಯಾಪ್ ಮಾಡಿ</string>
+    <string name="offline_notification_title">ನೀವು ಆಫ್‌ಲೈನ್‌ನಲ್ಲಿದ್ದಾಗ ನೀವು ಉಳಿಸಿದ ಜಾಹೀರಾತನ್ನು ವೀಕ್ಷಿಸಿ</string>
+    <string name="offline_opt_in_confirm">ಸರಿ</string>
+    <string name="offline_opt_in_confirmation">ನೀವು ಆನ್‌ಲೈನ್‌ಗೆ ಹಿಂತಿರುಗಿದಾಗ ಲಿಂಕ್‌ನೊಂದಿಗೆ ಅಧಿಸೂಚನೆಯನ್ನು ಪಡೆಯುತ್ತೀರಿ</string>
+    <string name="offline_opt_in_decline">ಬೇಡ</string>
+    <string name="offline_opt_in_message">ಜಾಹೀರಾತುದಾರರ ಸೈಟ್‌ಗೆ ಲಿಂಕ್‌ನೊಂದಿಗೆ ನಾವು ನಿಮಗೆ ಅಧಿಸೂಚನೆಯನ್ನು ಕಳುಹಿಸುತ್ತೇವೆ.</string>
+    <string name="offline_opt_in_title">ನೀವು ಆನ್‌ಲೈನ್‌ಗೆ ಹಿಂತಿರುಗಿದಾಗ ಜಾಹೀರಾತನ್ನು ತೆರೆಯಿರಿ.</string>
+    <string name="s1">ಚಿತ್ರ ಉಳಿಸಿ</string>
+    <string name="s2">ಚಿತ್ರದ ಗ್ಯಾಲರಿಯಲ್ಲಿ ಚಿತ್ರ ಸಂಗ್ರಹಿಸಿಡಲು ಜಾಹೀರಾತಿಗೆ ಅನುಮತಿಸುವುದೇ?</string>
+    <string name="s3">ಸಮ್ಮತಿಸಿ</string>
+    <string name="s4">ನಿರಾಕರಿಸಿ</string>
+    <string name="s5">ಕ್ಯಾಲೆಂಡರ್ ಈವೆಂಟ್ ರಚಿಸಿ</string>
+    <string name="s6">ಕ್ಯಾಲೆಂಡರ್ ಈವೆಂಟ್ ರಚಿಸಲು ಜಾಹೀರಾತಿಗೆ ಅನುಮತಿಸುವುದೇ?</string>
+    <string name="s7">ಪರೀಕ್ಷಾ ಜಾಹೀರಾತು</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

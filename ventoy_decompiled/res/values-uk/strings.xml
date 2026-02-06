@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">У додатку %1$s виникла проблема із сервісами Google Play. Повторіть спробу.</string>
+    <string name="offline_notification_text">Натисніть, щоб відкрити оголошення</string>
+    <string name="offline_notification_title">Перегляньте оголошення, яке ви зберегли в режимі офлайн</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Ви отримаєте сповіщення з посиланням, коли знову будете в мережі</string>
+    <string name="offline_opt_in_decline">Не потрібно</string>
+    <string name="offline_opt_in_message">Ми надішлемо сповіщення з посиланням на сайт рекламодавця.</string>
+    <string name="offline_opt_in_title">Відкрийте оголошення, коли знову будете в мережі.</string>
+    <string name="s1">Зберегти зображення</string>
+    <string name="s2">Дозволити оголошенню зберегти зображення в галереї?</string>
+    <string name="s3">Прийняти</string>
+    <string name="s4">Відхилити</string>
+    <string name="s5">Створити подію календаря</string>
+    <string name="s6">Дозволити оголошенню створити подію календаря?</string>
+    <string name="s7">Тестове оголошення</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

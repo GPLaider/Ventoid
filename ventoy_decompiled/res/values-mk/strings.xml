@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s има проблеми со услугите на Google Play. Обидете се повторно.</string>
+    <string name="offline_notification_text">Допрете за да ја отворите рекламата</string>
+    <string name="offline_notification_title">Прегледајте ја рекламата што ја зачувавте кога бевте офлајн</string>
+    <string name="offline_opt_in_confirm">Во ред</string>
+    <string name="offline_opt_in_confirmation">Ќе добиете известување со линк кога ќе бидете повторно онлајн</string>
+    <string name="offline_opt_in_decline">Не, фала</string>
+    <string name="offline_opt_in_message">Ќе ви испратиме известување со линк до сајтот на огласувачот.</string>
+    <string name="offline_opt_in_title">Отворете ја рекламата кога ќе бидете повторно онлајн.</string>
+    <string name="s1">Зачувај ја сликата</string>
+    <string name="s2">Дали дозволувате рекламата да ја зачува сликата во „Галеријата со слики“?</string>
+    <string name="s3">Прифати</string>
+    <string name="s4">Одбиј</string>
+    <string name="s5">Создај настан во календарот</string>
+    <string name="s6">Дали дозволувате рекламата да создаде настан во календарот?</string>
+    <string name="s7">Тестирај ја рекламата</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

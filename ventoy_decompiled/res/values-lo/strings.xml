@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s ກຳລັງມີບັນຫາກັບບໍລິການ Google Play. ກະລຸນາລອງໃໝ່ອີກຄັ້ງ.</string>
+    <string name="offline_notification_text">ແຕະເພື່ອເປີດໂຄສະນາ</string>
+    <string name="offline_notification_title">ເບິ່ງໂຄສະນາທີ່ທ່ານບັນທຶກໄວ້ຕອນທ່ານອອບລາຍ</string>
+    <string name="offline_opt_in_confirm">ຕົກລົງ</string>
+    <string name="offline_opt_in_confirmation">ທ່ານຈະໄດ້ຮັບການແຈ້ງເຕືອນພ້ອມກັບລິ້ງເມື່ອທ່ານກັບມາອອນລາຍ</string>
+    <string name="offline_opt_in_decline">ບໍ່, ຂອບໃຈ</string>
+    <string name="offline_opt_in_message">ພວກເຮົາຈະສົ່ງການແຈ້ງເຕືອນພ້ອມກັບລິ້ງຫາເວັບໄຊຜູ້ລົງໂຄສະນາໃຫ້ທ່ານ.</string>
+    <string name="offline_opt_in_title">ເປີດໂຄສະນາເມື່ອທ່ານກັບມາອອນລາຍ.</string>
+    <string name="s1">ບັນທຶກຮູບພາບ</string>
+    <string name="s2">ອະນຸຍາດໃຫ້ໂຄສະນາບັນທຶກຮູບພາບໃສ່ຫ້ອງສະໝຸດພາບໄດ້ບໍ່?</string>
+    <string name="s3">ຍອມຮັບ</string>
+    <string name="s4">ປະຕິເສດ</string>
+    <string name="s5">ສ້າງນັດໝາຍປະຕິທິນ</string>
+    <string name="s6">ອະນຸຍາດໃຫ້ໂຄສະນາສ້າງນັດໝາຍປະຕິທິນໄດ້ບໍ?</string>
+    <string name="s7">ໂຄສະນາທົດສອບ</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

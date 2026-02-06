@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s қолданбасында Google Play қызметіне байланысты белгісіз қате шықты. Әрекетті қайталаңыз.</string>
+    <string name="offline_notification_text">Жарнаманы ашу үшін түртіңіз.</string>
+    <string name="offline_notification_title">Офлайн режимге өткенде, сақталған жарнамаңызды көріңіз</string>
+    <string name="offline_opt_in_confirm">Жарайды</string>
+    <string name="offline_opt_in_confirmation">Онлайн режимге оралғанда, сілтемесі бар хабарландыру аласыз.</string>
+    <string name="offline_opt_in_decline">Жоқ, рақмет</string>
+    <string name="offline_opt_in_message">Сізге жарнама беруші сайтына сілтемесі бар хабарландыру жібереміз.</string>
+    <string name="offline_opt_in_title">Онлайн режимге оралғанда, жарнаманы ашыңыз</string>
+    <string name="s1">Кескінді сақтау</string>
+    <string name="s2">Жарнамаға кескінді сурет галереясында сақтауға рұқсат берілсін бе?</string>
+    <string name="s3">Қабылдау</string>
+    <string name="s4">Қабылдамау</string>
+    <string name="s5">Күнтізбе оқиғасын жасау</string>
+    <string name="s6">Жарнамаға күнтізбе оқиғасын жасауға рұқсат берілсін бе?</string>
+    <string name="s7">Сынақ жарнама</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

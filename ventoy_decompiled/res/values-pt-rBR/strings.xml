@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">O app %1$s está com problemas com o Google Play Services. Tente novamente.</string>
+    <string name="offline_notification_text">Toque para abrir o anúncio</string>
+    <string name="offline_notification_title">Ver o anúncio que você salvou quando estava off-line</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Você receberá uma notificação com o link quando ficar on-line novamente</string>
+    <string name="offline_opt_in_decline">Não</string>
+    <string name="offline_opt_in_message">Enviaremos uma notificação com um link para o site do anunciante.</string>
+    <string name="offline_opt_in_title">Abrir o anúncio quando você ficar on-line novamente.</string>
+    <string name="s1">Salvar imagem</string>
+    <string name="s2">Permitir que os anúncios armazenem imagens na galeria de imagens?</string>
+    <string name="s3">Aceitar</string>
+    <string name="s4">Recusar</string>
+    <string name="s5">Criar evento na agenda</string>
+    <string name="s6">Permitir que os anúncios criem um evento na agenda?</string>
+    <string name="s7">Anúncio de teste</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

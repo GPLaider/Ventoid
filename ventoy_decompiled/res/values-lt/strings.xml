@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Naudojant programą „%1$s“ kilo problemų dėl „Google Play“ paslaugų. Bandykite dar kartą.</string>
+    <string name="offline_notification_text">Palieskite, kad atidarytumėte skelbimą</string>
+    <string name="offline_notification_title">Peržiūrėkite skelbimą, kurį išsaugojote būdami neprisijungę</string>
+    <string name="offline_opt_in_confirm">Gerai</string>
+    <string name="offline_opt_in_confirmation">Gausite pranešimą su nuoroda, kai vėl prisijungsite</string>
+    <string name="offline_opt_in_decline">Ne, ačiū</string>
+    <string name="offline_opt_in_message">Atsiųsime jums pranešimą su nuoroda į reklamuotojo svetainę.</string>
+    <string name="offline_opt_in_title">Atidarykite skelbimą, kai vėl prisijungsite.</string>
+    <string name="s1">Išsaugoti vaizdą</string>
+    <string name="s2">Leisti skelbimui išsaugoti vaizdą nuotraukų galerijoje?</string>
+    <string name="s3">Sutikti</string>
+    <string name="s4">Atmesti</string>
+    <string name="s5">Sukurti kalendoriaus įvykį</string>
+    <string name="s6">Leisti skelbimui sukurti kalendoriaus įvykį?</string>
+    <string name="s7">Bandomasis skelbimas</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

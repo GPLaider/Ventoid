@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s հավելվածը Google Play ծառայությունների հետ կապված խնդիր ունի: Փորձեք նորից:</string>
+    <string name="offline_notification_text">Հպեք՝ հայտարարությունը բացելու համար</string>
+    <string name="offline_notification_title">Դիտեք հայտարարությունը, որը պահել եք անցանց ռեժիմում</string>
+    <string name="offline_opt_in_confirm">Եղավ</string>
+    <string name="offline_opt_in_confirmation">Դուք կստանաք ծանուցում՝ գովազդատուի կայքի հղումով, երբ նորից միանաք ցանցին։</string>
+    <string name="offline_opt_in_decline">Ոչ, շնորհակալություն</string>
+    <string name="offline_opt_in_message">Դուք կստանաք ծանուցում՝ գովազդատուի կայքի հղումով։</string>
+    <string name="offline_opt_in_title">Բացեք հայտարարությունը, երբ նորից միանաք ցանցին։</string>
+    <string name="s1">Պահել պատկերը</string>
+    <string name="s2">Թույլատրե՞լ Գովազդին պահել պատկերը Պատկերասրահում:</string>
+    <string name="s3">Ընդունել</string>
+    <string name="s4">Մերժել</string>
+    <string name="s5">Ստեղծել օրացույցի միջոցառում</string>
+    <string name="s6">Թույլատրե՞լ Գովազդին ստեղծել օրացույցի միջոցառում:</string>
+    <string name="s7">Փորձարկել գովազդը</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

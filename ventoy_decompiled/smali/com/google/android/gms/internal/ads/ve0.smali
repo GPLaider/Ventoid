@@ -1,0 +1,70 @@
+.class public final Lcom/google/android/gms/internal/ads/ve0;
+.super Ljava/lang/Object;
+.source ""
+
+# interfaces
+.implements Lcom/google/android/gms/internal/ads/an2;
+
+
+# annotations
+.annotation system Ldalvik/annotation/Signature;
+    value = {
+        "Ljava/lang/Object;",
+        "Lcom/google/android/gms/internal/ads/an2<",
+        "Ljava/util/Set<",
+        "Lcom/google/android/gms/internal/ads/bg0<",
+        "Lcom/google/android/gms/internal/ads/va0;",
+        ">;>;>;"
+    }
+.end annotation
+
+
+# instance fields
+.field private final a:Lcom/google/android/gms/internal/ads/je0;
+
+
+# direct methods
+.method public constructor <init>(Lcom/google/android/gms/internal/ads/je0;)V
+    .locals 0
+
+    invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+
+    iput-object p1, p0, Lcom/google/android/gms/internal/ads/ve0;->a:Lcom/google/android/gms/internal/ads/je0;
+
+    return-void
+.end method
+
+.method public static b(Lcom/google/android/gms/internal/ads/je0;)Ljava/util/Set;
+    .locals 0
+    .annotation system Ldalvik/annotation/Signature;
+        value = {
+            "(",
+            "Lcom/google/android/gms/internal/ads/je0;",
+            ")",
+            "Ljava/util/Set<",
+            "Lcom/google/android/gms/internal/ads/bg0<",
+            "Lcom/google/android/gms/internal/ads/va0;",
+            ">;>;"
+        }
+    .end annotation
+
+    invoke-virtual {p0}, Lcom/google/android/gms/internal/ads/je0;->l()Ljava/util/Set;
+
+    move-result-object p0
+
+    return-object p0
+.end method
+
+
+# virtual methods
+.method public final bridge synthetic a()Ljava/lang/Object;
+    .locals 1
+
+    iget-object v0, p0, Lcom/google/android/gms/internal/ads/ve0;->a:Lcom/google/android/gms/internal/ads/je0;
+
+    invoke-virtual {v0}, Lcom/google/android/gms/internal/ads/je0;->l()Ljava/util/Set;
+
+    move-result-object v0
+
+    return-object v0
+.end method

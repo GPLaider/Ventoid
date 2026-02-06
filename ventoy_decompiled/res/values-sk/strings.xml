@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Aplikácia %1$s má problémy so službami Google Play. Skúste to znova.</string>
+    <string name="offline_notification_text">Klepnutím otvoriť reklamu</string>
+    <string name="offline_notification_title">Zobrazte si reklamu, ktorú ste uložili v režime offline</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Po opätovnom pripojení k internetu dostanete upozornenie s odkazom</string>
+    <string name="offline_opt_in_decline">Nie, ďakujem</string>
+    <string name="offline_opt_in_message">Pošleme vám upozornenie s odkazom na web inzerenta.</string>
+    <string name="offline_opt_in_title">Reklama sa otvorí, keď budete znova online.</string>
+    <string name="s1">Uloženie obrázka</string>
+    <string name="s2">Povoliť reklame uložiť obrázok do galérie obrázkov?</string>
+    <string name="s3">Prijať</string>
+    <string name="s4">Odmietnuť</string>
+    <string name="s5">Vytvorenie udalosti v kalendári</string>
+    <string name="s6">Povoliť reklame vytvoriť udalosť v kalendári?</string>
+    <string name="s7">Testovacia reklama</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

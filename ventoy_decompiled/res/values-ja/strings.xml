@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">「%1$s」で Google Play 開発者サービスに問題が発生しています。もう一度お試しください。</string>
+    <string name="offline_notification_text">タップすると広告を表示します</string>
+    <string name="offline_notification_title">オフライン時に保存した広告を表示します</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">ネットワークに接続したときに、リンクが記載された通知が届きます</string>
+    <string name="offline_opt_in_decline">設定しない</string>
+    <string name="offline_opt_in_message">広告主のサイトへのリンクが記載された通知が届きます。</string>
+    <string name="offline_opt_in_title">ネットワークに接続したときに、広告を表示します。</string>
+    <string name="s1">画像の保存</string>
+    <string name="s2">広告が画像ギャラリーに画像を保存することを許可しますか？</string>
+    <string name="s3">許可する</string>
+    <string name="s4">許可しない</string>
+    <string name="s5">カレンダーの予定の作成</string>
+    <string name="s6">広告がカレンダーの予定を作成することを許可しますか？</string>
+    <string name="s7">テスト広告</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s menghadapi masalah berhubung perkhidmatan Google Play. Sila cuba lagi.</string>
+    <string name="offline_notification_text">Ketik untuk membuka iklan</string>
+    <string name="offline_notification_title">Lihat iklan yang anda simpan apabila anda di luar talian</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Anda akan menerima pemberitahuan dengan pautan apabila anda kembali ke dalam talian</string>
+    <string name="offline_opt_in_decline">Tidak</string>
+    <string name="offline_opt_in_message">Kami akan menghantar pemberitahuan dengan pautan ke tapak pengiklan kepada anda.</string>
+    <string name="offline_opt_in_title">Buka iklan apabila anda kembali ke dalam talian.</string>
+    <string name="s1">Simpan imej</string>
+    <string name="s2">Benarkan Iklan menyimpan imej dalam galeri Gambar?</string>
+    <string name="s3">Terima</string>
+    <string name="s4">Tolak</string>
+    <string name="s5">Buat acara kalendar</string>
+    <string name="s6">Benarkan Iklan membuat acara kalendar?</string>
+    <string name="s7">Iklan Ujian</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

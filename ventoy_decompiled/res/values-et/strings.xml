@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Rakendusel %1$s on probleeme Google Play teenustega. Proovige uuesti.</string>
+    <string name="offline_notification_text">Puudutage reklaami avamiseks</string>
+    <string name="offline_notification_title">Vaadake reklaami, mille salvestasite siis, kui teil puudus võrguühendus</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Saate märguande koos lingiga, kui teil on taas võrguühendus</string>
+    <string name="offline_opt_in_decline">Tänan, ei</string>
+    <string name="offline_opt_in_message">Saadame teile märguande koos lingiga reklaamija saidile.</string>
+    <string name="offline_opt_in_title">Avage reklaam, kui teil on taas võrguühendus.</string>
+    <string name="s1">Salvesta kujutis</string>
+    <string name="s2">Kas lubada reklaamil salvestada kujutis pildigaleriisse?</string>
+    <string name="s3">Nõustu</string>
+    <string name="s4">Keeldu</string>
+    <string name="s5">Loo kalendrisündmus</string>
+    <string name="s6">Kas lubada reklaamil luua kalendrisündmus?</string>
+    <string name="s7">Testreklaam</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

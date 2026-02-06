@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s inakumbwa na hitilafu ya huduma za Google Play. Tafadhali jaribu tena.</string>
+    <string name="offline_notification_text">Gusa ili ufungue tangazo</string>
+    <string name="offline_notification_title">Angalia tangazo ulilohifadhi ulipokuwa nje ya mtandao</string>
+    <string name="offline_opt_in_confirm">Sawa</string>
+    <string name="offline_opt_in_confirmation">Utapokea arifa yenye kiungo utakaporudi mtandaoni</string>
+    <string name="offline_opt_in_decline">Hapana</string>
+    <string name="offline_opt_in_message">Tutakutumia arifa yenye kiungo kinachoelekeza kwenye tovuti ya mtangazaji.</string>
+    <string name="offline_opt_in_title">Fungua tangazo utakaporudi mtandaoni.</string>
+    <string name="s1">Hifadhi picha</string>
+    <string name="s2">Ungependa kuruhusu tangazo lihifadhi picha katika matunzio ya Picha?</string>
+    <string name="s3">Kubali</string>
+    <string name="s4">Kataa</string>
+    <string name="s5">Unda tukio la kalenda</string>
+    <string name="s6">Ungependa kuruhusu tangazo liunde tukio la kalenda?</string>
+    <string name="s7">Tangazo la Jaribio</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

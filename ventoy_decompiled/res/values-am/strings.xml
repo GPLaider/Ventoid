@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s በGoogle Play አገልግሎቶች ላይ ችግሮች እያጋጠሙት ነው። እባክዎ እንደገና ይሞክሩ።</string>
+    <string name="offline_notification_text">ማስታወቂያን ለመክፈት መታ ያድርጉ</string>
+    <string name="offline_notification_title">ከመስመር ውጭ ሲሆኑ ያስቀመጡትን ማስታወቂያ ይመልከቱ</string>
+    <string name="offline_opt_in_confirm">እሺ</string>
+    <string name="offline_opt_in_confirmation">ወደ መስመር ላይ ሲመለሱ ከአገናኙ ጋር አንድ ማሳወቂያ ይደርስዎታል</string>
+    <string name="offline_opt_in_decline">አይ አመሰግናለሁ</string>
+    <string name="offline_opt_in_message">ወደ ማስታወቂያ አስነጋሪ ጣቢያው ከሚወስድ አገናኝ ጋር አንድ ማሳወቂያ እንልክልዎታለን።</string>
+    <string name="offline_opt_in_title">መስመር ላይ ሲመለሱ ማስታወቂያ ይክፈቱ።</string>
+    <string name="s1">ምስል አስቀምጥ</string>
+    <string name="s2">ማስታወቂያ ምስሉን በስዕል ማዕከለ-ስዕላት ውስጥ እንዲያከማች ይፈቀድለት?</string>
+    <string name="s3">ተቀበል</string>
+    <string name="s4">ውድቅ አድርግ</string>
+    <string name="s5">የቀን መቁጠሪያ ክስተት ፍጠር</string>
+    <string name="s6">ማስታወቂያ የቀን መቁጠሪያ ክስተት እንዲፈጥር ይፈቀድለት?</string>
+    <string name="s7">የሙከራ ማስታወቂያ</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

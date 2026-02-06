@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s ને Google Play સેવાઓમાં મુશ્કેલી આવી રહી છે. કૃપા કરીને ફરી પ્રયાસ કરો.</string>
+    <string name="offline_notification_text">જાહેરાત ખોલવા માટે ટૅપ કરો</string>
+    <string name="offline_notification_title">તમે ઑફલાઇન હતા, ત્યારે તમે સાચવેલી જાહેરાત જુઓ</string>
+    <string name="offline_opt_in_confirm">ઓકે</string>
+    <string name="offline_opt_in_confirmation">તમે ફરી પાછા ઑનલાઇન થાઓ, ત્યારે તમને લિંક ધરાવતું નોટિફિકેશન મળશે</string>
+    <string name="offline_opt_in_decline">ના, આભાર</string>
+    <string name="offline_opt_in_message">અમે તમને જાહેરાતકર્તાની સાઇટની લિંક ધરાવતું નોટિફિકેશન મોકલીશું.</string>
+    <string name="offline_opt_in_title">તમે ફરી પાછા ઑનલાઇન થાઓ, ત્યારે જાહેરાત ખોલો.</string>
+    <string name="s1">છબી સાચવો</string>
+    <string name="s2">જાહેરાતને ચિત્ર ગૅલેરીમાં છબી સંગ્રહિત કરવાની મંજૂરી આપીએ?</string>
+    <string name="s3">સ્વીકારો</string>
+    <string name="s4">નકારો</string>
+    <string name="s5">કૅલેન્ડર ઇવેન્ટ બનાવો</string>
+    <string name="s6">જાહેરાતને કૅલેન્ડર ઇવેન્ટ બનાવવાની મંજૂરી આપીએ?</string>
+    <string name="s7">પરીક્ષણની જાહેરાત</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

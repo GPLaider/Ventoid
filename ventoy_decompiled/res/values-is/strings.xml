@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s á í vandræðum með þjónustu Google Play. Reyndu aftur.</string>
+    <string name="offline_notification_text">Pikkaðu til að opna auglýsingu</string>
+    <string name="offline_notification_title">Skoða auglýsinguna sem þú vistaðir án nettengingar</string>
+    <string name="offline_opt_in_confirm">Í lagi</string>
+    <string name="offline_opt_in_confirmation">Þú færð tilkynningu með tengli þegar þú tengist netinu aftur.</string>
+    <string name="offline_opt_in_decline">Nei, takk</string>
+    <string name="offline_opt_in_message">Við sendum þér tilkynningu með tengli á vefsvæði auglýsandans.</string>
+    <string name="offline_opt_in_title">Opna auglýsingu þegar þú tengist netinu aftur.</string>
+    <string name="s1">Vista mynd</string>
+    <string name="s2">Leyfa auglýsingu að vista mynd í myndasafninu?</string>
+    <string name="s3">Samþykkja</string>
+    <string name="s4">Hafna</string>
+    <string name="s5">Búa til dagatalsviðburð</string>
+    <string name="s6">Leyfa auglýsingu að búa til dagatalsviðburð?</string>
+    <string name="s7">Prófa auglýsingu</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

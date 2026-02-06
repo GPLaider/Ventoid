@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s tətbiqi ilə Google Play xidmətləri arasında problem var. Daha sonra yenidən cəhd edin.</string>
+    <string name="offline_notification_text">Reklamı açmaq üçün toxunun</string>
+    <string name="offline_notification_title">Oflayn olduqda yadda saxladığınız reklama baxın</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Yenidən onlayn olduqda keçid olan bildiriş alacaqsınız</string>
+    <string name="offline_opt_in_decline">Xeyr, təşəkkür</string>
+    <string name="offline_opt_in_message">Sizə reklamçının saytına keçid olan bildiriş göndərəcəyik.</string>
+    <string name="offline_opt_in_title">Yenidən onlayn olduqda reklamı açın.</string>
+    <string name="s1">Şəkli yadda saxlayın</string>
+    <string name="s2">Reklama təsvirləri Şəkil qalereyasında saxlamağa icazə verilsin?</string>
+    <string name="s3">Qəbul edin</string>
+    <string name="s4">Rədd edin</string>
+    <string name="s5">Təqvim tədbiri yaradın</string>
+    <string name="s6">Təqvim tədbiri yaratmaq üçün Reklama icazə verilsin?</string>
+    <string name="s7">Test Reklamı</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

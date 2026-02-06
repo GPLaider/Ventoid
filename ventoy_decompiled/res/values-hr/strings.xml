@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s ima poteškoća s uslugama Google Playa. Pokušajte ponovo.</string>
+    <string name="offline_notification_text">Dodirnite za otvaranje oglasa</string>
+    <string name="offline_notification_title">Pogledajte oglas koji ste spremili dok ste bili offline</string>
+    <string name="offline_opt_in_confirm">U redu</string>
+    <string name="offline_opt_in_confirmation">Primit ćete obavijest s vezom kad se ponovo povežete s internetom</string>
+    <string name="offline_opt_in_decline">Ne, hvala</string>
+    <string name="offline_opt_in_message">Poslat ćemo vam obavijest s vezom do web-lokacije oglašivača.</string>
+    <string name="offline_opt_in_title">Otvorite oglas kad se ponovo povežete s internetom.</string>
+    <string name="s1">Spremi sliku</string>
+    <string name="s2">Želite li dopustiti oglasu da spremi sliku u galeriju slika?</string>
+    <string name="s3">Prihvati</string>
+    <string name="s4">Odbij</string>
+    <string name="s5">Izradi događaj u kalendaru</string>
+    <string name="s6">Želite li dopustiti oglasu da izradi događaj u kalendaru?</string>
+    <string name="s7">Testni oglas</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

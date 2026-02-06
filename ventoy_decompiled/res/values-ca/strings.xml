@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s té problemes amb Serveis de Google Play. Torna-ho a provar.</string>
+    <string name="offline_notification_text">"Toca per obrir l'anunci"</string>
+    <string name="offline_notification_title">"Mira l'anunci que has desat sense connexió"</string>
+    <string name="offline_opt_in_confirm">"D'acord"</string>
+    <string name="offline_opt_in_confirmation">"Rebràs una notificació amb l'enllaç quan tornis a tenir connexió"</string>
+    <string name="offline_opt_in_decline">No, gràcies</string>
+    <string name="offline_opt_in_message">"T'enviarem una notificació amb un enllaç al lloc web de l'anunciant."</string>
+    <string name="offline_opt_in_title">"Obre l'anunci quan tornis a tenir connexió."</string>
+    <string name="s1">Desa la imatge</string>
+    <string name="s2">"Vols permetre que l'anunci desi imatges a la galeria d'imatges?"</string>
+    <string name="s3">Accepta</string>
+    <string name="s4">Rebutja</string>
+    <string name="s5">Crea un esdeveniment de calendari</string>
+    <string name="s6">"Vols permetre que l'anunci creï un esdeveniment de calendari?"</string>
+    <string name="s7">Anunci de prova</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

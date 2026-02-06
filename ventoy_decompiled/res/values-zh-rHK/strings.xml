@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">「%1$s」存取 Google Play 服務時發生問題。請稍後再試一次。</string>
+    <string name="offline_notification_text">輕按即可開啟廣告</string>
+    <string name="offline_notification_title">查看您在離線時儲存的廣告</string>
+    <string name="offline_opt_in_confirm">確定</string>
+    <string name="offline_opt_in_confirmation">恢復連線後，您將收到含有該連結的通知</string>
+    <string name="offline_opt_in_decline">不用了，謝謝</string>
+    <string name="offline_opt_in_message">我們會向您傳送通知，當中包含廣告客戶網站的連結。</string>
+    <string name="offline_opt_in_title">恢復連線後開啟廣告。</string>
+    <string name="s1">儲存圖片</string>
+    <string name="s2">允許廣告將圖片儲存至相片集嗎？</string>
+    <string name="s3">接受</string>
+    <string name="s4">拒絕</string>
+    <string name="s5">建立日曆活動</string>
+    <string name="s6">允許廣告建立日曆活動嗎？</string>
+    <string name="s7">測試廣告</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

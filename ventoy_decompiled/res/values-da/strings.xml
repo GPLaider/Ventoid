@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s har problemer med Google Play-tjenester. Prøv igen.</string>
+    <string name="offline_notification_text">Tryk for at åbne annoncen</string>
+    <string name="offline_notification_title">Se den annonce, du gemte, mens du var offline</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Du får en notifikation med linket, når du er online igen</string>
+    <string name="offline_opt_in_decline">Nej tak</string>
+    <string name="offline_opt_in_message">Vi sender dig en notifikation med et link til annoncørens website.</string>
+    <string name="offline_opt_in_title">Åbn annoncen, når du er online igen.</string>
+    <string name="s1">Gem billede</string>
+    <string name="s2">Vil du tillade, at annoncen gemmer billedet i Galleri?</string>
+    <string name="s3">Acceptér</string>
+    <string name="s4">Afvis</string>
+    <string name="s5">Opret kalenderbegivenhed</string>
+    <string name="s6">Vil du tillade, at annoncen opretter en kalenderbegivenhed?</string>
+    <string name="s7">Testannonce</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

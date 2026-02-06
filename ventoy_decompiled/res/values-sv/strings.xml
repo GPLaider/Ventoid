@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Det har uppstått ett fel mellan %1$s och Google Play-tjänsterna. Försök igen.</string>
+    <string name="offline_notification_text">Tryck för att öppna annonsen</string>
+    <string name="offline_notification_title">Se annonsen som du sparade när du var offline</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Du får en avisering med en länk när du är online igen</string>
+    <string name="offline_opt_in_decline">Nej tack</string>
+    <string name="offline_opt_in_message">Vi skickar en avisering med en länk till annonsörens webbplats.</string>
+    <string name="offline_opt_in_title">Öppna annonsen när du är online igen.</string>
+    <string name="s1">Spara bild</string>
+    <string name="s2">Tillåter du att annonsen sparar bilden i Bildgalleriet?</string>
+    <string name="s3">Godkänn</string>
+    <string name="s4">Godkänn inte</string>
+    <string name="s5">Skapa kalenderhändelse</string>
+    <string name="s6">Tillåter du att annonsen skapar en kalenderhändelse?</string>
+    <string name="s7">Testannons</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

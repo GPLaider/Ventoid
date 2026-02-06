@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s ilovasini Google Play xizmatlariga ulab bo‘lmadi. Qaytadan urinib ko‘ring.</string>
+    <string name="offline_notification_text">Reklamani ochish uchun bosing</string>
+    <string name="offline_notification_title">Siz saqlagan reklamani oflaynda oching</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Onlayn boʻlganingizda sizga havola bilan bildirishnoma yuboriladi</string>
+    <string name="offline_opt_in_decline">Kerak emas</string>
+    <string name="offline_opt_in_message">Sizga reklama beruvchi sayti havolasi bilan bildirishnoma yuboriladi.</string>
+    <string name="offline_opt_in_title">Onlayn boʻlgach, reklamani oching.</string>
+    <string name="s1">Rasmni saqlash</string>
+    <string name="s2">Reklamaga rasmni gallereyaga saqlashga ruxsat berilsinmi?</string>
+    <string name="s3">Qabul qilish</string>
+    <string name="s4">Rad etish</string>
+    <string name="s5">Taqvimda tadbir yaratish</string>
+    <string name="s6">Reklamaga taqvimda tadbir yaratishga ruxsat berilsinmi?</string>
+    <string name="s7">Test reklama</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s ka probleme me shërbimet e Google Play. Provo sërish.</string>
+    <string name="offline_notification_text">Trokit për të hapur reklamën</string>
+    <string name="offline_notification_title">Shiko reklamën që ruajte kur ishe jashtë linje</string>
+    <string name="offline_opt_in_confirm">Në rregull</string>
+    <string name="offline_opt_in_confirmation">Do të marrësh një njoftim me lidhjen kur të jesh përsëri në linjë.</string>
+    <string name="offline_opt_in_decline">Jo</string>
+    <string name="offline_opt_in_message">Do të të dërgojmë një njoftim me një lidhje për te sajti i reklamuesit.</string>
+    <string name="offline_opt_in_title">Hape reklamën kur të jesh përsëri në linjë.</string>
+    <string name="s1">Ruaje imazhin</string>
+    <string name="s2">Të lejohet që reklama të ruajë imazhin në \"Galerinë e fotografive\"?</string>
+    <string name="s3">Prano</string>
+    <string name="s4">Refuzo</string>
+    <string name="s5">Krijo një ngjarje në kalendar</string>
+    <string name="s6">Të lejohet që reklama të krijojë një ngjarje në kalendar?</string>
+    <string name="s7">Reklamë test</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

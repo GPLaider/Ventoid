@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">"L'application %1$s rencontre des problèmes avec les services Google Play. Veuillez réessayer."</string>
+    <string name="offline_notification_text">"Appuyez pour ouvrir l'annonce"</string>
+    <string name="offline_notification_title">"Afficher l'annonce que vous avez enregistrée lorsque vous n'aviez pas accès à Internet"</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Vous recevrez une notification contenant le lien lorsque vous serez à nouveau connecté à Internet</string>
+    <string name="offline_opt_in_decline">Non, merci</string>
+    <string name="offline_opt_in_message">"Nous vous enverrons une notification contenant un lien vers le site de l'annonceur."</string>
+    <string name="offline_opt_in_title">"Ouvrez l'annonce lorsque vous serez à nouveau connecté à Internet."</string>
+    <string name="s1">"Enregistrer l'image"</string>
+    <string name="s2">"Autoriser l'annonce à stocker l'image dans la galerie d'images ?"</string>
+    <string name="s3">Accepter</string>
+    <string name="s4">Refuser</string>
+    <string name="s5">"Créer un événement d'agenda"</string>
+    <string name="s6">"Autoriser l'annonce à créer un événement d'agenda ?"</string>
+    <string name="s7">Annonce test</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

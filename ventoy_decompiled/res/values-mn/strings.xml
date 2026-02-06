@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s-г Google Play-н үйлчилгээгээр ашиглахад асуудал гарлаа. Дахин оролдоно уу.</string>
+    <string name="offline_notification_text">Зарыг нээхийн тулд товшино уу</string>
+    <string name="offline_notification_title">Та офлайн байхдаа хадгалсан зараа үзэх</string>
+    <string name="offline_opt_in_confirm">ОК</string>
+    <string name="offline_opt_in_confirmation">Та буцаад онлайн болохдоо холбоос бүхий мэдэгдэл авна</string>
+    <string name="offline_opt_in_decline">Үгүй</string>
+    <string name="offline_opt_in_message">Бид сурталчлагчийн сайтын холбоос бүхий мэдэгдлийг тан руу илгээх болно.</string>
+    <string name="offline_opt_in_title">Та буцаад онлайн болохдоо зарыг нээнэ үү.</string>
+    <string name="s1">Зураг хадгалах</string>
+    <string name="s2">Зарыг Зургийн цомогт зураг хадгалахыг зөвшөөрөх үү?</string>
+    <string name="s3">Зөвшөөрөх</string>
+    <string name="s4">Татгалзах</string>
+    <string name="s5">Хуанлийн үйл явдал үүсгэх</string>
+    <string name="s6">Зарыг хуанлийн үйл явдал үүсгэхийг зөвшөөрөх үү?</string>
+    <string name="s7">Тест зар</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

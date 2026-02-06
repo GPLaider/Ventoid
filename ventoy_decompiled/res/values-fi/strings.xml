@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">Sovelluksella %1$s on ongelmia Google Play Palveluiden kanssa. Yritä uudelleen.</string>
+    <string name="offline_notification_text">Avaa mainos napauttamalla</string>
+    <string name="offline_notification_title">Katso mainos, jonka tallensit ollessasi offline-tilassa</string>
+    <string name="offline_opt_in_confirm">OK</string>
+    <string name="offline_opt_in_confirmation">Saat ilmoituksen, jossa on linkki, kun olet taas yhteydessä verkkoon</string>
+    <string name="offline_opt_in_decline">Ei kiitos</string>
+    <string name="offline_opt_in_message">Lähetämme sinulle ilmoituksen, jossa on linkki mainostajan sivustolle.</string>
+    <string name="offline_opt_in_title">Avaa mainos, kun olet taas yhteydessä verkkoon.</string>
+    <string name="s1">Tallenna kuva</string>
+    <string name="s2">Myönnetäänkö mainokselle oikeus tallentaa kuva galleriaan?</string>
+    <string name="s3">Hyväksy</string>
+    <string name="s4">Hylkää</string>
+    <string name="s5">Luo kalenteritapahtuma</string>
+    <string name="s6">Myönnetäänkö mainokselle oikeus luoda kalenteritapahtuma?</string>
+    <string name="s7">Testimainos</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>

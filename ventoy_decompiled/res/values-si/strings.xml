@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_google_play_services_unknown_issue">%1$s හට Google Play සේවා සමගින් ගැටලු ඇත. කරුණාකර නැවත උත්සාහ කරන්න.</string>
+    <string name="offline_notification_text">වෙළඳ දැන්වීම විවෘත කිරීමට තට්ටු කරන්න</string>
+    <string name="offline_notification_title">ඔබ නොබැඳිව සිටි විට සුරැකූ වෙළඳ දැන්වීම බලන්න</string>
+    <string name="offline_opt_in_confirm">හරි</string>
+    <string name="offline_opt_in_confirmation">ඔබ ආපසු සබැඳි වූ විට සබැඳියක් සහිත දැනුම් දීමක් ඔබට ලැබෙනු ඇත</string>
+    <string name="offline_opt_in_decline">එපා ස්තුතියි</string>
+    <string name="offline_opt_in_message">වෙළඳ ප්‍රචාරක අඩවිය වෙත සබැඳියක් සහිත දැනුම් දීමක් අපි ඔබට එවන්නෙමු.</string>
+    <string name="offline_opt_in_title">ඔබ ආපසු සබැඳි වූ විට වෙළඳ දැන්වීම විවෘත කරන්න.</string>
+    <string name="s1">රූපය සුරකින්න</string>
+    <string name="s2">වෙළඳ දැන්වීමට පින්තූර ගැලරිය තුළ රූපය ගබඩා කිරීමට ඉඩ දෙන්නද?</string>
+    <string name="s3">පිළිගන්න</string>
+    <string name="s4">ප්‍රතික්ෂේප කරන්න</string>
+    <string name="s5">දින දර්ශන සිදුවීම සාදන්න</string>
+    <string name="s6">වෙළඳ දැන්වීමට දින දර්ශන සිදුවීමක් සෑදීමට ඉඩ දෙන්නද?</string>
+    <string name="s7">පරීක්ෂණ වෙළඳ දැන්වීම</string>
+    <string name="status_bar_notification_info_overflow">999+</string>
+</resources>
