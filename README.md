@@ -1,7 +1,7 @@
 # Ventoid
 
-Android 앱: 루팅 없이 Ventoy 부팅 USB를 설치합니다.  
-EtchDroid(libaums)의 USB 블록 디바이스 엔진과 Ventoy 공식 레이아웃을 사용합니다.
+Android 앱: 루팅 없이 부팅 USB를 설치합니다.  
+libaums 기반 USB 블록 디바이스 엔진과 호환 레이아웃을 사용합니다.
 
 ## 프로젝트 구조
 
@@ -58,7 +58,10 @@ Bitcoin (BTC):
 bc1qys2gvz02yc295gmkxy9yr7spd44t9hgtyusy2c
 ```
 
-## 참고
+---
 
-- 레이아웃·상수: `VENTOY_C_SOURCE_ANALYSIS.md` (프로젝트 루트 상위)
-- EtchDroid: USB 권한 및 `BlockDeviceDriver` 연동 참고
+## 각주 (참고한 프로젝트)
+
+1. **레이아웃·상수** — `VENTOY_C_SOURCE_ANALYSIS.md` (프로젝트 루트 상위)에서 레이아웃·상수 분석 참고.
+2. **EtchDroid** — USB 권한 및 `BlockDeviceDriver` 연동 시 참고.
+3. **기타** — 부팅 USB 호환 레이아웃 및 에셋 구성 시 공개된 공식 배포·문서 참고.
