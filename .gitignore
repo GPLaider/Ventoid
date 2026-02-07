@@ -10,6 +10,10 @@ local.properties
 *.iml
 .DS_Store
 
-# Optional: 대용량 참조 폴더 (필요시 주석 해제)
-# ventoy_decompiled/
-# Ventoy/
+# 외부 참조 소스 (Git에 절대 포함하지 않음)
+_EXTERNAL_REFS/
+.kotlin/
+
+# 압축 배포물 (레포에 올리지 않음)
+*.zip
+*.tar.gz

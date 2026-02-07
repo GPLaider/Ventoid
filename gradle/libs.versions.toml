@@ -1,0 +1,28 @@
+[versions]
+android-gradle-plugin = "8.9.1"
+android-junit5 = "1.10.0.0"
+appcompat = "1.7.0"
+core-ktx = "1.15.0"
+junit = "5.11.3"
+kotlin = "2.1.0"
+kotlinx-coroutines = "1.7.3"
+libaums = "0.10.0"
+libaums-libusbcommunication = "0.3.0"
+test-core = "1.6.1"
+test-runner = "1.6.2"
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
+android-junit5 = { id = "de.mannodermaus.android-junit5", version.ref = "android-junit5" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+
+[libraries]
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+kotlin-stdlib-jdk8 = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version.ref = "kotlin" }
+libaums-core = { group = "me.jahnen.libaums", name = "core", version.ref = "libaums" }
+libaums-libusbcommunication = { group = "me.jahnen.libaums", name = "libusbcommunication", version.ref = "libaums-libusbcommunication" }
+test-core = { group = "androidx.test", name = "core", version.ref = "test-core" }
+test-runner = { group = "androidx.test", name = "runner", version.ref = "test-runner" }
