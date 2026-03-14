@@ -76,6 +76,16 @@ class VentoyInstallerTest {
     }
 
     @Test
+    fun `calculateLayout applies reserve sectors before EFI partition`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+        val layoutWithoutReserve = installer.calculateLayout(driver.blocks, useGpt = false, reserveSectors = 0)
+        val layoutWithReserve = installer.calculateLayout(driver.blocks, useGpt = false, reserveSectors = 128)
+        assertTrue(layoutWithReserve.part1EndSector < layoutWithoutReserve.part1EndSector)
+        assertTrue(layoutWithReserve.part2EndSector <= layoutWithoutReserve.part2EndSector - 128)
+    }
+
+    @Test
     fun `calculateLayout fails when disk too small`() {
         val driver = MemoryBlockDeviceDriver(16L * 1024 * 1024, 512) // 16MB
         val installer = VentoyInstaller(driver)
@@ -146,5 +156,18 @@ class VentoyInstallerTest {
         assertEquals(VentoyConstants.MBR_SIGNATURE_AA, readMbr[511])
         assertEquals(0x80.toByte(), readMbr[446])
         assertEquals(VentoyConstants.MBR_PART2_TYPE_EFI.toByte(), readMbr[466])
+    }
+
+    @Test
+    fun `writeSectors writes data larger than one chunk`() {
+        val driver = MemoryBlockDeviceDriver(4L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+        val data = ByteArray(300 * 512) { index -> (index % 251).toByte() }
+
+        installer.writeSectors(blockOffset = 2, data = data)
+
+        val readBack = ByteArray(data.size)
+        driver.read(2, java.nio.ByteBuffer.wrap(readBack))
+        assertEquals(data.toList(), readBack.toList())
     }
 }

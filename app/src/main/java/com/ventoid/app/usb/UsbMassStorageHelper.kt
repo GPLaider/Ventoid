@@ -6,19 +6,18 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbEndpoint
 import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
+import android.util.Log
+import com.ventoid.app.util.VentoidFileLogger
 import me.jahnen.libaums.core.driver.BlockDeviceDriver
 import me.jahnen.libaums.core.driver.BlockDeviceDriverFactory
 import me.jahnen.libaums.core.driver.scsi.commands.sense.MediaNotInserted
 import me.jahnen.libaums.core.usb.UsbCommunication
 import me.jahnen.libaums.core.usb.UsbCommunicationFactory
 import me.jahnen.libaums.libusbcommunication.LibusbCommunicationCreator
-import android.util.Log
-import com.ventoid.app.util.VentoidFileLogger
 import java.io.IOException
 
 /**
- * USB Mass Storage 장치 열거 및 BlockDeviceDriver 생성.
- * libaums (me.jahnen) + LibusbCommunication 사용.
+ * Discovers USB mass-storage devices and opens libaums block-device sessions for them.
  */
 object UsbMassStorageHelper {
 
@@ -36,54 +35,52 @@ object UsbMassStorageHelper {
         libusbRegistered = true
     }
 
-    /**
-     * 연결된 USB Mass Storage 장치 목록 (표시용 이름 + 디스크립터).
-     */
+    /** Returns connected USB mass-storage devices with user-friendly display names. */
     fun getMassStorageDevices(context: Context): List<UsbDeviceItem> {
         ensureLibusbRegistered()
         val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
         val list = mutableListOf<UsbDeviceItem>()
         for (device in usbManager.deviceList.values) {
-            for (item in device.getMassStorageDescriptors()) {
-                list.add(item)
-            }
+            list += device.getMassStorageDescriptors()
         }
         return list
     }
 
     private fun UsbDevice.getMassStorageDescriptors(): List<UsbDeviceItem> {
         val result = mutableListOf<UsbDeviceItem>()
-        for (i in 0 until interfaceCount) {
-            val usbInterface = getInterface(i)
+        for (index in 0 until interfaceCount) {
+            val usbInterface = getInterface(index)
             if (usbInterface.interfaceClass != UsbConstants.USB_CLASS_MASS_STORAGE ||
                 usbInterface.interfaceSubclass != INTERFACE_SUBCLASS_SCSI ||
                 usbInterface.interfaceProtocol != INTERFACE_PROTOCOL_BULK
-            ) continue
+            ) {
+                continue
+            }
             if (usbInterface.endpointCount != 2) continue
-            var outEp: UsbEndpoint? = null
-            var inEp: UsbEndpoint? = null
-            for (j in 0 until usbInterface.endpointCount) {
-                val ep = usbInterface.getEndpoint(j)
-                if (ep.type == UsbConstants.USB_ENDPOINT_XFER_BULK) {
-                    if (ep.direction == UsbConstants.USB_DIR_OUT) outEp = ep
-                    else inEp = ep
+
+            var outEndpoint: UsbEndpoint? = null
+            var inEndpoint: UsbEndpoint? = null
+            for (endpointIndex in 0 until usbInterface.endpointCount) {
+                val endpoint = usbInterface.getEndpoint(endpointIndex)
+                if (endpoint.type != UsbConstants.USB_ENDPOINT_XFER_BULK) continue
+                if (endpoint.direction == UsbConstants.USB_DIR_OUT) {
+                    outEndpoint = endpoint
+                } else {
+                    inEndpoint = endpoint
                 }
             }
-            if (outEp != null && inEp != null) {
-                val name = try {
-                    productName?.takeIf { it.isNotEmpty() } ?: "USB Storage"
-                } catch (_: Exception) {
-                    "USB Storage"
-                }
+
+            if (outEndpoint != null && inEndpoint != null) {
+                val product = runCatching {
+                    productName?.takeIf(String::isNotBlank) ?: "USB Storage"
+                }.getOrDefault("USB Storage")
                 val vidPid = "VID:PID $vendorId:$productId"
-                result.add(
-                    UsbDeviceItem(
-                        displayName = "$name ($vidPid)",
-                        usbDevice = this,
-                        usbInterface = usbInterface,
-                        inEndpoint = inEp,
-                        outEndpoint = outEp,
-                    )
+                result += UsbDeviceItem(
+                    displayName = "$product ($vidPid)",
+                    usbDevice = this,
+                    usbInterface = usbInterface,
+                    inEndpoint = inEndpoint,
+                    outEndpoint = outEndpoint,
                 )
             }
         }
@@ -91,8 +88,8 @@ object UsbMassStorageHelper {
     }
 
     /**
-     * 권한이 이미 있을 때 BlockDeviceDriver 생성. LUN 0 사용.
-     * 설치 완료 후 반드시 session.close() 호출하여 USB 연결을 끊어야 장치에 데이터가 확실히 반영될 수 있음.
+     * Opens a block-device session for the selected USB drive.
+     * Callers should always close the returned session after installation finishes.
      */
     @Throws(IOException::class)
     fun openBlockDevice(context: Context, item: UsbDeviceItem): BlockDeviceSession {
@@ -101,13 +98,15 @@ object UsbMassStorageHelper {
         if (!usbManager.hasPermission(item.usbDevice)) {
             throw SecurityException("USB permission not granted")
         }
-        val usbCommunication: UsbCommunication = UsbCommunicationFactory.createUsbCommunication(
+
+        val usbCommunication = UsbCommunicationFactory.createUsbCommunication(
             usbManager,
             item.usbDevice,
             item.usbInterface,
             item.outEndpoint,
             item.inEndpoint,
         )
+
         var lun = 0
         try {
             val maxLun = ByteArray(1)
@@ -118,6 +117,7 @@ object UsbMassStorageHelper {
             VentoidFileLogger.log("Get Max LUN failed, using LUN 0: $e")
             Log.w("Ventoid", "Get Max LUN failed, using LUN 0", e)
         }
+
         VentoidFileLogger.log("createBlockDevice LUN=$lun")
         val blockDevice = BlockDeviceDriverFactory.createBlockDevice(usbCommunication, lun = lun.toByte())
         try {
@@ -128,6 +128,7 @@ object UsbMassStorageHelper {
             VentoidFileLogger.log(e)
             throw IOException("No media in drive", e)
         }
+
         return BlockDeviceSession(blockDevice, usbCommunication, lun.toByte()) {
             try {
                 usbCommunication.close()
@@ -140,9 +141,8 @@ object UsbMassStorageHelper {
 }
 
 /**
- * 설치용 블록 디바이스 세션. 설치 후 close() 호출 권장.
- * close() 전에 syncBeforeClose()를 호출하면 캐시 동기화(SYNCHRONIZE CACHE)를 시도하여
- * 일부 USB에서 PC 연결 시 쓰기 금지로 인식되는 현상을 줄일 수 있음.
+ * Wraps the open USB block device and related communication objects.
+ * `syncBeforeClose()` tries to flush device caches before the session is closed.
  */
 class BlockDeviceSession(
     val blockDevice: BlockDeviceDriver,
@@ -150,9 +150,7 @@ class BlockDeviceSession(
     private val lun: Byte,
     private val onClose: () -> Unit,
 ) {
-    /**
-     * SCSI SYNCHRONIZE CACHE(10) 전송 시도. 실패해도 예외를 삼키고 close는 정상 진행.
-     */
+    /** Best-effort SCSI SYNCHRONIZE CACHE(10) before closing the USB connection. */
     fun syncBeforeClose() {
         try {
             UsbScsiSync.trySynchronizeCache(usbCommunication, lun)
