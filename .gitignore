@@ -1,19 +1,18 @@
-# Build & IDE
-.gradle/
-build/
+# Built application files
 *.apk
 *.aar
 *.ap_
 *.aab
-local.properties
-.idea/
-*.iml
-.DS_Store
 
-# 외부 참조 소스 (Git에 절대 포함하지 않음)
-_EXTERNAL_REFS/
+# Gradle
+.gradle/
+build/
 .kotlin/
 
-# 압축 배포물 (레포에 올리지 않음)
-*.zip
-*.tar.gz
+# Local configuration (SDK path, etc.)
+local.properties
+
+# Android Studio
+*.iml
+.idea/
+.DS_Store

@@ -205,13 +205,13 @@ class VentoyInstaller(
         val part1Start = layout.part1StartSector
         val part1Sectors = layout.part1SectorCount
         val spc = ExFatFormatter.sectorsPerCluster(part1Sectors)
-        val (fatLength, clusterHeapOffset) = ExFatFormatter.computeFatLayout(part1Sectors, spc)
+        val volumeLayout = ExFatFormatter.computeVolumeLayout(part1Sectors, spc)
         val mainBoot = ExFatFormatter.buildMainBootRegion(
             partitionStartSector = part1Start,
             volumeLengthSectors = part1Sectors,
             sectorsPerCluster = spc,
-            fatLengthSectors = fatLength,
-            clusterHeapOffsetSectors = clusterHeapOffset,
+            fatLengthSectors = volumeLayout.fatLengthSectors,
+            clusterHeapOffsetSectors = volumeLayout.clusterHeapOffsetSectors,
         )
         writeSectors(part1Start, mainBoot)
         // Verify first sector of exFAT was written (guards against chunk/device truncation)
@@ -227,14 +227,23 @@ class VentoyInstaller(
         VentoidFileLogger.log("exFAT boot sector verification OK")
         val backupBoot = ExFatFormatter.buildBackupBootRegion(mainBoot)
         writeSectors(part1Start + 12, backupBoot)
-        val fat = ExFatFormatter.buildFat(fatLength)
+        val fat = ExFatFormatter.buildFat(volumeLayout.fatLengthSectors, volumeLayout)
         writeSectors(part1Start + 24, fat)
-        val root = ExFatFormatter.buildRootDirectoryCluster(spc)
-        writeSectors(part1Start + clusterHeapOffset, root)
-        val bitmapCluster = ExFatFormatter.buildAllocationBitmapCluster(spc)
-        writeSectors(part1Start + clusterHeapOffset + spc, bitmapCluster)
-        val upcaseCluster = ExFatFormatter.buildUpcaseTableCluster(spc)
-        writeSectors(part1Start + clusterHeapOffset + 2L * spc, upcaseCluster)
+        val bitmapOffset = volumeLayout.clusterHeapOffsetSectors +
+            (volumeLayout.bitmapFirstCluster - 2L) * spc
+        val upcaseOffset = volumeLayout.clusterHeapOffsetSectors +
+            (volumeLayout.upcaseFirstCluster - 2L) * spc
+        val rootOffset = volumeLayout.clusterHeapOffsetSectors +
+            (volumeLayout.rootDirFirstCluster - 2L) * spc
+
+        val bitmap = ExFatFormatter.buildAllocationBitmap(spc, volumeLayout)
+        writeSectors(part1Start + bitmapOffset, bitmap)
+
+        val upcase = ExFatFormatter.buildUpcaseTable(spc, volumeLayout.upcaseClusterCount)
+        writeSectors(part1Start + upcaseOffset, upcase)
+
+        val root = ExFatFormatter.buildRootDirectoryCluster(spc, volumeLayout)
+        writeSectors(part1Start + rootOffset, root)
     }
 
     /** Read one sector (512 bytes) at the given block offset. Used for write verification. */

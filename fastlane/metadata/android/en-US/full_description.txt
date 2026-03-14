@@ -1,0 +1,28 @@
+Ventoid is an Android utility for preparing Ventoy-style USB drives directly from a phone.
+
+It is built for users who want a clean, open-source path to writing a multi-ISO boot USB without using a desktop app for every change.
+
+What Ventoid does:
+
+- Detects supported USB mass-storage devices connected over OTG
+- Requests Android USB permission only when needed
+- Writes a Ventoy-compatible MBR layout
+- Writes the Ventoy boot core and EFI image
+- Formats the main data partition as exFAT
+- Shows a clear install progress view and local write log
+
+Why it is useful:
+
+- No root required
+- No ads
+- No account
+- No analytics
+- No cloud dependency
+
+Important:
+
+- Ventoid writes directly to the selected USB drive, so choosing the correct target device matters
+- A working OTG adapter or powered hub is required for actual USB writing
+- Device compatibility can vary depending on the phone, cable, USB bridge, and flash drive controller
+
+Ventoid is intended for advanced users, repair kits, travel setups, and people who want a portable boot-media workflow from Android.

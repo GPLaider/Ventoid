@@ -1,0 +1,1 @@
+Install Ventoy-style bootable USB drives from Android without root.
