@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Ventoid" parent="Theme.AppCompat.Light.DarkActionBar" />
+    <style name="Theme.Ventoid" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">@color/ventoid_primary</item>
+        <item name="colorPrimaryDark">@color/ventoid_primary_dark</item>
+        <item name="colorAccent">@color/ventoid_accent</item>
+        <item name="android:windowBackground">@color/ventoid_window</item>
+    </style>
 </resources>

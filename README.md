@@ -1,60 +1,134 @@
-# Ventoid
+# Ventoid Android App
 
-![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg)
-![Platform](https://img.shields.io/badge/Platform-Android-green.svg)
-![MinSDK](https://img.shields.io/badge/MinSDK-21-orange.svg)
-![TargetSDK](https://img.shields.io/badge/TargetSDK-35-brightgreen.svg)
+[한국어](#한국어) | [English](#english) | [中文](#中文)
 
-> **Create bootable USB drives directly from your Android device.** > No Root required. No PC needed. Just pure functionality.
+## 한국어
 
----
+Ventoid는 안드로이드에서 USB 저장장치에 직접 접근해서 Ventoy 스타일 USB를 만드는 앱입니다.  
+핵심은 `libaums`를 이용해 폰에서 USB 대용량 저장장치를 다루고, 그 위에 필요한 부팅 구조를 기록하는 것입니다.
 
-## 📖 Introduction
+### 하는 일
 
-**Ventoid** is an open-source Android application that enables you to install a bootable USB environment (based on Ventoy) directly from your smartphone. It is designed for users who need to create bootable drives on the go, without relying on a computer or rooting their device.
+- OTG로 연결된 USB 저장장치 감지
+- Android USB 권한 요청
+- Ventoy 호환 MBR 기록
+- `core.img` 기록
+- 1번 파티션 exFAT 포맷
+- EFI 파티션에 `ventoy.disk.img` 기록
 
-Inspired by the versatility of [Ventoy](https://github.com/ventoy/Ventoy) and the direct hardware access of [EtchDroid](https://github.com/EtchDroid/EtchDroid), Ventoid bridges the gap between mobile and desktop system maintenance.
+### 프로젝트 정보
 
-## ✨ Key Features
+- 패키지: `com.ventoid.app`
+- 모듈: `app`
+- 최소 SDK: 21
+- 대상 SDK: 35
 
-* **No Root Required:** Writes directly to USB block devices using Android's USB Host API.
-* **Ventoy Integration:** Implements the official Ventoy disk layout (MBR, exFAT, `ventoy.disk.img`).
-* **Broad Compatibility:** Supports devices from **Android 5.0 (Lollipop)** up to **Android 15 (Vanilla Ice Cream)**.
-* **Clean & Open:** Strictly adheres to GPL v3. No ads, no tracking.
+### 핵심 파일
 
----
+- `app/src/main/java/com/ventoid/app/MainActivity.kt`
+- `app/src/main/java/com/ventoid/app/install/VentoyInstallCoordinator.kt`
+- `app/src/main/java/com/ventoid/app/installer/VentoyInstaller.kt`
+- `app/src/main/java/com/ventoid/app/installer/ExFatFormatter.kt`
+- `app/src/main/java/com/ventoid/app/usb/UsbMassStorageHelper.kt`
 
-## 🛠 Technical Details
+### 필요한 파일
 
-### Project Structure
-* **Package:** `com.ventoid.app`
-* **Core Logic (`app/src/main/java/.../installer/`):**
-    * `VentoyConstants`: Definitions for the Ventoy disk structure and signatures.
-    * `VentoyLayout`: Manages the partition layout logic.
-    * `VentoyInstaller`: Handles the writing of MBR, exFAT file systems, and the boot image.
+설치 과정에서 아래 자산 파일을 사용합니다.
 
-### Dependencies
-* **[libaums](https://github.com/magnusja/libaums):** Used for low-level communication with USB mass storage devices (core + libusbcommunication).
-* **JUnit 5:** Utilized for unit testing and validation.
+- `app/src/main/assets/boot/boot.img`
+- `app/src/main/assets/boot/core.img`
+- `app/src/main/assets/ventoy/ventoy.disk.img`
 
-### Acknowledgements & References
-This project stands on the shoulders of giants:
-1.  **[Ventoy](https://github.com/ventoy/Ventoy):** The core technology for the bootable USB layout.
-2.  **[EtchDroid](https://github.com/EtchDroid/EtchDroid):** Inspiration for USB block device interaction on Android.
+### 테스트
 
-## **☕ Support (Donate)**
-If this tool saved your day (or saved you from finding a PC), you can support the development.
-(Funds will be used for buying Red Horse beer and test devices! 🍺)
-
-Bitcoin (BTC): bc1qys2gvz02yc295gmkxy9yr7spd44t9hgtyusy2c
-
----
-
-## 🏗️ Build & Test
-
-**Prerequisites:** Android SDK, JDK 17+
-
-### Build Debug APK
 ```bash
-./gradlew :app:assembleDebug
+./gradlew :app:testDebugUnitTest
+```
 
+## English
+
+Ventoid is an Android app for writing a Ventoy-style USB layout straight to a connected USB drive.
+
+Under the hood it relies on `libaums` for direct USB mass-storage access, then layers the boot layout, partition setup, and image writing flow on top.
+
+### What it does
+
+- Detects OTG-connected USB storage devices
+- Requests Android USB permission when needed
+- Writes a Ventoy-compatible MBR
+- Writes `core.img`
+- Formats partition 1 as exFAT
+- Writes `ventoy.disk.img` into the EFI partition
+
+### Project info
+
+- package: `com.ventoid.app`
+- module: `app`
+- minimum SDK: 21
+- target SDK: 35
+
+### Key files
+
+- `app/src/main/java/com/ventoid/app/MainActivity.kt`
+- `app/src/main/java/com/ventoid/app/install/VentoyInstallCoordinator.kt`
+- `app/src/main/java/com/ventoid/app/installer/VentoyInstaller.kt`
+- `app/src/main/java/com/ventoid/app/installer/ExFatFormatter.kt`
+- `app/src/main/java/com/ventoid/app/usb/UsbMassStorageHelper.kt`
+
+### Required files
+
+The install flow expects these bundled assets:
+
+- `app/src/main/assets/boot/boot.img`
+- `app/src/main/assets/boot/core.img`
+- `app/src/main/assets/ventoy/ventoy.disk.img`
+
+### Tests
+
+```bash
+./gradlew :app:testDebugUnitTest
+```
+
+## 中文
+
+Ventoid 是一个 Android 应用，目标是把连接到手机的 USB 存储设备直接写成 Ventoy 风格的启动盘。
+
+底层这件事主要靠 `libaums` 完成：先在 Android 上拿到 USB 大容量存储访问能力，再在这个基础上写入分区布局、启动结构和镜像文件。
+
+### 它会做什么
+
+- 检测通过 OTG 连接的 USB 存储设备
+- 在需要时请求 Android USB 权限
+- 写入兼容 Ventoy 的 MBR
+- 写入 `core.img`
+- 将第一分区格式化为 exFAT
+- 向 EFI 分区写入 `ventoy.disk.img`
+
+### 项目信息
+
+- 包名：`com.ventoid.app`
+- 模块：`app`
+- 最低 SDK：21
+- 目标 SDK：35
+
+### 关键文件
+
+- `app/src/main/java/com/ventoid/app/MainActivity.kt`
+- `app/src/main/java/com/ventoid/app/install/VentoyInstallCoordinator.kt`
+- `app/src/main/java/com/ventoid/app/installer/VentoyInstaller.kt`
+- `app/src/main/java/com/ventoid/app/installer/ExFatFormatter.kt`
+- `app/src/main/java/com/ventoid/app/usb/UsbMassStorageHelper.kt`
+
+### 必需文件
+
+安装流程依赖这些内置资源：
+
+- `app/src/main/assets/boot/boot.img`
+- `app/src/main/assets/boot/core.img`
+- `app/src/main/assets/ventoy/ventoy.disk.img`
+
+### 测试
+
+```bash
+./gradlew :app:testDebugUnitTest
+```

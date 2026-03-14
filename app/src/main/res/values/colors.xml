@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ventoid_window">#101814</color>
+    <color name="ventoid_surface">#17211C</color>
+    <color name="ventoid_surface_2">#213029</color>
+    <color name="ventoid_stroke">#2B4035</color>
+    <color name="ventoid_primary">#71E08E</color>
+    <color name="ventoid_primary_dark">#0C120F</color>
+    <color name="ventoid_accent">#D63A31</color>
+    <color name="ventoid_text_primary">#F2F7F3</color>
+    <color name="ventoid_text_secondary">#A9B8AF</color>
+    <color name="ventoid_success">#86F2A3</color>
+</resources>

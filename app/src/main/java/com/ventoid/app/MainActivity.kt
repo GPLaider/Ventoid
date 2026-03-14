@@ -10,19 +10,23 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.ventoid.app.installer.VentoyInstaller
+import com.ventoid.app.install.InstallMessage
+import com.ventoid.app.install.InstallProgress
+import com.ventoid.app.install.InstallStage
+import com.ventoid.app.install.VentoyInstallCoordinator
 import com.ventoid.app.util.VentoidFileLogger
-import com.ventoid.app.usb.BlockDeviceSession
 import com.ventoid.app.usb.UsbDeviceItem
 import com.ventoid.app.usb.UsbMassStorageHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -30,13 +34,7 @@ import java.io.IOException
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        private const val TAG = "Ventoid"
         private const val ACTION_USB_PERMISSION = "android.hardware.usb.action.USB_PERMISSION"
-        private val REQUIRED_ASSETS = listOf(
-            "boot/boot.img",
-            "boot/core.img",
-            "ventoy/ventoy.disk.img",
-        )
     }
 
     private lateinit var spinnerUsb: Spinner
@@ -44,10 +42,17 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonInstall: Button
     private lateinit var textLog: TextView
     private lateinit var textLogPath: TextView
+    private lateinit var textStageTitle: TextView
+    private lateinit var progressInstall: ProgressBar
+    private lateinit var chipMbr: TextView
+    private lateinit var chipCore: TextView
+    private lateinit var chipPart1: TextView
+    private lateinit var chipVentoy: TextView
 
-    private var deviceList: List<UsbDeviceItem> = emptyList()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var permissionReceiver: BroadcastReceiver? = null
     private var installJob: Job? = null
-    private val scope = CoroutineScope(Dispatchers.Main + Job())
+    private var deviceList: List<UsbDeviceItem> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,8 +64,16 @@ class MainActivity : AppCompatActivity() {
         buttonInstall = findViewById(R.id.button_install)
         textLog = findViewById(R.id.text_log)
         textLogPath = findViewById(R.id.text_log_path)
-        textLogPath.text = "로그 파일: ${VentoidFileLogger.getLogPath(this)}\n(USB 꽂으면 PC 끊김 → 메모리 뺀 뒤 재연결 → adb pull 위경로"
-        textLogPath.visibility = android.view.View.VISIBLE
+        textStageTitle = findViewById(R.id.text_stage_title)
+        progressInstall = findViewById(R.id.progress_install)
+        chipMbr = findViewById(R.id.chip_mbr)
+        chipCore = findViewById(R.id.chip_core)
+        chipPart1 = findViewById(R.id.chip_part1)
+        chipVentoy = findViewById(R.id.chip_ventoy)
+
+        textLogPath.text = getString(R.string.log_path, VentoidFileLogger.getLogPath(this))
+        textLogPath.visibility = TextView.VISIBLE
+        renderInstallStage(InstallStage.UNKNOWN, 0)
 
         buttonRefresh.setOnClickListener { refreshDeviceList() }
         buttonInstall.setOnClickListener { onInstallClicked() }
@@ -69,183 +82,235 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         installJob?.cancel()
+        unregisterPermissionReceiver()
+        scope.cancel()
+        super.onDestroy()
     }
 
     private fun refreshDeviceList() {
         deviceList = UsbMassStorageHelper.getMassStorageDevices(this)
-        val names = deviceList.map { it.displayName }
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, names)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerUsb.adapter = adapter
-        log("USB 장치 ${deviceList.size}개 감지")
+        val displayNames = deviceList.map { it.displayName }
+        spinnerUsb.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            displayNames,
+        ).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+        log(getString(R.string.usb_device_count, deviceList.size))
     }
 
     private fun onInstallClicked() {
-        try {
-            val index = spinnerUsb.selectedItemPosition
-            if (deviceList.isEmpty() || index < 0 || index >= deviceList.size) {
-                Toast.makeText(this, R.string.no_usb, Toast.LENGTH_SHORT).show()
-                return
-            }
-            val item = deviceList[index]
-            val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
-            if (usbManager.hasPermission(item.usbDevice)) {
-                startInstall(item)
-            } else {
-            val pending = PendingIntent.getBroadcast(
-                this, 0,
-                Intent(ACTION_USB_PERMISSION),
-                PendingIntent.FLAG_IMMUTABLE
-            )
-            val filter = IntentFilter(ACTION_USB_PERMISSION)
-            val receiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    try {
-                        if (intent?.action != ACTION_USB_PERMISSION) return
-                        val self = this
-                        runOnUiThread {
-                            try { unregisterReceiver(self) } catch (_: Exception) { }
-                        }
-                        val usbMgr = this@MainActivity.getSystemService(Context.USB_SERVICE) as UsbManager
-                        val granted = usbMgr.hasPermission(item.usbDevice)
-                        runOnUiThread {
-                            if (granted) startInstall(item)
-                            else {
-                                Toast.makeText(this@MainActivity, R.string.permission_denied, Toast.LENGTH_SHORT).show()
-                                log("USB 권한 거부됨")
-                            }
-                        }
-                    } catch (e: Throwable) {
-                        Log.e(TAG, "USB permission receiver error", e)
-                        VentoidFileLogger.log(e)
-                        runOnUiThread {
-                            Toast.makeText(this@MainActivity, "오류: ${e.message}", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+        val item = selectedUsbDevice() ?: return
+        val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+
+        if (usbManager.hasPermission(item.usbDevice)) {
+            startInstall(item)
+            return
+        }
+
+        requestUsbPermission(usbManager, item)
+    }
+
+    private fun selectedUsbDevice(): UsbDeviceItem? {
+        val index = spinnerUsb.selectedItemPosition
+        if (deviceList.isEmpty() || index !in deviceList.indices) {
+            toast(R.string.no_usb)
+            return null
+        }
+        return deviceList[index]
+    }
+
+    private fun requestUsbPermission(usbManager: UsbManager, item: UsbDeviceItem) {
+        unregisterPermissionReceiver()
+
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action != ACTION_USB_PERMISSION) {
+                    return
+                }
+
+                unregisterPermissionReceiver()
+
+                if (usbManager.hasPermission(item.usbDevice)) {
+                    startInstall(item)
+                } else {
+                    log(getString(R.string.permission_denied))
+                    toast(R.string.permission_denied)
                 }
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
-            } else {
-                registerReceiver(receiver, filter)
-            }
-            usbManager.requestPermission(item.usbDevice, pending)
-            }
-        } catch (e: Throwable) {
-            Log.e(TAG, "onInstallClicked", e)
-            VentoidFileLogger.log(e)
-            Toast.makeText(this, "오류: ${e.message}", Toast.LENGTH_LONG).show()
         }
+
+        permissionReceiver = receiver
+        val filter = IntentFilter(ACTION_USB_PERMISSION)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(receiver, filter)
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            this,
+            0,
+            Intent(ACTION_USB_PERMISSION),
+            PendingIntent.FLAG_IMMUTABLE,
+        )
+        usbManager.requestPermission(item.usbDevice, pendingIntent)
+    }
+
+    private fun unregisterPermissionReceiver() {
+        val receiver = permissionReceiver ?: return
+        permissionReceiver = null
+        runCatching { unregisterReceiver(receiver) }
     }
 
     private fun startInstall(item: UsbDeviceItem) {
         installJob?.cancel()
         installJob = scope.launch {
+            buttonInstall.isEnabled = false
             try {
-                buttonInstall.isEnabled = false
-                safeLog("설치 시작…")
-                VentoidFileLogger.log("startInstall: checking assets")
-                Log.d(TAG, "startInstall: checking assets")
-                val missing = REQUIRED_ASSETS.filter { path ->
-                    try {
-                        assets.open(path).close()
-                        false
-                    } catch (_: Exception) {
-                        true
-                    }
-                }
-                if (missing.isNotEmpty()) {
-                    val msg = "필수 에셋 없음: ${missing.joinToString()}"
-                    VentoidFileLogger.log(msg)
-                    Log.e(TAG, msg)
-                    safeLog(msg)
-                    safeToast(msg)
-                    return@launch
-                }
-                VentoidFileLogger.log("startInstall: reading assets first")
-                Log.d(TAG, "startInstall: reading assets first")
-                val bootImg: ByteArray
-                val coreImg: ByteArray
-                val ventoyImg: ByteArray
                 withContext(Dispatchers.IO) {
-                    bootImg = assets.open("boot/boot.img").readBytes()
-                    coreImg = assets.open("boot/core.img").readBytes()
-                    ventoyImg = assets.open("ventoy/ventoy.disk.img").readBytes()
+                    VentoyInstallCoordinator(applicationContext).install(item, ::handleInstallProgress)
                 }
-                VentoidFileLogger.log("assets read OK, boot=${bootImg.size} core=${coreImg.size} ventoy=${ventoyImg.size}")
-                Log.d(TAG, "assets read OK, boot=${bootImg.size} core=${coreImg.size} ventoy=${ventoyImg.size}")
-                withContext(Dispatchers.IO) {
-                    VentoidFileLogger.log("openBlockDevice start")
-                    Log.d(TAG, "openBlockDevice start")
-                    val session = UsbMassStorageHelper.openBlockDevice(applicationContext, item)
-                    try {
-                        val blockDevice = session.blockDevice
-                        VentoidFileLogger.log("openBlockDevice OK, blockSize=${blockDevice.blockSize}, blocks=${blockDevice.blocks}")
-                        Log.d(TAG, "openBlockDevice OK, blockSize=${blockDevice.blockSize}, blocks=${blockDevice.blocks}")
-                        val installer = VentoyInstaller(blockDevice)
-                        installer.install(
-                            bootImg, coreImg, ventoyImg,
-                            useGpt = false
-                        ) { step, current, total ->
-                            val pct = if (total > 0) (100 * current / total).toInt() else 0
-                            runOnUiThread {
-                                if (!isDestroyed) log("$step: $pct%")
-                            }
-                        }
-                        VentoidFileLogger.log("install() returned")
-                        Log.d(TAG, "install() returned")
-                    } finally {
-                        session.syncBeforeClose()
-                        session.close()
-                    }
-                }
-                VentoidFileLogger.log("install success")
-                safeLog(getString(R.string.install_success))
-                safeLog(getString(R.string.write_protect_tip))
                 safeToast(getString(R.string.install_success))
             } catch (e: SecurityException) {
                 VentoidFileLogger.log(e)
-                Log.e(TAG, "install SecurityException", e)
-                safeLog("오류: ${e.message}")
+                safeLog(getString(R.string.permission_denied))
                 safeToast(getString(R.string.permission_denied))
             } catch (e: IOException) {
                 VentoidFileLogger.log(e)
-                Log.e(TAG, "install IOException", e)
-                safeLog("오류: ${e.message}")
-                safeToast("설치 실패: ${e.message}")
+                showError(getString(R.string.install_failed_with_reason, e.message ?: e.javaClass.simpleName))
             } catch (e: Exception) {
                 VentoidFileLogger.log(e)
-                Log.e(TAG, "install Exception", e)
-                safeLog("오류: ${e.message}")
-                safeToast("오류: ${e.message}")
-            } catch (e: Throwable) {
-                VentoidFileLogger.log(e)
-                Log.e(TAG, "install Throwable", e)
-                safeLog("치명적 오류: ${e.message}")
-                safeToast("오류: ${e.message}")
+                showError(getString(R.string.unexpected_error_with_reason, e.message ?: e.javaClass.simpleName))
             } finally {
-                if (!isDestroyed) buttonInstall.isEnabled = true
+                if (!isDestroyed) {
+                    buttonInstall.isEnabled = true
+                }
             }
         }
     }
 
-    private fun safeLog(msg: String) {
-        runOnUiThread {
-            if (!isDestroyed) log(msg)
+    private fun handleInstallProgress(progress: InstallProgress) {
+        when (progress) {
+            is InstallProgress.Log -> {
+                safeLog(progress.message.toDisplayText())
+                if (progress.message == InstallMessage.Starting) {
+                    runOnUiThread {
+                        textStageTitle.text = getString(R.string.install_started)
+                        progressInstall.progress = 2
+                        renderInstallStage(InstallStage.MBR, 2)
+                    }
+                }
+                if (progress.message == InstallMessage.Success) {
+                    runOnUiThread {
+                        textStageTitle.text = getString(R.string.install_success)
+                        progressInstall.progress = 100
+                        renderInstallStage(InstallStage.VENTOY, 100)
+                    }
+                }
+            }
+            is InstallProgress.Step -> {
+                val percent = if (progress.total > 0) ((progress.current * 100) / progress.total).toInt() else 0
+                val overallPercent = progress.stage.toOverallPercent(percent)
+                runOnUiThread {
+                    if (!isDestroyed) {
+                        textStageTitle.text =
+                            getString(R.string.progress_message, progress.stage.toDisplayLabel(), percent)
+                        progressInstall.progress = overallPercent
+                        renderInstallStage(progress.stage, overallPercent)
+                    }
+                }
+                safeLog(getString(R.string.progress_message, progress.stage.toDisplayLabel(), percent))
+            }
+            is InstallProgress.Failure -> VentoidFileLogger.log(progress.error)
         }
     }
 
-    private fun safeToast(msg: String) {
-        runOnUiThread {
-            if (!isDestroyed) Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+    private fun InstallMessage.toDisplayText(): String {
+        return when (this) {
+            InstallMessage.Starting -> getString(R.string.install_started)
+            InstallMessage.Success -> getString(R.string.install_success)
+            InstallMessage.WriteProtectTip -> getString(R.string.write_protect_tip)
         }
     }
 
-    private fun log(msg: String) {
+    private fun InstallStage.toDisplayLabel(): String {
+        return when (this) {
+            InstallStage.MBR -> getString(R.string.progress_mbr)
+            InstallStage.CORE -> getString(R.string.progress_core)
+            InstallStage.PARTITION_1 -> getString(R.string.progress_part1)
+            InstallStage.VENTOY -> getString(R.string.progress_ventoy)
+            InstallStage.UNKNOWN -> getString(R.string.progress_unknown)
+        }
+    }
+
+    private fun InstallStage.toOverallPercent(stagePercent: Int): Int {
+        val normalized = stagePercent.coerceIn(0, 100)
+        return when (this) {
+            InstallStage.MBR -> normalized / 4
+            InstallStage.CORE -> 25 + normalized / 4
+            InstallStage.PARTITION_1 -> 50 + normalized / 4
+            InstallStage.VENTOY -> 75 + normalized / 4
+            InstallStage.UNKNOWN -> normalized
+        }
+    }
+
+    private fun renderInstallStage(activeStage: InstallStage, overallPercent: Int) {
+        renderChip(chipMbr, InstallStage.MBR, activeStage)
+        renderChip(chipCore, InstallStage.CORE, activeStage)
+        renderChip(chipPart1, InstallStage.PARTITION_1, activeStage)
+        renderChip(chipVentoy, InstallStage.VENTOY, activeStage)
+        if (overallPercent == 0) {
+            textStageTitle.text = getString(R.string.progress_idle)
+        }
+    }
+
+    private fun renderChip(chip: TextView, chipStage: InstallStage, activeStage: InstallStage) {
+        val backgroundRes = when {
+            activeStage == InstallStage.UNKNOWN -> R.drawable.chip_pending
+            chipStage.ordinal < activeStage.ordinal -> R.drawable.chip_complete
+            chipStage == activeStage -> R.drawable.chip_active
+            else -> R.drawable.chip_pending
+        }
+        chip.setBackgroundResource(backgroundRes)
+        val textColorRes = if (backgroundRes == R.drawable.chip_complete) {
+            android.R.color.black
+        } else {
+            R.color.ventoid_text_primary
+        }
+        chip.setTextColor(getColor(textColorRes))
+    }
+
+    private fun showError(message: String) {
+        safeLog(message)
+        safeToast(message)
+    }
+
+    private fun safeLog(message: String) {
+        runOnUiThread {
+            if (!isDestroyed) {
+                log(message)
+            }
+        }
+    }
+
+    private fun safeToast(message: String) {
+        runOnUiThread {
+            if (!isDestroyed) {
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun toast(messageResId: Int) {
+        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun log(message: String) {
         val current = textLog.text.toString()
-        val line = if (current.isEmpty()) msg else "$current\n$msg"
-        textLog.text = line
+        textLog.text = if (current.isBlank()) message else "$current\n$message"
     }
+
 }

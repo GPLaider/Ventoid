@@ -2,23 +2,40 @@ package com.ventoid.app.installer
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.Locale
 
 /**
- * Builds Windows-compliant exFAT structures for Part1: full Main/Backup Boot Region (24 sectors),
- * FAT at sector 24, then Cluster Heap. Volume label "Ventoy" to match official Ventoy.
- * Cluster size: 32KB (64 sectors) for part1 < 32GB, 128KB (256 sectors) for >= 32GB.
- * See Microsoft exFAT specification (FatOffset >= 24, boot checksum, extended boot sectors).
+ * Builds the minimal exFAT structures needed for Ventoy's data partition.
+ *
+ * The previous formatter always advertised a one-cluster allocation bitmap,
+ * which breaks large volumes because Windows expects the bitmap length to
+ * scale with the total cluster count.
  */
 object ExFatFormatter {
 
     const val VOLUME_LABEL = "Ventoy"
+
     private const val SECTOR_SIZE = 512
-    /** exFAT spec: FatOffset shall be at least 24 (Main + Backup Boot regions). */
     private const val FAT_OFFSET = 24
     private const val NUM_FATS = 1
+    private const val ROOT_DIR_CLUSTER = 2
+    private const val END_OF_CHAIN = 0xFFFFFFFF.toInt()
+
+    data class VolumeLayout(
+        val fatLengthSectors: Int,
+        val clusterHeapOffsetSectors: Long,
+        val clusterCount: Long,
+        val bitmapLengthBytes: Long,
+        val bitmapClusterCount: Int,
+        val bitmapFirstCluster: Int,
+        val upcaseLengthBytes: Long,
+        val upcaseClusterCount: Int,
+        val upcaseFirstCluster: Int,
+        val rootDirFirstCluster: Int,
+    )
 
     /**
-     * Sectors per cluster: Ventoy uses 64 (32KB) for disk < 32GB, 256 (128KB) for >= 32GB.
+     * Ventoy uses 32KB clusters below 32GB and 128KB clusters from 32GB upward.
      */
     fun sectorsPerCluster(part1SectorCount: Long): Int {
         val part1Bytes = part1SectorCount * SECTOR_SIZE
@@ -27,43 +44,76 @@ object ExFatFormatter {
     }
 
     /**
-     * Compute FAT length and cluster heap offset for layout with FatOffset=24, two FATs.
-     * ClusterHeapOffset = 24 + FatLength*2; ClusterCount = (VolumeLength - ClusterHeapOffset) / sectorsPerCluster.
+     * Derives the exFAT layout and helper structures for the target volume.
      */
-    fun computeFatLayout(volumeLengthSectors: Long, sectorsPerCluster: Int): Pair<Int, Long> {
+    fun computeVolumeLayout(volumeLengthSectors: Long, sectorsPerCluster: Int): VolumeLayout {
         require(volumeLengthSectors >= 256) { "Part1 too small for exFAT" }
+
         var fatLengthSectors = 1
         var clusterHeapOffset = FAT_OFFSET.toLong() + fatLengthSectors * NUM_FATS
         var clusterCount = (volumeLengthSectors - clusterHeapOffset) / sectorsPerCluster
-        if (clusterCount < 2) clusterCount = 2
+        if (clusterCount < 2) {
+            clusterCount = 2
+        }
+
         val fatLenLong = (clusterCount + 2) * 4 + SECTOR_SIZE - 1
         fatLengthSectors = (fatLenLong / SECTOR_SIZE).toInt()
         clusterHeapOffset = FAT_OFFSET.toLong() + fatLengthSectors * NUM_FATS
         clusterCount = (volumeLengthSectors - clusterHeapOffset) / sectorsPerCluster
-        if (clusterCount < 2) clusterCount = 2
-        return fatLengthSectors to clusterHeapOffset
+        if (clusterCount < 2) {
+            clusterCount = 2
+        }
+
+        val clusterSizeBytes = sectorsPerCluster.toLong() * SECTOR_SIZE
+        val bitmapLengthBytes = ((clusterCount + 7) / 8).coerceAtLeast(1)
+        val bitmapClusterCount = ((bitmapLengthBytes + clusterSizeBytes - 1) / clusterSizeBytes).toInt()
+        val bitmapFirstCluster = ROOT_DIR_CLUSTER
+        val upcaseLengthBytes = 65_536L * 2L
+        val upcaseClusterCount = ((upcaseLengthBytes + clusterSizeBytes - 1) / clusterSizeBytes).toInt()
+        val upcaseFirstCluster = bitmapFirstCluster + bitmapClusterCount
+        val rootDirFirstCluster = upcaseFirstCluster + upcaseClusterCount
+
+        return VolumeLayout(
+            fatLengthSectors = fatLengthSectors,
+            clusterHeapOffsetSectors = clusterHeapOffset,
+            clusterCount = clusterCount,
+            bitmapLengthBytes = bitmapLengthBytes,
+            bitmapClusterCount = bitmapClusterCount,
+            bitmapFirstCluster = bitmapFirstCluster,
+            upcaseLengthBytes = upcaseLengthBytes,
+            upcaseClusterCount = upcaseClusterCount,
+            upcaseFirstCluster = upcaseFirstCluster,
+            rootDirFirstCluster = rootDirFirstCluster,
+        )
     }
 
-    /** Boot checksum over 11 sectors; exclude bytes 106, 107, 112 (VolumeFlags and PercentInUse). */
+    fun computeFatLayout(volumeLengthSectors: Long, sectorsPerCluster: Int): Pair<Int, Long> {
+        val layout = computeVolumeLayout(volumeLengthSectors, sectorsPerCluster)
+        return layout.fatLengthSectors to layout.clusterHeapOffsetSectors
+    }
+
+    /**
+     * Boot checksum over sectors 0..10.
+     */
     private fun bootChecksum(sectors0to10: ByteArray): Int {
         require(sectors0to10.size >= 11 * SECTOR_SIZE)
         var sum = 0
-        for (i in sectors0to10.indices) {
-            if (i == 106 || i == 107 || i == 112) continue
-            sum = ((sum and 1) shl 31) or (sum ushr 1) + (sectors0to10[i].toInt() and 0xFF)
+        for (index in sectors0to10.indices) {
+            if (index == 106 || index == 107 || index == 112) {
+                continue
+            }
+            sum = (((sum and 1) shl 31) or (sum ushr 1)) + (sectors0to10[index].toInt() and 0xFF)
         }
         return sum
     }
 
-    /**
-     * Build sector 0 (Main Boot Sector) with FatOffset=24.
-     */
     fun buildBootSector(
         partitionStartSector: Long,
         volumeLengthSectors: Long,
         sectorsPerCluster: Int,
         fatLengthSectors: Int,
         clusterHeapOffsetSectors: Long,
+        rootDirFirstCluster: Int,
     ): ByteArray {
         val clusterCount = (volumeLengthSectors - clusterHeapOffsetSectors) / sectorsPerCluster
         val boot = ByteArray(SECTOR_SIZE)
@@ -78,7 +128,7 @@ object ExFatFormatter {
         le.putInt(84, fatLengthSectors)
         le.putInt(88, clusterHeapOffsetSectors.toInt())
         le.putInt(92, clusterCount.toInt())
-        le.putInt(96, 2)
+        le.putInt(96, rootDirFirstCluster)
         le.putInt(100, 0x12345678)
         le.putShort(104, 0x0100)
         le.putShort(106, 0)
@@ -90,42 +140,37 @@ object ExFatFormatter {
         }.toByte()
         boot[110] = NUM_FATS.toByte()
         boot[111] = 0x80.toByte()
-        boot[112] = 0xFF.toByte()  // PercentInUse: 0xFF = not available (Windows default for new format)
+        boot[112] = 0xFF.toByte()
         boot[510] = 0x55.toByte()
         boot[511] = 0xAA.toByte()
         return boot
     }
 
-    /** Build 8 Extended Boot Sectors: each sector last 4 bytes = 0xAA550000 (LE: 00 00 55 AA). */
     fun buildExtendedBootSectors(): ByteArray {
         val ext = ByteArray(8 * SECTOR_SIZE)
         val sig = byteArrayOf(0x00, 0x00, 0x55, 0xAA.toByte())
-        for (i in 0 until 8) {
-            sig.copyInto(ext, (i + 1) * SECTOR_SIZE - 4)
+        for (index in 0 until 8) {
+            sig.copyInto(ext, (index + 1) * SECTOR_SIZE - 4)
         }
         return ext
     }
 
-    /** OEM Parameters sector: 10 x 48-byte Null Parameters (zeros). */
     fun buildOemSector(): ByteArray = ByteArray(SECTOR_SIZE)
 
-    /** Reserved sector. */
     fun buildReservedSector(): ByteArray = ByteArray(SECTOR_SIZE)
 
-    /** Build Boot Checksum sector (sector 11): repeating 4-byte checksum of first 11 sectors. */
     fun buildChecksumSector(mainBootRegion0to10: ByteArray): ByteArray {
         val sum = bootChecksum(mainBootRegion0to10)
         val sector = ByteArray(SECTOR_SIZE)
         val le = ByteBuffer.wrap(sector).order(ByteOrder.LITTLE_ENDIAN)
-        var i = 0
-        while (i < SECTOR_SIZE) {
-            le.putInt(i, sum)
-            i += 4
+        var offset = 0
+        while (offset < SECTOR_SIZE) {
+            le.putInt(offset, sum)
+            offset += 4
         }
         return sector
     }
 
-    /** Build full Main Boot Region (12 sectors): boot(1) + extended(8) + OEM(1) + reserved(1) + checksum(1). */
     fun buildMainBootRegion(
         partitionStartSector: Long,
         volumeLengthSectors: Long,
@@ -134,11 +179,12 @@ object ExFatFormatter {
         clusterHeapOffsetSectors: Long,
     ): ByteArray {
         val boot = buildBootSector(
-            partitionStartSector,
-            volumeLengthSectors,
-            sectorsPerCluster,
-            fatLengthSectors,
-            clusterHeapOffsetSectors,
+            partitionStartSector = partitionStartSector,
+            volumeLengthSectors = volumeLengthSectors,
+            sectorsPerCluster = sectorsPerCluster,
+            fatLengthSectors = fatLengthSectors,
+            clusterHeapOffsetSectors = clusterHeapOffsetSectors,
+            rootDirFirstCluster = computeVolumeLayout(volumeLengthSectors, sectorsPerCluster).rootDirFirstCluster,
         )
         val extended = buildExtendedBootSectors()
         val oem = buildOemSector()
@@ -155,88 +201,97 @@ object ExFatFormatter {
         return main
     }
 
-    /** Build Backup Boot Region (12 sectors): copy of Main. */
     fun buildBackupBootRegion(mainBootRegion: ByteArray): ByteArray = mainBootRegion.copyOf()
 
-    /**
-     * Build FAT: cluster 0=media, 1=unused, 2=root EOC, 3=bitmap EOC, 4=upcase EOC.
-     */
-    fun buildFat(fatLengthSectors: Int): ByteArray {
+    fun buildFat(fatLengthSectors: Int, volumeLayout: VolumeLayout): ByteArray {
         val fatBytes = fatLengthSectors * SECTOR_SIZE
         val fat = ByteArray(fatBytes)
         val le = ByteBuffer.wrap(fat).order(ByteOrder.LITTLE_ENDIAN)
+
         le.putInt(0, 0xFFFFFFF8.toInt())
-        le.putInt(4, 0xFFFFFFFF.toInt())
-        le.putInt(8, 0xFFFFFFFF.toInt())
-        le.putInt(12, 0xFFFFFFFF.toInt())
-        le.putInt(16, 0xFFFFFFFF.toInt())
+        le.putInt(4, END_OF_CHAIN)
+        le.putInt(volumeLayout.rootDirFirstCluster * 4, END_OF_CHAIN)
+        linkClusterRun(le, volumeLayout.bitmapFirstCluster, volumeLayout.bitmapClusterCount)
+        linkClusterRun(le, volumeLayout.upcaseFirstCluster, volumeLayout.upcaseClusterCount)
+
         return fat
     }
 
-    /** exFAT TableChecksum over up-case table bytes (no exclusions). */
+    private fun linkClusterRun(le: ByteBuffer, firstCluster: Int, clusterCount: Int) {
+        if (clusterCount <= 0) {
+            return
+        }
+        for (index in 0 until clusterCount - 1) {
+            val currentCluster = firstCluster + index
+            le.putInt(currentCluster * 4, currentCluster + 1)
+        }
+        le.putInt((firstCluster + clusterCount - 1) * 4, END_OF_CHAIN)
+    }
+
     private fun tableChecksum(table: ByteArray): Int {
         var sum = 0
-        for (i in table.indices) {
-            sum = ((sum and 1) shl 31) or (sum ushr 1) + (table[i].toInt() and 0xFF)
+        for (index in table.indices) {
+            sum = (((sum and 1) shl 31) or (sum ushr 1)) + (table[index].toInt() and 0xFF)
         }
         return sum
     }
 
-    /** First 128 Unicode code points: a-z -> A-Z, rest identity. 256 bytes. */
-    fun buildUpcaseTable128(): ByteArray {
-        val t = ByteArray(256)
-        val le = ByteBuffer.wrap(t).order(ByteOrder.LITTLE_ENDIAN)
-        for (i in 0..127) {
-            val c = when {
-                i in 0x61..0x7A -> i - 0x20
-                else -> i
-            }
-            le.putShort((i * 2).toInt(), c.toShort())
+    fun buildUpcaseTableData(): ByteArray {
+        val table = ByteArray(65_536 * 2)
+        val le = ByteBuffer.wrap(table).order(ByteOrder.LITTLE_ENDIAN)
+        for (codePoint in 0..0xFFFF) {
+            val mapped = codePoint.toChar().toString().uppercase(Locale.ROOT)
+            val upper = if (mapped.length == 1) mapped[0].code else codePoint
+            le.putShort(codePoint * 2, upper.toShort())
         }
-        return t
+        return table
     }
 
-    /** Allocation Bitmap: one cluster; bits 0,1,2 set (clusters 2,3,4 in use). */
-    fun buildAllocationBitmapCluster(sectorsPerCluster: Int): ByteArray {
+    fun buildAllocationBitmap(sectorsPerCluster: Int, volumeLayout: VolumeLayout): ByteArray {
         val clusterBytes = sectorsPerCluster * SECTOR_SIZE
-        val b = ByteArray(clusterBytes)
-        b[0] = 0x07.toByte()
-        return b
+        val bitmap = ByteArray(clusterBytes * volumeLayout.bitmapClusterCount)
+        val usedClusterCount = 1 + volumeLayout.bitmapClusterCount + volumeLayout.upcaseClusterCount
+
+        for (bitIndex in 0 until usedClusterCount) {
+            val byteIndex = bitIndex / 8
+            val bitOffset = bitIndex % 8
+            bitmap[byteIndex] = (bitmap[byteIndex].toInt() or (1 shl bitOffset)).toByte()
+        }
+
+        return bitmap
     }
 
-    /** Up-case table cluster: 256 bytes mandatory table, rest zero. */
-    fun buildUpcaseTableCluster(sectorsPerCluster: Int): ByteArray {
+    fun buildUpcaseTable(sectorsPerCluster: Int, clusterCount: Int): ByteArray {
         val clusterBytes = sectorsPerCluster * SECTOR_SIZE
-        val t = ByteArray(clusterBytes)
-        buildUpcaseTable128().copyInto(t, 0)
-        return t
+        val table = ByteArray(clusterBytes * clusterCount)
+        buildUpcaseTableData().copyInto(table, 0)
+        return table
     }
 
-    /**
-     * Root directory: Allocation Bitmap (0x81), Up-case Table (0x82), Volume Label (0x83).
-     * Windows requires 0x81 and 0x82 to mount.
-     */
-    fun buildRootDirectoryCluster(sectorsPerCluster: Int): ByteArray {
+    fun buildRootDirectoryCluster(
+        sectorsPerCluster: Int,
+        volumeLayout: VolumeLayout,
+    ): ByteArray {
         val clusterBytes = sectorsPerCluster * SECTOR_SIZE
         val root = ByteArray(clusterBytes)
         val le = ByteBuffer.wrap(root).order(ByteOrder.LITTLE_ENDIAN)
-        val upcase128 = buildUpcaseTable128()
-        val upcaseChecksum = tableChecksum(upcase128)
-        val clusterSizeBytes = clusterBytes
+        val upcaseChecksum = tableChecksum(buildUpcaseTableData())
+
         root[0] = 0x81.toByte()
         root[1] = 0.toByte()
-        le.putInt(20, 3)
-        le.putLong(24, clusterSizeBytes.toLong())
+        le.putInt(20, volumeLayout.bitmapFirstCluster)
+        le.putLong(24, volumeLayout.bitmapLengthBytes)
+
         root[32] = 0x82.toByte()
         le.putInt(36, upcaseChecksum)
-        le.putInt(52, 4)
-        le.putLong(56, 256L)
-        // Volume Label (0x83): required so Windows shows "Ventoy" as drive name
+        le.putInt(52, volumeLayout.upcaseFirstCluster)
+        le.putLong(56, volumeLayout.upcaseLengthBytes)
+
         root[64] = 0x83.toByte()
-        root[65] = 6.toByte() // CharacterCount: "Ventoy" = 6 characters (exFAT spec 1–11)
+        root[65] = 6.toByte()
         val ventoyUtf16 = VOLUME_LABEL.toByteArray(Charsets.UTF_16LE)
         ventoyUtf16.copyInto(root, 66, 0, minOf(22, ventoyUtf16.size))
-        // root is zero-initialized; bytes 78–87 (padding of 22-byte VolumeLabel) stay 0
+
         return root
     }
 }

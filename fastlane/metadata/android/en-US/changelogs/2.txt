@@ -1,0 +1,3 @@
+Fix the Android Ventoy installer so large USB drives mount correctly.
+Resolve the exFAT metadata regressions that caused RAW or read-only data partitions.
+Refresh the app UI, icon, and F-Droid submission metadata.

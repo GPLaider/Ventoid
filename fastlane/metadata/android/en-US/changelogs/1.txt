@@ -1,0 +1,7 @@
+Initial public release candidate.
+
+- Added a cleaner installer UI inspired by phone-first imaging tools
+- Added a graphical install progress area tied to write stages
+- Improved app structure by separating install orchestration from the activity
+- Expanded unit tests for installer logic and progress stage mapping
+- Removed unnecessary Internet permission
