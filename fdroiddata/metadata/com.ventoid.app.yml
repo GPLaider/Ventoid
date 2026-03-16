@@ -8,28 +8,6 @@ Changelog: https://github.com/GPLaider/Ventoid/releases/tag/v0.1.1
 
 AutoName: Ventoid
 License: GPL-3.0-or-later
-Summary: Prepare Ventoy-style bootable USB drives from Android without root.
-
-Description: |-
-    Ventoid is an Android utility for preparing Ventoy-style USB drives directly from a phone.
-
-    It is designed for OTG workflows, repair kits, and situations where a phone is the only machine available.
-
-    Main capabilities:
-
-    * detect supported USB mass-storage devices
-    * request Android USB permission only when needed
-    * write a Ventoy-compatible partition layout
-    * write the boot core and EFI image
-    * format the data partition as exFAT
-    * show a clear stage-based install view and local write log
-
-    Important notes:
-
-    * this app performs destructive writes to the selected USB drive
-    * compatibility depends on the phone, cable, OTG adapter, USB bridge, and storage device
-    * the source code is licensed under GPL-3.0-or-later
-    * bundled boot assets should still be documented clearly in the submission notes
 
 RepoType: git
 Repo: https://github.com/GPLaider/Ventoid.git
@@ -40,3 +18,8 @@ Builds:
     commit: v0.1.1
     gradle:
       - yes
+
+AutoUpdateMode: Version v%v
+UpdateCheckMode: Tags ^v[\d.]+$
+CurrentVersion: 0.1.1
+CurrentVersionCode: 2
