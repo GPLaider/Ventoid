@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.hardware.usb.UsbManager
-import android.os.Build
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -15,6 +14,7 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.ventoid.app.install.InstallMessage
 import com.ventoid.app.install.InstallProgress
 import com.ventoid.app.install.InstallStage
@@ -144,11 +144,7 @@ class MainActivity : AppCompatActivity() {
 
         permissionReceiver = receiver
         val filter = IntentFilter(ACTION_USB_PERMISSION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            registerReceiver(receiver, filter)
-        }
+        ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
 
         val pendingIntent = PendingIntent.getBroadcast(
             this,
@@ -280,7 +276,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             R.color.ventoid_text_primary
         }
-        chip.setTextColor(getColor(textColorRes))
+        chip.setTextColor(ContextCompat.getColor(this, textColorRes))
     }
 
     private fun showError(message: String) {
