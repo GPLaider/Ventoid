@@ -1,0 +1,1 @@
+Fix Android lint issues in USB permission handling and color compatibility.
