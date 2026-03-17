@@ -4,6 +4,15 @@ plugins {
     alias(libs.plugins.android.junit5)
 }
 
+val releaseKeystorePath = providers.gradleProperty("VENTOID_RELEASE_STORE_FILE")
+    .orElse(providers.environmentVariable("VENTOID_RELEASE_STORE_FILE"))
+val releaseKeystorePassword = providers.gradleProperty("VENTOID_RELEASE_STORE_PASSWORD")
+    .orElse(providers.environmentVariable("VENTOID_RELEASE_STORE_PASSWORD"))
+val releaseKeyAlias = providers.gradleProperty("VENTOID_RELEASE_KEY_ALIAS")
+    .orElse(providers.environmentVariable("VENTOID_RELEASE_KEY_ALIAS"))
+val releaseKeyPassword = providers.gradleProperty("VENTOID_RELEASE_KEY_PASSWORD")
+    .orElse(providers.environmentVariable("VENTOID_RELEASE_KEY_PASSWORD"))
+
 android {
     namespace = "com.ventoid.app"
     compileSdk = 35
@@ -12,13 +21,31 @@ android {
         applicationId = "com.ventoid.app"
         minSdk = 21
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.1.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        if (
+            releaseKeystorePath.isPresent &&
+            releaseKeystorePassword.isPresent &&
+            releaseKeyAlias.isPresent &&
+            releaseKeyPassword.isPresent
+        ) {
+            create("release") {
+                storeFile = file(releaseKeystorePath.get())
+                storePassword = releaseKeystorePassword.get()
+                keyAlias = releaseKeyAlias.get()
+                keyPassword = releaseKeyPassword.get()
+            }
+        }
     }
     buildTypes {
         release {
             isMinifyEnabled = false
+            if (signingConfigs.findByName("release") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
