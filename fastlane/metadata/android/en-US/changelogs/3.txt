@@ -1,0 +1,1 @@
+Ventoid 0.1.2 fixes the F-Droid packaging path and aligns the tagged release with the current installer build.

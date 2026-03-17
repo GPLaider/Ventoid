@@ -12,13 +12,14 @@ RepoType: git
 Repo: https://github.com/GPLaider/Ventoid.git
 
 Builds:
-  - versionName: 0.1.1
-    versionCode: 2
-    commit: 95a5bc6519d354624e1d4f8bbe184a4f344af942
+  - versionName: 0.1.2
+    versionCode: 3
+    commit: v0.1.2
     gradle:
       - yes
+    output: app/build/outputs/apk/release/app-release-unsigned.apk
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[\d.]+$
-CurrentVersion: 0.1.1
-CurrentVersionCode: 2
+CurrentVersion: 0.1.2
+CurrentVersionCode: 3
