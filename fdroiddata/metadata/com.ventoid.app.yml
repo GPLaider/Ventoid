@@ -1,12 +1,11 @@
 Categories:
   - System
-
+License: GPL-3.0-only
 SourceCode: https://github.com/GPLaider/Ventoid
 IssueTracker: https://github.com/GPLaider/Ventoid/issues
 Changelog: https://github.com/GPLaider/Ventoid/releases
 
 AutoName: Ventoid
-License: GPL-3.0-only
 
 RepoType: git
 Repo: https://github.com/GPLaider/Ventoid.git
