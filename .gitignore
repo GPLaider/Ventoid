@@ -11,6 +11,10 @@ build/
 
 # Local configuration (SDK path, etc.)
 local.properties
+secrets/
+*.jks
+*.keystore
+*.p12
 
 # Android Studio
 *.iml

@@ -1,0 +1,9 @@
+Supply-chain hardening release.
+
+- Added Gradle dependency lockfiles
+- Added Gradle dependency verification metadata
+- Pinned Gradle wrapper SHA-256
+- Removed unnecessary JitPack repository usage
+- Added runtime integrity checks for bundled Ventoy boot assets
+- Added provenance documentation for bundled boot assets
+- Ignored local signing secrets and keystore files
