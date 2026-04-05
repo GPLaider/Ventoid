@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">Ventoid</string>
     <string name="hero_title">Ventoy Writer</string>
-    <string name="hero_subtitle">A cleaner, phone-first USB installer flow inspired by EtchDroid.</string>
+    <string name="hero_subtitle">A cleaner, phone-first USB installer flow for OTG rescue and install media.</string>
     <string name="hero_status">Ready for USB host mode</string>
     <string name="select_usb">Select USB device</string>
     <string name="device_help">Choose the target USB drive, refresh detection, then start installation.</string>
@@ -25,6 +25,7 @@
     <string name="no_usb">No USB mass storage device is available.</string>
     <string name="permission_denied">USB permission was denied.</string>
     <string name="usb_device_count">Detected %1$d USB device(s).</string>
+    <string name="usb_device_none">No compatible USB mass-storage devices detected yet.</string>
     <string name="install_started">Starting Ventoy installation...</string>
     <string name="missing_assets">Required asset files are missing: %1$s</string>
     <string name="progress_message">%1$s: %2$d%%</string>

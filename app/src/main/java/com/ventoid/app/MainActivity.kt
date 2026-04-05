@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val ACTION_USB_PERMISSION = "android.hardware.usb.action.USB_PERMISSION"
+        private const val MAX_LOG_LINES = 120
     }
 
     private lateinit var spinnerUsb: Spinner
@@ -97,6 +98,10 @@ class MainActivity : AppCompatActivity() {
             displayNames,
         ).apply {
             setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+        buttonInstall.isEnabled = deviceList.isNotEmpty()
+        if (deviceList.isEmpty()) {
+            textStageTitle.text = getString(R.string.usb_device_none)
         }
         log(getString(R.string.usb_device_count, deviceList.size))
     }
@@ -163,6 +168,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun startInstall(item: UsbDeviceItem) {
         installJob?.cancel()
+        textLog.text = ""
+        renderInstallStage(InstallStage.UNKNOWN, 0)
         installJob = scope.launch {
             buttonInstall.isEnabled = false
             try {
@@ -182,7 +189,7 @@ class MainActivity : AppCompatActivity() {
                 showError(getString(R.string.unexpected_error_with_reason, e.message ?: e.javaClass.simpleName))
             } finally {
                 if (!isDestroyed) {
-                    buttonInstall.isEnabled = true
+                    buttonInstall.isEnabled = deviceList.isNotEmpty()
                 }
             }
         }
@@ -305,8 +312,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun log(message: String) {
-        val current = textLog.text.toString()
-        textLog.text = if (current.isBlank()) message else "$current\n$message"
+        val updatedLines = buildList {
+            val current = textLog.text.toString()
+            if (current.isNotBlank()) {
+                addAll(current.lineSequence().filter { it.isNotBlank() }.toList())
+            }
+            add(message)
+        }.takeLast(MAX_LOG_LINES)
+        textLog.text = updatedLines.joinToString("\n")
     }
 
 }
