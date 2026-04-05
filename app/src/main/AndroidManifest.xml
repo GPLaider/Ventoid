@@ -5,7 +5,7 @@
 
     <application
         android:name=".VentoidApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@drawable/ventoid_icon"
         android:label="@string/app_name"
         android:roundIcon="@drawable/ventoid_icon"

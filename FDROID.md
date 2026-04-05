@@ -9,7 +9,7 @@ This project is being prepared for F-Droid style distribution.
 - Minimum SDK: 21
 - Target SDK: 35
 - Build system: Gradle / Kotlin
-- Source license: GPL-3.0-or-later
+- Source license: GPL-3.0-only
 
 ## Privacy And Network
 
@@ -38,10 +38,10 @@ The app currently includes boot assets under `app/src/main/assets/`:
 - `boot/core.img`
 - `ventoy/ventoy.disk.img`
 
-These files should still be documented clearly in the final submission so reviewers can trace their upstream source and licensing basis.
+These files are documented in `ASSET_PROVENANCE.md` so reviewers can trace their upstream source and licensing basis.
 
 ## Suggested Submission Notes
 
 - Emphasize that the project is open source and contains no advertising or tracking
 - Call out that the app is for advanced users because it performs destructive USB writes
-- Document any licensing status for bundled Ventoy-derived binary assets before release
+- Keep `ASSET_PROVENANCE.md` in sync whenever bundled Ventoy-derived assets are updated
