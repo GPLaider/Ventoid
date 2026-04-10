@@ -13,7 +13,7 @@ Repo: https://github.com/GPLaider/Ventoid.git
 Builds:
   - versionName: 0.1.4
     versionCode: 5
-    commit: 187055b5fd511ac0a1197066dd1d11c3cd58e036
+    commit: cdf21f9ba0043cf2dcd8976bf6240d2b8bafaa11
     subdir: app
     gradle:
       - yes
