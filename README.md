@@ -12,6 +12,39 @@ Ventoid turns an Android phone into a practical Ventoy-style USB writer. Plug in
 - Clear stage-based install flow for `MBR`, `CORE`, `DATA`, and `EFI`
 - No ads, no analytics, no network dependency
 
+## Build from source
+
+Ventoid should be verifiable by anyone. You can open the project in Android Studio or build it directly with Gradle from the repository root.
+
+### Android Studio
+
+1. Clone the repository.
+2. Open `Ventoid-publish` in Android Studio.
+3. Let Gradle sync and install any missing Android SDK components it asks for.
+4. Build a debug APK from **Build > Build Bundle(s) / APK(s) > Build APK(s)**, or run the app on a device with USB debugging enabled.
+
+### Command line verification
+
+On Windows, run these commands from the repository root:
+
+```powershell
+.\gradlew.bat :app:testDebugUnitTest
+.\gradlew.bat :app:assembleDebug
+```
+
+If you also want a release build:
+
+```powershell
+.\gradlew.bat :app:assembleRelease
+```
+
+Release signing is optional. If no `VENTOID_RELEASE_*` environment variables or Gradle properties are set, the release artifact will be generated as an unsigned APK.
+
+### Notes
+
+- The bundled boot assets are already included in the repository, so no extra download step is required to verify the build.
+- The project uses Gradle dependency locking and verification metadata to keep dependency resolution auditable.
+
 ## 한국어
 
 Ventoid는 안드로이드 폰에서 OTG로 USB를 연결해 Ventoy 스타일의 부팅 USB를 준비하는 앱입니다. 주변에 PC가 없고 폰만 남아 있는 상황에서 설치 USB나 복구 USB를 다시 만들어야 할 때 쓰기 좋게 설계했습니다.
