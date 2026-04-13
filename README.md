@@ -46,6 +46,23 @@ Release signing is optional. If no `VENTOID_RELEASE_*` environment variables or 
 - The bundled boot assets are already included in the repository, so no extra download step is required to verify the build.
 - The project uses Gradle dependency locking and verification metadata to keep dependency resolution auditable.
 
+## Release preflight
+
+Before pushing a new F-Droid metadata update, run the local preflight once from the repository root:
+
+```powershell
+pwsh -File .\scripts\Test-FdroidPreflight.ps1 -UpdateMetadata
+```
+
+That command keeps the bundled `fdroiddata/metadata/com.ventoid.app.yml` copy aligned with the current app version and commit, then runs the checks that have caused F-Droid review churn in the past:
+
+- `:app:lintRelease`
+- `:app:testDebugUnitTest`
+- `:app:assembleRelease`
+- `:app:bundleRelease`
+
+GitHub Actions also runs the same Android verification on pushes and pull requests, plus an F-Droid preflight job on `v*` tags and manual dispatches.
+
 ## 한국어
 
 Ventoid는 안드로이드 폰에서 OTG로 USB를 연결해 Ventoy 스타일의 부팅 USB를 준비하는 앱입니다. 주변에 PC가 없고 폰만 남아 있는 상황에서 설치 USB나 복구 USB를 다시 만들어야 할 때 쓰기 좋게 설계했습니다.
