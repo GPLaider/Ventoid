@@ -8,8 +8,9 @@ Ventoid turns an Android phone into a practical Ventoy-style USB writer. Plug in
 
 - OTG-first workflow for rescue kits and field installs
 - Direct USB mass-storage writing from Android
-- Ventoy-style disk layout with data and EFI partitions
+- Selectable MBR or GPT Ventoy-style disk layout with data and EFI partitions
 - Clear stage-based install flow for `MBR`, `CORE`, `DATA`, and `EFI`
+- Bundled Secure Boot marker verification for the EFI image before install
 - No ads, no analytics, no network dependency
 
 ## Build from source
@@ -106,8 +107,9 @@ Ventoid is an Android app for creating Ventoy-style USB drives directly from a p
 
 - Detect attached USB mass-storage devices
 - Request Android USB permission only when needed
-- Write a Ventoy-compatible disk layout
+- Choose between MBR and GPT Ventoy-compatible disk layouts
 - Write `core.img` and the EFI image
+- Verify bundled Secure Boot markers in the EFI image before install
 - Format the data partition as exFAT
 - Show stage-based progress and a local write log
 

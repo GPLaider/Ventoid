@@ -141,6 +141,31 @@ class VentoyInstallerTest {
     }
 
     @Test
+    fun `buildProtectiveMbr uses 0xEE partition type`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+
+        val mbr = installer.buildProtectiveMbr(driver.blocks, ByteArray(512))
+
+        assertEquals(VentoyConstants.GPT_PROTECTIVE_MBR_TYPE.toByte(), mbr[450])
+        assertEquals(VentoyConstants.MBR_SIGNATURE_55, mbr[510])
+        assertEquals(VentoyConstants.MBR_SIGNATURE_AA, mbr[511])
+    }
+
+    @Test
+    fun `buildGpt creates EFI PART headers`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+        val layout = installer.calculateLayout(driver.blocks, useGpt = true)
+
+        val gpt = installer.buildGpt(layout, driver.blocks, ByteArray(512))
+
+        assertEquals("EFI PART", String(gpt.primaryHeader.copyOfRange(0, 8)))
+        assertEquals("EFI PART", String(gpt.backupHeader.copyOfRange(0, 8)))
+        assertEquals(128 * 128, gpt.primaryEntries.size)
+    }
+
+    @Test
     fun `install writes MBR and can be read back`() {
         val sizeBytes = 256L * 1024 * 1024
         val driver = MemoryBlockDeviceDriver(sizeBytes, 512)
@@ -156,6 +181,26 @@ class VentoyInstallerTest {
         assertEquals(VentoyConstants.MBR_SIGNATURE_AA, readMbr[511])
         assertEquals(0x80.toByte(), readMbr[446])
         assertEquals(VentoyConstants.MBR_PART2_TYPE_EFI.toByte(), readMbr[466])
+    }
+
+    @Test
+    fun `install writes GPT structures when requested`() {
+        val sizeBytes = 256L * 1024 * 1024
+        val driver = MemoryBlockDeviceDriver(sizeBytes, 512)
+        val installer = VentoyInstaller(driver)
+        val bootImg = ByteArray(512) { it.toByte() }
+        val coreImg = ByteArray(2047 * 512) { 0x42 }
+        val ventoyImg = ByteArray(VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) { 0x57 }
+
+        installer.install(bootImg, coreImg, ventoyImg, useGpt = true)
+
+        val protectiveMbr = driver.backingBuffer.copyOfRange(0, 512)
+        val primaryHeader = driver.backingBuffer.copyOfRange(512, 1024)
+        val backupHeaderStart = driver.backingBuffer.size - 512
+        val backupHeader = driver.backingBuffer.copyOfRange(backupHeaderStart, driver.backingBuffer.size)
+        assertEquals(VentoyConstants.GPT_PROTECTIVE_MBR_TYPE.toByte(), protectiveMbr[450])
+        assertEquals("EFI PART", String(primaryHeader.copyOfRange(0, 8)))
+        assertEquals("EFI PART", String(backupHeader.copyOfRange(0, 8)))
     }
 
     @Test

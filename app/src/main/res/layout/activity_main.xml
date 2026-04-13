@@ -99,6 +99,43 @@
                 android:paddingEnd="12dp"
                 android:popupBackground="@drawable/panel_surface" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/partition_scheme_title"
+                android:textColor="@color/ventoid_text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/partition_scheme_help"
+                android:textColor="@color/ventoid_text_secondary"
+                android:textSize="13sp" />
+
+            <Spinner
+                android:id="@+id/spinner_partition_scheme"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/input_surface"
+                android:minHeight="52dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:popupBackground="@drawable/panel_surface" />
+
+            <TextView
+                android:id="@+id/text_secure_boot_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/secure_boot_checking"
+                android:textColor="@color/ventoid_text_secondary"
+                android:textSize="13sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
