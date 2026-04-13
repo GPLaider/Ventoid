@@ -11,18 +11,26 @@ class VentoyInstallCoordinator(
 ) {
     suspend fun install(
         device: UsbDeviceItem,
+        partitionScheme: PartitionScheme,
         onProgress: (InstallProgress) -> Unit,
     ) {
         onProgress(InstallProgress.Log(InstallMessage.Starting))
 
         val assets = InstallerAssets.load(context.assets)
+        if (!assets.secureBootSupport.supported) {
+            throw IOException(
+                "Bundled EFI image failed Secure Boot verification: " +
+                    assets.secureBootSupport.missingMarkers.joinToString()
+            )
+        }
+        onProgress(InstallProgress.Log(InstallMessage.SecureBootVerified))
         val session = UsbMassStorageHelper.openBlockDevice(context, device)
         try {
             VentoyInstaller(session.blockDevice).install(
                 bootImg = assets.bootImg,
                 coreImg = assets.coreImg,
                 ventoyDiskImg = assets.ventoyDiskImg,
-                useGpt = false,
+                useGpt = partitionScheme.useGpt,
             ) { step, current, total ->
                 onProgress(
                     InstallProgress.Step(
@@ -81,4 +89,5 @@ enum class InstallMessage {
     Starting,
     Success,
     WriteProtectTip,
+    SecureBootVerified,
 }

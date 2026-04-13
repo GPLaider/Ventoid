@@ -7,6 +7,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.hardware.usb.UsbManager
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ProgressBar
@@ -18,6 +20,8 @@ import androidx.core.content.ContextCompat
 import com.ventoid.app.install.InstallMessage
 import com.ventoid.app.install.InstallProgress
 import com.ventoid.app.install.InstallStage
+import com.ventoid.app.install.InstallerAssets
+import com.ventoid.app.install.PartitionScheme
 import com.ventoid.app.install.VentoyInstallCoordinator
 import com.ventoid.app.util.VentoidFileLogger
 import com.ventoid.app.usb.UsbDeviceItem
@@ -39,11 +43,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var spinnerUsb: Spinner
+    private lateinit var spinnerPartitionScheme: Spinner
     private lateinit var buttonRefresh: Button
     private lateinit var buttonInstall: Button
     private lateinit var textLog: TextView
     private lateinit var textLogPath: TextView
     private lateinit var textStageTitle: TextView
+    private lateinit var textSecureBootStatus: TextView
     private lateinit var progressInstall: ProgressBar
     private lateinit var chipMbr: TextView
     private lateinit var chipCore: TextView
@@ -61,11 +67,13 @@ class MainActivity : AppCompatActivity() {
         UsbMassStorageHelper.ensureLibusbRegistered()
 
         spinnerUsb = findViewById(R.id.spinner_usb)
+        spinnerPartitionScheme = findViewById(R.id.spinner_partition_scheme)
         buttonRefresh = findViewById(R.id.button_refresh)
         buttonInstall = findViewById(R.id.button_install)
         textLog = findViewById(R.id.text_log)
         textLogPath = findViewById(R.id.text_log_path)
         textStageTitle = findViewById(R.id.text_stage_title)
+        textSecureBootStatus = findViewById(R.id.text_secure_boot_status)
         progressInstall = findViewById(R.id.progress_install)
         chipMbr = findViewById(R.id.chip_mbr)
         chipCore = findViewById(R.id.chip_core)
@@ -74,12 +82,74 @@ class MainActivity : AppCompatActivity() {
 
         textLogPath.text = getString(R.string.log_path, VentoidFileLogger.getLogPath(this))
         textLogPath.visibility = TextView.VISIBLE
+        setupPartitionSchemeSpinner()
+        refreshSecureBootStatus()
         renderInstallStage(InstallStage.UNKNOWN, 0)
 
         buttonRefresh.setOnClickListener { refreshDeviceList() }
         buttonInstall.setOnClickListener { onInstallClicked() }
 
         refreshDeviceList()
+    }
+
+    private fun setupPartitionSchemeSpinner() {
+        spinnerPartitionScheme.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            listOf(
+                getString(R.string.partition_scheme_mbr),
+                getString(R.string.partition_scheme_gpt),
+            ),
+        ).apply {
+            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+        spinnerPartitionScheme.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updatePartitionSchemeUi()
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
+        }
+        updatePartitionSchemeUi()
+    }
+
+    private fun refreshSecureBootStatus() {
+        textSecureBootStatus.text = getString(R.string.secure_boot_checking)
+        scope.launch {
+            runCatching {
+                withContext(Dispatchers.IO) { InstallerAssets.inspectSecureBootSupport(assets) }
+            }.onSuccess { support ->
+                if (!isDestroyed) {
+                    if (support.supported) {
+                        textSecureBootStatus.text = getString(
+                            R.string.secure_boot_verified,
+                            support.verifiedMarkers.joinToString()
+                        )
+                        textSecureBootStatus.setTextColor(
+                            ContextCompat.getColor(this@MainActivity, R.color.ventoid_success)
+                        )
+                    } else {
+                        textSecureBootStatus.text = getString(
+                            R.string.secure_boot_missing,
+                            support.missingMarkers.joinToString()
+                        )
+                        textSecureBootStatus.setTextColor(
+                            ContextCompat.getColor(this@MainActivity, android.R.color.holo_orange_light)
+                        )
+                    }
+                }
+            }.onFailure { error ->
+                if (!isDestroyed) {
+                    textSecureBootStatus.text = getString(
+                        R.string.secure_boot_check_failed,
+                        error.message ?: error.javaClass.simpleName
+                    )
+                    textSecureBootStatus.setTextColor(
+                        ContextCompat.getColor(this@MainActivity, android.R.color.holo_orange_light)
+                    )
+                }
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -170,11 +240,17 @@ class MainActivity : AppCompatActivity() {
         installJob?.cancel()
         textLog.text = ""
         renderInstallStage(InstallStage.UNKNOWN, 0)
+        val partitionScheme = selectedPartitionScheme()
         installJob = scope.launch {
             buttonInstall.isEnabled = false
             try {
+                safeLog(getString(R.string.partition_scheme_log, partitionScheme.toDisplayLabel()))
                 withContext(Dispatchers.IO) {
-                    VentoyInstallCoordinator(applicationContext).install(item, ::handleInstallProgress)
+                    VentoyInstallCoordinator(applicationContext).install(
+                        device = item,
+                        partitionScheme = partitionScheme,
+                        onProgress = ::handleInstallProgress,
+                    )
                 }
                 safeToast(getString(R.string.install_success))
             } catch (e: SecurityException) {
@@ -236,12 +312,19 @@ class MainActivity : AppCompatActivity() {
             InstallMessage.Starting -> getString(R.string.install_started)
             InstallMessage.Success -> getString(R.string.install_success)
             InstallMessage.WriteProtectTip -> getString(R.string.write_protect_tip)
+            InstallMessage.SecureBootVerified -> getString(R.string.secure_boot_log)
         }
     }
 
     private fun InstallStage.toDisplayLabel(): String {
         return when (this) {
-            InstallStage.MBR -> getString(R.string.progress_mbr)
+            InstallStage.MBR -> getString(
+                if (selectedPartitionScheme() == PartitionScheme.GPT) {
+                    R.string.progress_gpt
+                } else {
+                    R.string.progress_mbr
+                }
+            )
             InstallStage.CORE -> getString(R.string.progress_core)
             InstallStage.PARTITION_1 -> getString(R.string.progress_part1)
             InstallStage.VENTOY -> getString(R.string.progress_ventoy)
@@ -261,6 +344,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun renderInstallStage(activeStage: InstallStage, overallPercent: Int) {
+        chipMbr.text = getString(
+            if (selectedPartitionScheme() == PartitionScheme.GPT) {
+                R.string.progress_gpt_short
+            } else {
+                R.string.progress_mbr_short
+            }
+        )
         renderChip(chipMbr, InstallStage.MBR, activeStage)
         renderChip(chipCore, InstallStage.CORE, activeStage)
         renderChip(chipPart1, InstallStage.PARTITION_1, activeStage)
@@ -320,6 +410,24 @@ class MainActivity : AppCompatActivity() {
             add(message)
         }.takeLast(MAX_LOG_LINES)
         textLog.text = updatedLines.joinToString("\n")
+    }
+
+    private fun selectedPartitionScheme(): PartitionScheme {
+        return PartitionScheme.fromSpinnerPosition(spinnerPartitionScheme.selectedItemPosition)
+    }
+
+    private fun updatePartitionSchemeUi() {
+        renderInstallStage(InstallStage.UNKNOWN, progressInstall.progress)
+    }
+
+    private fun PartitionScheme.toDisplayLabel(): String {
+        return getString(
+            if (this == PartitionScheme.GPT) {
+                R.string.partition_scheme_gpt_short
+            } else {
+                R.string.partition_scheme_mbr_short
+            }
+        )
     }
 
 }

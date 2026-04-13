@@ -6,6 +6,12 @@
     <string name="hero_status">Ready for USB host mode</string>
     <string name="select_usb">Select USB device</string>
     <string name="device_help">Choose the target USB drive, refresh detection, then start installation.</string>
+    <string name="partition_scheme_title">Partition scheme</string>
+    <string name="partition_scheme_help">MBR matches the current default Ventoy-style layout. Choose GPT for UEFI-focused targets or disks beyond classic MBR limits.</string>
+    <string name="partition_scheme_mbr">MBR (legacy + UEFI)</string>
+    <string name="partition_scheme_gpt">GPT (UEFI-focused)</string>
+    <string name="partition_scheme_mbr_short">MBR</string>
+    <string name="partition_scheme_gpt_short">GPT</string>
     <string name="refresh">Refresh</string>
     <string name="install_ventoy">Install Ventoy</string>
     <string name="log">Log</string>
@@ -30,11 +36,13 @@
     <string name="missing_assets">Required asset files are missing: %1$s</string>
     <string name="progress_message">%1$s: %2$d%%</string>
     <string name="progress_mbr">Writing MBR</string>
+    <string name="progress_gpt">Writing GPT</string>
     <string name="progress_core">Writing core image</string>
     <string name="progress_part1">Formatting data partition</string>
     <string name="progress_ventoy">Writing Ventoy EFI image</string>
     <string name="progress_unknown">Installing</string>
     <string name="progress_mbr_short">MBR</string>
+    <string name="progress_gpt_short">GPT</string>
     <string name="progress_core_short">CORE</string>
     <string name="progress_part1_short">DATA</string>
     <string name="progress_ventoy_short">EFI</string>
@@ -42,4 +50,10 @@
     <string name="install_failed_with_reason">Installation failed: %1$s</string>
     <string name="unexpected_error_with_reason">Unexpected error: %1$s</string>
     <string name="write_protect_tip">Ventoid does not enable write protection. If the drive shows as read-only on a PC, check the hardware lock switch first, then clear the readonly flag with diskpart, or test with another USB port or device.</string>
+    <string name="partition_scheme_log">Using %1$s partition scheme.</string>
+    <string name="secure_boot_checking">Checking bundled Secure Boot support...</string>
+    <string name="secure_boot_verified">Bundled Secure Boot chain verified: %1$s</string>
+    <string name="secure_boot_missing">Bundled EFI image is missing Secure Boot markers: %1$s</string>
+    <string name="secure_boot_check_failed">Secure Boot verification check failed: %1$s</string>
+    <string name="secure_boot_log">Bundled Secure Boot support verified.</string>
 </resources>
