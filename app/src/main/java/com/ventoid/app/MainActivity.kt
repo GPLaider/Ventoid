@@ -93,16 +93,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupPartitionSchemeSpinner() {
-        spinnerPartitionScheme.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
+        spinnerPartitionScheme.adapter = createSpinnerAdapter(
             listOf(
                 getString(R.string.partition_scheme_mbr),
                 getString(R.string.partition_scheme_gpt),
-            ),
-        ).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
+            )
+        )
         spinnerPartitionScheme.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 updatePartitionSchemeUi()
@@ -162,13 +158,7 @@ class MainActivity : AppCompatActivity() {
     private fun refreshDeviceList() {
         deviceList = UsbMassStorageHelper.getMassStorageDevices(this)
         val displayNames = deviceList.map { it.displayName }
-        spinnerUsb.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            displayNames,
-        ).apply {
-            setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
+        spinnerUsb.adapter = createSpinnerAdapter(displayNames)
         buttonInstall.isEnabled = deviceList.isNotEmpty()
         if (deviceList.isEmpty()) {
             textStageTitle.text = getString(R.string.usb_device_none)
@@ -418,6 +408,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun updatePartitionSchemeUi() {
         renderInstallStage(InstallStage.UNKNOWN, progressInstall.progress)
+    }
+
+    private fun createSpinnerAdapter(items: List<String>): ArrayAdapter<String> {
+        return ArrayAdapter(
+            this,
+            R.layout.item_spinner_selected,
+            items,
+        ).apply {
+            setDropDownViewResource(R.layout.item_spinner_dropdown)
+        }
     }
 
     private fun PartitionScheme.toDisplayLabel(): String {
