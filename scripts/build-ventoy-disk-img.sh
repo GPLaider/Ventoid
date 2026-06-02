@@ -4,8 +4,14 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENTOY_SRC="${VENTOY_SRC:-$ROOT_DIR/build/ventoy-src}"
 OUT_IMG="${OUT_IMG:-$ROOT_DIR/app/src/main/assets/ventoy/ventoy.disk.img}"
-WORK_DIR="${WORK_DIR:-$ROOT_DIR/build/ventoy-disk-img}"
+WORK_DIR="${WORK_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/ventoy-disk-img.XXXXXX")}"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1735689600}"
+
+cleanup() {
+    rm -rf "$WORK_DIR"
+}
+
+trap cleanup EXIT
 
 need() {
     command -v "$1" >/dev/null 2>&1 || {
@@ -46,7 +52,6 @@ if ! grep -q 'set.*VENTOY_VERSION=' "$GRUB_DIR/grub.cfg"; then
     exit 1
 fi
 
-rm -rf "$WORK_DIR"
 mkdir -p "$WORK_DIR/root/grub" "$(dirname "$OUT_IMG")"
 
 cp -a "$GRUB_DIR/grub.cfg" "$WORK_DIR/root/grub/"
