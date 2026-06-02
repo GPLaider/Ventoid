@@ -136,6 +136,25 @@
                 android:textColor="@color/ventoid_text_secondary"
                 android:textSize="13sp" />
 
+            <TextView
+                android:id="@+id/text_custom_image_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/custom_image_default"
+                android:textColor="@color/ventoid_text_secondary"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/button_select_image"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/button_secondary"
+                android:text="@string/custom_image_select"
+                android:textAllCaps="false"
+                android:textColor="@color/ventoid_text_primary" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

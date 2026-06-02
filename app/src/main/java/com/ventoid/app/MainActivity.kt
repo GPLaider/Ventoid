@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.hardware.usb.UsbManager
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
@@ -15,6 +16,7 @@ import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.ventoid.app.install.InstallMessage
@@ -46,10 +48,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var spinnerPartitionScheme: Spinner
     private lateinit var buttonRefresh: Button
     private lateinit var buttonInstall: Button
+    private lateinit var buttonSelectImage: Button
     private lateinit var textLog: TextView
     private lateinit var textLogPath: TextView
     private lateinit var textStageTitle: TextView
     private lateinit var textSecureBootStatus: TextView
+    private lateinit var textCustomImageStatus: TextView
     private lateinit var progressInstall: ProgressBar
     private lateinit var chipMbr: TextView
     private lateinit var chipCore: TextView
@@ -60,6 +64,17 @@ class MainActivity : AppCompatActivity() {
     private var permissionReceiver: BroadcastReceiver? = null
     private var installJob: Job? = null
     private var deviceList: List<UsbDeviceItem> = emptyList()
+    private var customVentoyDiskImgUri: Uri? = null
+
+    private val selectVentoyImage = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) {
+            return@registerForActivityResult
+        }
+        contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        customVentoyDiskImgUri = uri
+        textCustomImageStatus.text = getString(R.string.custom_image_selected, uri.lastPathSegment ?: uri.toString())
+        log(getString(R.string.custom_image_selected_log))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,10 +85,12 @@ class MainActivity : AppCompatActivity() {
         spinnerPartitionScheme = findViewById(R.id.spinner_partition_scheme)
         buttonRefresh = findViewById(R.id.button_refresh)
         buttonInstall = findViewById(R.id.button_install)
+        buttonSelectImage = findViewById(R.id.button_select_image)
         textLog = findViewById(R.id.text_log)
         textLogPath = findViewById(R.id.text_log_path)
         textStageTitle = findViewById(R.id.text_stage_title)
         textSecureBootStatus = findViewById(R.id.text_secure_boot_status)
+        textCustomImageStatus = findViewById(R.id.text_custom_image_status)
         progressInstall = findViewById(R.id.progress_install)
         chipMbr = findViewById(R.id.chip_mbr)
         chipCore = findViewById(R.id.chip_core)
@@ -88,6 +105,7 @@ class MainActivity : AppCompatActivity() {
 
         buttonRefresh.setOnClickListener { refreshDeviceList() }
         buttonInstall.setOnClickListener { onInstallClicked() }
+        buttonSelectImage.setOnClickListener { selectVentoyImage.launch(arrayOf("application/octet-stream", "application/x-raw-disk-image", "*/*")) }
 
         refreshDeviceList()
     }
@@ -239,6 +257,7 @@ class MainActivity : AppCompatActivity() {
                     VentoyInstallCoordinator(applicationContext).install(
                         device = item,
                         partitionScheme = partitionScheme,
+                        customVentoyDiskImgUri = customVentoyDiskImgUri,
                         onProgress = ::handleInstallProgress,
                     )
                 }
@@ -304,6 +323,7 @@ class MainActivity : AppCompatActivity() {
             InstallMessage.WriteProtectTip -> getString(R.string.write_protect_tip)
             InstallMessage.SecureBootVerified -> getString(R.string.secure_boot_log)
             InstallMessage.SecureBootUnavailable -> getString(R.string.secure_boot_limited_log)
+            InstallMessage.CustomImageSelected -> getString(R.string.custom_image_selected_log)
         }
     }
 
