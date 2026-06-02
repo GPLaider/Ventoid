@@ -57,4 +57,8 @@
     <string name="secure_boot_check_failed">Secure Boot verification check failed: %1$s</string>
     <string name="secure_boot_log">Bundled Secure Boot support verified.</string>
     <string name="secure_boot_limited_log">Bundled F-Droid EFI image will install without Secure Boot support.</string>
+    <string name="custom_image_default">Using bundled F-Droid EFI image.</string>
+    <string name="custom_image_select">Select custom Ventoy image</string>
+    <string name="custom_image_selected">Using custom EFI image: %1$s</string>
+    <string name="custom_image_selected_log">Using user-selected Ventoy EFI image.</string>
 </resources>
