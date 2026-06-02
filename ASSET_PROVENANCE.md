@@ -25,7 +25,9 @@ Required host tools:
 - `mtools` for `mcopy` and `mmd`
 - standard Unix tools: `awk`, `dd`, `find`, `grep`, `tar`, `touch`
 
-The script mirrors the relevant `INSTALL/ventoy_pack.sh` packaging steps: it creates a 32 MiB FAT16 `VTOYEFI` image, copies the Ventoy `grub`, `ventoy`, `EFI`, and MOK assets into it, packs the menu/help trees, removes unused GRUB `.img` files, and writes the result to `app/src/main/assets/ventoy/ventoy.disk.img`.
+The script mirrors the relevant `INSTALL/ventoy_pack.sh` packaging steps: it creates a 32 MiB FAT16 `VTOYEFI` image, copies the Ventoy `grub`, `ventoy`, and `EFI` assets into it, packs the menu/help trees, removes unused GRUB `.img` files, and writes the result to `app/src/main/assets/ventoy/ventoy.disk.img`.
+
+For F-Droid builds, the script defaults to `DEBLOB_FDROID=1`. In that mode it strips upstream-documented downloaded/prebuilt blob payloads from the image (`INSTALL/ventoy/imdisk`, `INSTALL/ventoy/memdisk`, `INSTALL/ventoy/7z`, and the Secure Boot shim/MOK EFI wrappers from `INSTALL/EFI/BOOT`). It then replaces `BOOTX64.EFI` and `BOOTIA32.EFI` with the source-built `grubx64_real.efi` and `grubia32_real.efi` binaries so standard non-Secure-Boot UEFI fallback boot remains available.
 
 ## Verified hashes
 
@@ -43,4 +45,4 @@ The script mirrors the relevant `INSTALL/ventoy_pack.sh` packaging steps: it cre
 
 ## Maintenance rule
 
-If any bundled boot asset changes, update this file and the expected digests in `app/src/main/java/com/ventoid/app/install/InstallerAssets.kt` in the same commit.
+If any bundled boot asset changes, update this file and regenerate `app/src/main/assets/ventoy/ventoy.disk.img.sha256` in the same commit.

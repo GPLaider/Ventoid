@@ -303,6 +303,7 @@ class MainActivity : AppCompatActivity() {
             InstallMessage.Success -> getString(R.string.install_success)
             InstallMessage.WriteProtectTip -> getString(R.string.write_protect_tip)
             InstallMessage.SecureBootVerified -> getString(R.string.secure_boot_log)
+            InstallMessage.SecureBootUnavailable -> getString(R.string.secure_boot_limited_log)
         }
     }
 

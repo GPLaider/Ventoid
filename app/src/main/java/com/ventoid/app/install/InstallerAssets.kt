@@ -20,10 +20,10 @@ data class InstallerAssets(
     }
 
     companion object {
+        private const val ventoyDigestAssetPath = "ventoy/ventoy.disk.img.sha256"
         private val requiredDigests = mapOf(
             "boot/boot.img" to "CA73F11DE68CEC7366C897F2153C871012B52DC86AC4765E8C563D3A2BF63466",
             "boot/core.img" to "5A4A1AD869D8DEB4D74AE71BFC64FFA3204089F606C636829116376B0CB61012",
-            "ventoy/ventoy.disk.img" to "02046E5EE6A0030FE2ECB225A6A2EBBF0EF7971CD4BB82A2BD691FE68CB61E9B",
         )
         private val secureBootMarkers = listOf(
             "BOOTX64.EFI",
@@ -44,10 +44,11 @@ data class InstallerAssets(
             val bootImg = assetManager.open("boot/boot.img").use { it.readBytes() }
             val coreImg = assetManager.open("boot/core.img").use { it.readBytes() }
             val ventoyDiskImg = assetManager.open("ventoy/ventoy.disk.img").use { it.readBytes() }
+            val expectedVentoyDigest = loadVentoyDigest(assetManager)
 
             verifyDigest("boot/boot.img", bootImg)
             verifyDigest("boot/core.img", coreImg)
-            verifyDigest("ventoy/ventoy.disk.img", ventoyDiskImg)
+            verifyDigest("ventoy/ventoy.disk.img", ventoyDiskImg, expectedVentoyDigest)
             val secureBootSupport = detectSecureBootSupport(ventoyDiskImg)
 
             return InstallerAssets(
@@ -61,13 +62,17 @@ data class InstallerAssets(
         @Throws(IOException::class)
         fun inspectSecureBootSupport(assetManager: AssetManager): SecureBootSupport {
             val ventoyDiskImg = assetManager.open("ventoy/ventoy.disk.img").use { it.readBytes() }
-            verifyDigest("ventoy/ventoy.disk.img", ventoyDiskImg)
+            verifyDigest("ventoy/ventoy.disk.img", ventoyDiskImg, loadVentoyDigest(assetManager))
             return detectSecureBootSupport(ventoyDiskImg)
         }
 
         internal fun verifyDigest(path: String, bytes: ByteArray) {
             val expected = requiredDigests[path]
                 ?: throw IllegalArgumentException("No integrity policy defined for asset: $path")
+            verifyDigest(path, bytes, expected)
+        }
+
+        internal fun verifyDigest(path: String, bytes: ByteArray, expected: String) {
             val actual = sha256(bytes)
             if (!actual.equals(expected, ignoreCase = true)) {
                 throw IOException(
@@ -82,6 +87,21 @@ data class InstallerAssets(
             return digest.joinToString(separator = "") { byte ->
                 "%02x".format(Locale.US, byte)
             }.uppercase(Locale.US)
+        }
+
+        @Throws(IOException::class)
+        internal fun loadVentoyDigest(assetManager: AssetManager): String {
+            val raw = assetManager.open(ventoyDigestAssetPath).bufferedReader().use { it.readText() }
+            return parseDigestFile(raw)
+        }
+
+        internal fun parseDigestFile(raw: String): String {
+            val digest = Regex("""\b([A-Fa-f0-9]{64})\b""").find(raw)?.groupValues?.get(1)
+                ?.uppercase(Locale.US)
+            require(!digest.isNullOrBlank()) {
+                "Unable to parse SHA-256 digest from $ventoyDigestAssetPath"
+            }
+            return digest
         }
 
         internal fun detectSecureBootSupport(bytes: ByteArray): SecureBootSupport {
