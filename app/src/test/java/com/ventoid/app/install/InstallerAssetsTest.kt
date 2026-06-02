@@ -33,6 +33,18 @@ class InstallerAssetsTest {
     }
 
     @Test
+    fun `parseDigestFile accepts sha256sum output`() {
+        val digest = InstallerAssets.parseDigestFile(
+            "02046e5ee6a0030fe2ecb225a6a2ebbf0ef7971cd4bb82a2bd691fe68cb61e9b  ventoy.disk.img\n"
+        )
+
+        assertEquals(
+            "02046E5EE6A0030FE2ECB225A6A2EBBF0EF7971CD4BB82A2BD691FE68CB61E9B",
+            digest
+        )
+    }
+
+    @Test
     fun `detectSecureBootSupport reports support when all markers are present`() {
         val bytes = buildString {
             append("BOOTX64.EFI")

@@ -4,8 +4,10 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VENTOY_SRC="${VENTOY_SRC:-$ROOT_DIR/build/ventoy-src}"
 OUT_IMG="${OUT_IMG:-$ROOT_DIR/app/src/main/assets/ventoy/ventoy.disk.img}"
+OUT_SHA256="${OUT_SHA256:-$ROOT_DIR/app/src/main/assets/ventoy/ventoy.disk.img.sha256}"
 WORK_DIR="${WORK_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/ventoy-disk-img.XXXXXX")}"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1735689600}"
+DEBLOB_FDROID="${DEBLOB_FDROID:-1}"
 
 cleanup() {
     rm -rf "$WORK_DIR"
@@ -92,6 +94,29 @@ dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/i386/vtoycli" of="$WORK_DI
 dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/x86_64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_x86_64"
 dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/aarch64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_aarch64"
 
+if [ "$DEBLOB_FDROID" = "1" ]; then
+    rm -rf "$WORK_DIR/root/ventoy/7z" "$WORK_DIR/root/ventoy/imdisk"
+    rm -f "$WORK_DIR/root/ventoy/memdisk" "$WORK_DIR/root/ENROLL_THIS_KEY_IN_MOKMANAGER.cer"
+
+    rm -f \
+        "$WORK_DIR/root/EFI/BOOT/grub.efi" \
+        "$WORK_DIR/root/EFI/BOOT/grubia32.efi" \
+        "$WORK_DIR/root/EFI/BOOT/mmia32.efi" \
+        "$WORK_DIR/root/EFI/BOOT/MokManager.efi"
+
+    if [ -f "$WORK_DIR/root/EFI/BOOT/grubx64_real.efi" ]; then
+        cp -f "$WORK_DIR/root/EFI/BOOT/grubx64_real.efi" "$WORK_DIR/root/EFI/BOOT/BOOTX64.EFI"
+    else
+        rm -f "$WORK_DIR/root/EFI/BOOT/BOOTX64.EFI"
+    fi
+
+    if [ -f "$WORK_DIR/root/EFI/BOOT/grubia32_real.efi" ]; then
+        cp -f "$WORK_DIR/root/EFI/BOOT/grubia32_real.efi" "$WORK_DIR/root/EFI/BOOT/BOOTIA32.EFI"
+    else
+        rm -f "$WORK_DIR/root/EFI/BOOT/BOOTIA32.EFI"
+    fi
+fi
+
 find "$WORK_DIR/root/grub/i386-pc" -name '*.img' -delete 2>/dev/null || true
 
 find "$WORK_DIR/root" -exec touch -h -d "@$SOURCE_DATE_EPOCH" '{}' +
@@ -117,4 +142,4 @@ copy_tree() {
 
 copy_tree "$WORK_DIR/root" ::
 
-sha256sum "$OUT_IMG"
+sha256sum "$OUT_IMG" | tee "$OUT_SHA256"
