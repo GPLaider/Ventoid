@@ -8,7 +8,24 @@ These bundled boot assets are treated as release-critical inputs and are verifie
 - Upstream version: `1.1.10`
 - Packaging note:
   - `boot.img` and `core.img` are documented in `app/src/main/assets/boot/README.txt`
-  - `ventoy.disk.img` is documented in `app/src/main/assets/ventoy/README.txt`
+  - `ventoy.disk.img` is generated from the upstream Ventoy `INSTALL/` tree using `scripts/build-ventoy-disk-img.sh`
+
+## Building `ventoy.disk.img`
+
+The 32 MiB Ventoy EFI partition image can be rebuilt without root privileges:
+
+```sh
+export VENTOY_SRC=/path/to/Ventoy-1.1.10
+bash scripts/build-ventoy-disk-img.sh
+```
+
+Required host tools:
+
+- `dosfstools` for `mkfs.vfat`
+- `mtools` for `mcopy` and `mmd`
+- standard Unix tools: `awk`, `dd`, `find`, `grep`, `tar`, `touch`
+
+The script mirrors the relevant `INSTALL/ventoy_pack.sh` packaging steps: it creates a 32 MiB FAT16 `VTOYEFI` image, copies the Ventoy `grub`, `ventoy`, `EFI`, and MOK assets into it, packs the menu/help trees, removes unused GRUB `.img` files, and writes the result to `app/src/main/assets/ventoy/ventoy.disk.img`.
 
 ## Verified hashes
 

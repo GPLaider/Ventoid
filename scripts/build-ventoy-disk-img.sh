@@ -1,101 +1,115 @@
-#!/bin/sh
-# build-ventoy-disk-img.sh
-#
-# Regenerates ventoy.disk.img from the upstream Ventoy INSTALL/ tree without loop-device mounting.
-#
-# Requirements: dosfstools (mkfs.fat), mtools (mformat, mcopy, mattrib)
-# Usage: sh scripts/build-ventoy-disk-img.sh <path-to-ventoy-INSTALL-dir>
-#
+#!/usr/bin/env bash
+set -euo pipefail
 
-set -e
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VENTOY_SRC="${VENTOY_SRC:-$ROOT_DIR/build/ventoy-src}"
+OUT_IMG="${OUT_IMG:-$ROOT_DIR/app/src/main/assets/ventoy/ventoy.disk.img}"
+WORK_DIR="${WORK_DIR:-$ROOT_DIR/build/ventoy-disk-img}"
+SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1735689600}"
 
-INSTALL_DIR="${1:?Usage: $0 <ventoy-INSTALL-dir>}"
+need() {
+    command -v "$1" >/dev/null 2>&1 || {
+        echo "missing required tool: $1" >&2
+        exit 1
+    }
+}
 
-# Detect output directory
-if [ -d "src/main/assets" ]; then
-    OUT_DIR="src/main/assets/ventoy"
-elif [ -d "app/src/main/assets" ]; then
-    OUT_DIR="app/src/main/assets/ventoy"
-else
-    OUT_DIR="src/main/assets/ventoy"
-fi
+need awk
+need dd
+need find
+need grep
+need mkfs.vfat
+need mcopy
+need mmd
+need gzip
+need sha256sum
+need sort
+need tar
+need touch
 
-mkdir -p "$OUT_DIR"
-OUT="$OUT_DIR/ventoy.disk.img"
+INSTALL_DIR="$VENTOY_SRC/INSTALL"
+GRUB_DIR="$INSTALL_DIR/grub"
 
-GRUB_DIR="$(realpath "$INSTALL_DIR")"
-
-if [ ! -d "$GRUB_DIR/grub" ]; then
-    echo "ERROR: $GRUB_DIR/grub not found. Provide the INSTALL/ dir of Ventoy." >&2
+if [ ! -d "$INSTALL_DIR" ] || [ ! -d "$GRUB_DIR" ]; then
+    cat >&2 <<EOF
+VENTOY_SRC must point at a built Ventoy source/release tree containing INSTALL/.
+Expected paths:
+  \$VENTOY_SRC/INSTALL/grub
+  \$VENTOY_SRC/INSTALL/EFI
+  \$VENTOY_SRC/INSTALL/ventoy
+EOF
     exit 1
 fi
 
-IMG_SIZE_SECTORS=65536
-IMG_SIZE_BYTES=$((IMG_SIZE_SECTORS * 512))  # 32 MB
-
-echo "Creating ${IMG_SIZE_BYTES}-byte raw image at $OUT??
-dd if=/dev/zero of="$OUT" bs=512 count="$IMG_SIZE_SECTORS" status=none
-
-echo "Formatting as FAT16 (VTOYEFI)??
-mkfs.fat -F 16 -n "VTOYEFI" -s 1 "$OUT"
-
-export MTOOLS_SKIP_CHECK=1
-MIMG="${OUT}"
-
-echo "Copying files into FAT16 image??
-
-# Create /grub directory inside the image
-mmd -i "$MIMG" ::/grub 2>/dev/null || true
-
-# Copy grub.cfg first
-if [ -f "$GRUB_DIR/grub/grub.cfg" ]; then
-    mcopy -o -i "$MIMG" "$GRUB_DIR/grub/grub.cfg" ::/grub/
-fi
-
-# Copy rest of grub/
-for item in "$GRUB_DIR/grub/"*; do
-    base="$(basename "$item")"
-    [ "$base" = "grub.cfg" ] && continue
-    if [ -d "$item" ]; then
-        mmd -i "$MIMG" "::/grub/$base" 2>/dev/null || true
-        mcopy -o -i "$MIMG" -s "$item/." "::/grub/$base/"
-    else
-        mcopy -o -i "$MIMG" "$item" ::/grub/
-    fi
-done
-
-# Pack help/ into help.tar.gz inside the image if present
-if [ -d "$GRUB_DIR/grub/help" ]; then
-    TMPTAR="$(mktemp -t ventoy-help-XXXXXX.tar.gz)"
-    tar czf "$TMPTAR" -C "$GRUB_DIR/grub" help/
-    mcopy -o -i "$MIMG" "$TMPTAR" ::/grub/help.tar.gz
-    rm -f "$TMPTAR"
-    mdeltree -i "$MIMG" ::/grub/help 2>/dev/null || true
-fi
-
-# Copy EFI directory if present
-if [ -d "$GRUB_DIR/EFI" ]; then
-    mmd -i "$MIMG" ::/EFI 2>/dev/null || true
-    mcopy -o -i "$MIMG" -s "$GRUB_DIR/EFI/." ::/EFI/
-fi
-
-# Copy MOK directory if present
-if [ -d "$GRUB_DIR/MOK" ]; then
-    mmd -i "$MIMG" ::/MOK 2>/dev/null || true
-    mcopy -o -i "$MIMG" -s "$GRUB_DIR/MOK/." ::/MOK/
-fi
-
-# Copy ventoy directory if present
-if [ -d "$GRUB_DIR/ventoy" ]; then
-    mmd -i "$MIMG" ::/ventoy 2>/dev/null || true
-    mcopy -o -i "$MIMG" -s "$GRUB_DIR/ventoy/." ::/ventoy/
-fi
-
-# Sanity check
-ACTUAL=$(wc -c < "$OUT")
-if [ "$ACTUAL" -ne "$IMG_SIZE_BYTES" ]; then
-    echo "ERROR: Output size $ACTUAL != expected $IMG_SIZE_BYTES" >&2
+if ! grep -q 'set.*VENTOY_VERSION=' "$GRUB_DIR/grub.cfg"; then
+    echo "cannot determine Ventoy version from $GRUB_DIR/grub.cfg" >&2
     exit 1
 fi
 
-echo "Done: $OUT ($(wc -c < "$OUT") bytes)"
+rm -rf "$WORK_DIR"
+mkdir -p "$WORK_DIR/root/grub" "$(dirname "$OUT_IMG")"
+
+cp -a "$GRUB_DIR/grub.cfg" "$WORK_DIR/root/grub/"
+find "$GRUB_DIR" -mindepth 1 -maxdepth 1 ! -name grub.cfg -exec cp -a '{}' "$WORK_DIR/root/grub/" ';'
+
+(
+    cd "$WORK_DIR/root/grub"
+    tar --sort=name --mtime="@$SOURCE_DATE_EPOCH" --owner=0 --group=0 --numeric-owner -cf - ./help | gzip -n > help.tar.gz
+    rm -rf ./help
+
+    vtlangtitle="$(grep VTLANG_LANGUAGE_NAME menu/zh_CN.json | awk -F\" '{print $4}')"
+    {
+        echo "menuentry \"zh_CN  -  $vtlangtitle\" --class=menu_lang_item --class=debug_menu_lang --class=F5tool {"
+        echo "    vt_load_menu_lang zh_CN"
+        echo "}"
+        find menu -mindepth 1 -maxdepth 1 -type f ! -name zh_CN.json -printf '%f\n' | sort | while read -r vtlang; do
+            vtlangname="${vtlang%.*}"
+            vtlangtitle="$(grep VTLANG_LANGUAGE_NAME "menu/$vtlang" | awk -F\" '{print $4}')"
+            echo "menuentry \"$vtlangname  -  $vtlangtitle\" --class=menu_lang_item --class=debug_menu_lang --class=F5tool {"
+            echo "    vt_load_menu_lang $vtlangname"
+            echo "}"
+        done
+        echo "menuentry \"\$VTLANG_RETURN_PREVIOUS\" --class=vtoyret VTOY_RET {"
+        echo "        echo \"Return ...\""
+        echo "}"
+    } > menulang.cfg
+
+    tar --sort=name --mtime="@$SOURCE_DATE_EPOCH" --owner=0 --group=0 --numeric-owner -cf - ./menu | gzip -n > menu.tar.gz
+    rm -rf ./menu
+)
+
+cp -a "$INSTALL_DIR/ventoy" "$WORK_DIR/root/"
+cp -a "$INSTALL_DIR/EFI" "$WORK_DIR/root/"
+cp -a "$INSTALL_DIR/tool/ENROLL_THIS_KEY_IN_MOKMANAGER.cer" "$WORK_DIR/root/"
+mkdir -p "$WORK_DIR/root/tool"
+
+dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/i386/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_i386"
+dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/x86_64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_x86_64"
+dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/aarch64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_aarch64"
+
+find "$WORK_DIR/root/grub/i386-pc" -name '*.img' -delete 2>/dev/null || true
+
+find "$WORK_DIR/root" -exec touch -h -d "@$SOURCE_DATE_EPOCH" '{}' +
+
+rm -f "$OUT_IMG"
+dd if=/dev/zero of="$OUT_IMG" bs=1M count=32 status=none
+mkfs.vfat -F 16 -n VTOYEFI -s 1 -i 56544f59 "$OUT_IMG" >/dev/null
+
+copy_tree() {
+    local src="$1"
+    local dst="$2"
+    mmd -i "$OUT_IMG" "$dst" 2>/dev/null || true
+    find "$src" -mindepth 1 -maxdepth 1 | sort | while read -r child; do
+        local base
+        base="$(basename "$child")"
+        if [ -d "$child" ]; then
+            copy_tree "$child" "$dst/$base"
+        else
+            mcopy -m -i "$OUT_IMG" "$child" "$dst/$base"
+        fi
+    done
+}
+
+copy_tree "$WORK_DIR/root" ::
+
+sha256sum "$OUT_IMG"

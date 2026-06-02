@@ -38,10 +38,11 @@ The app currently includes boot assets under `app/src/main/assets/`:
 - `boot/core.img`
 - `ventoy/ventoy.disk.img`
 
-These files are documented in `ASSET_PROVENANCE.md` so reviewers can trace their upstream source and licensing basis.
+These files are documented in `ASSET_PROVENANCE.md` so reviewers can trace their upstream source and licensing basis. The `ventoy.disk.img` file is rebuildable with `bash scripts/build-ventoy-disk-img.sh` from the upstream Ventoy `INSTALL/` tree using `dosfstools` and `mtools`.
 
 ## Suggested Submission Notes
 
 - Emphasize that the project is open source and contains no advertising or tracking
 - Call out that the app is for advanced users because it performs destructive USB writes
 - Keep `ASSET_PROVENANCE.md` in sync whenever bundled Ventoy-derived assets are updated
+- Rebuild `ventoy.disk.img` with `bash scripts/build-ventoy-disk-img.sh` when updating the upstream Ventoy baseline
