@@ -1,17 +1,27 @@
 #!/bin/sh
 # build-ventoy-disk-img.sh
 #
-# Regenerates app/src/main/assets/ventoy/ventoy.disk.img from the upstream
-# Ventoy INSTALL/ tree without loop-device mounting.
+# Regenerates ventoy.disk.img from the upstream Ventoy INSTALL/ tree without loop-device mounting.
 #
-# Requirements: dosfstools (mkfs.fat), mtools (mformat, mcopy, mdeltree)
-# Called by fdroiddata prebuild from the app/ subdir:
-#   sh ../scripts/build-ventoy-disk-img.sh $$Ventoy$$/INSTALL
+# Requirements: dosfstools (mkfs.fat), mtools (mformat, mcopy, mattrib)
+# Usage: sh scripts/build-ventoy-disk-img.sh <path-to-ventoy-INSTALL-dir>
+#
 
 set -e
 
 INSTALL_DIR="${1:?Usage: $0 <ventoy-INSTALL-dir>}"
-OUT="src/main/assets/ventoy/ventoy.disk.img"
+
+# Detect output directory
+if [ -d "src/main/assets" ]; then
+    OUT_DIR="src/main/assets/ventoy"
+elif [ -d "app/src/main/assets" ]; then
+    OUT_DIR="app/src/main/assets/ventoy"
+else
+    OUT_DIR="src/main/assets/ventoy"
+fi
+
+mkdir -p "$OUT_DIR"
+OUT="$OUT_DIR/ventoy.disk.img"
 
 GRUB_DIR="$(realpath "$INSTALL_DIR")"
 
@@ -20,63 +30,65 @@ if [ ! -d "$GRUB_DIR/grub" ]; then
     exit 1
 fi
 
-# 32 MB = 65536 sectors x 512 bytes
 IMG_SIZE_SECTORS=65536
-IMG_SIZE_BYTES=$((IMG_SIZE_SECTORS * 512))
+IMG_SIZE_BYTES=$((IMG_SIZE_SECTORS * 512))  # 32 MB
 
-echo "[ventoy-disk-img] Creating ${IMG_SIZE_BYTES}-byte raw image…"
+echo "Creating ${IMG_SIZE_BYTES}-byte raw image at $OUT??
 dd if=/dev/zero of="$OUT" bs=512 count="$IMG_SIZE_SECTORS" status=none
 
-echo "[ventoy-disk-img] Formatting as FAT16 VTOYEFI…"
+echo "Formatting as FAT16 (VTOYEFI)??
 mkfs.fat -F 16 -n "VTOYEFI" -s 1 "$OUT"
 
 export MTOOLS_SKIP_CHECK=1
+MIMG="${OUT}"
 
-echo "[ventoy-disk-img] Copying grub files…"
-mmd -i "$OUT" ::/grub 2>/dev/null || true
+echo "Copying files into FAT16 image??
 
-# grub.cfg first (Ventoy copies it first so it sits at the front of FAT)
+# Create /grub directory inside the image
+mmd -i "$MIMG" ::/grub 2>/dev/null || true
+
+# Copy grub.cfg first
 if [ -f "$GRUB_DIR/grub/grub.cfg" ]; then
-    mcopy -i "$OUT" "$GRUB_DIR/grub/grub.cfg" ::/grub/
+    mcopy -o -i "$MIMG" "$GRUB_DIR/grub/grub.cfg" ::/grub/
 fi
 
-# Rest of grub/
+# Copy rest of grub/
 for item in "$GRUB_DIR/grub/"*; do
     base="$(basename "$item")"
     [ "$base" = "grub.cfg" ] && continue
     if [ -d "$item" ]; then
-        mmd -i "$OUT" "::/grub/$base" 2>/dev/null || true
-        mcopy -i "$OUT" -s "$item/." "::/grub/$base/"
+        mmd -i "$MIMG" "::/grub/$base" 2>/dev/null || true
+        mcopy -o -i "$MIMG" -s "$item/." "::/grub/$base/"
     else
-        mcopy -i "$OUT" "$item" ::/grub/
+        mcopy -o -i "$MIMG" "$item" ::/grub/
     fi
 done
 
-# Pack help/ → help.tar.gz (Ventoy does this during packaging)
+# Pack help/ into help.tar.gz inside the image if present
 if [ -d "$GRUB_DIR/grub/help" ]; then
     TMPTAR="$(mktemp -t ventoy-help-XXXXXX.tar.gz)"
     tar czf "$TMPTAR" -C "$GRUB_DIR/grub" help/
-    mcopy -i "$OUT" "$TMPTAR" ::/grub/help.tar.gz
+    mcopy -o -i "$MIMG" "$TMPTAR" ::/grub/help.tar.gz
     rm -f "$TMPTAR"
-    mdeltree -i "$OUT" ::/grub/help 2>/dev/null || true
+    mdeltree -i "$MIMG" ::/grub/help 2>/dev/null || true
 fi
 
-# EFI/
+# Copy EFI directory if present
 if [ -d "$GRUB_DIR/EFI" ]; then
-    mmd -i "$OUT" ::/EFI 2>/dev/null || true
-    mcopy -i "$OUT" -s "$GRUB_DIR/EFI/." ::/EFI/
+    mmd -i "$MIMG" ::/EFI 2>/dev/null || true
+    mcopy -o -i "$MIMG" -s "$GRUB_DIR/EFI/." ::/EFI/
 fi
 
-# MOK/
+# Copy MOK directory if present
 if [ -d "$GRUB_DIR/MOK" ]; then
-    mmd -i "$OUT" ::/MOK 2>/dev/null || true
-    mcopy -i "$OUT" -s "$GRUB_DIR/MOK/." ::/MOK/
+    mmd -i "$MIMG" ::/MOK 2>/dev/null || true
+    mcopy -o -i "$MIMG" -s "$GRUB_DIR/MOK/." ::/MOK/
 fi
 
-# ventoy/
+# Copy ventoy directory if present
 if [ -d "$GRUB_DIR/ventoy" ]; then
-    mmd -i "$OUT" ::/ventoy 2>/dev/null || true
-    mcopy -i "$OUT" -s "$GRUB_DIR/ventoy/." ::/ventoy/
+    mmd -i "$MIMG" ::/ventoy 2>/dev/null || true
+    mcopy -o -i "$MIMG" -s "$GRUB_DIR/ventoy/." ::/ventoy/
 fi
 
 # Sanity check
@@ -86,4 +98,4 @@ if [ "$ACTUAL" -ne "$IMG_SIZE_BYTES" ]; then
     exit 1
 fi
 
-echo "[ventoy-disk-img] Done: $OUT ($ACTUAL bytes)"
+echo "Done: $OUT ($(wc -c < "$OUT") bytes)"
