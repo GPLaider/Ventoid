@@ -87,16 +87,18 @@ find "$GRUB_DIR" -mindepth 1 -maxdepth 1 ! -name grub.cfg -exec cp -a '{}' "$WOR
 
 cp -a "$INSTALL_DIR/ventoy" "$WORK_DIR/root/"
 cp -a "$INSTALL_DIR/EFI" "$WORK_DIR/root/"
-cp -a "$INSTALL_DIR/tool/ENROLL_THIS_KEY_IN_MOKMANAGER.cer" "$WORK_DIR/root/"
 mkdir -p "$WORK_DIR/root/tool"
 
-dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/i386/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_i386"
-dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/x86_64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_x86_64"
-dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/aarch64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_aarch64"
+if [ "$DEBLOB_FDROID" != "1" ]; then
+    cp -a "$INSTALL_DIR/tool/ENROLL_THIS_KEY_IN_MOKMANAGER.cer" "$WORK_DIR/root/"
+    dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/i386/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_i386"
+    dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/x86_64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_x86_64"
+    dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/aarch64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_aarch64"
+fi
 
 if [ "$DEBLOB_FDROID" = "1" ]; then
     rm -rf "$WORK_DIR/root/ventoy/7z" "$WORK_DIR/root/ventoy/imdisk"
-    rm -f "$WORK_DIR/root/ventoy/memdisk" "$WORK_DIR/root/ENROLL_THIS_KEY_IN_MOKMANAGER.cer"
+    rm -f "$WORK_DIR/root/ventoy/memdisk"
 
     rm -f \
         "$WORK_DIR/root/EFI/BOOT/grub.efi" \
@@ -142,4 +144,7 @@ copy_tree() {
 
 copy_tree "$WORK_DIR/root" ::
 
-sha256sum "$OUT_IMG" | tee "$OUT_SHA256"
+(
+    cd "$(dirname "$OUT_IMG")"
+    sha256sum "$(basename "$OUT_IMG")"
+) | tee "$OUT_SHA256"

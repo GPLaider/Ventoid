@@ -1,6 +1,7 @@
 package com.ventoid.app.install
 
 import android.content.Context
+import android.net.Uri
 import com.ventoid.app.installer.VentoyInstaller
 import com.ventoid.app.usb.UsbDeviceItem
 import com.ventoid.app.usb.UsbMassStorageHelper
@@ -12,11 +13,24 @@ class VentoyInstallCoordinator(
     suspend fun install(
         device: UsbDeviceItem,
         partitionScheme: PartitionScheme,
+        customVentoyDiskImgUri: Uri? = null,
         onProgress: (InstallProgress) -> Unit,
     ) {
         onProgress(InstallProgress.Log(InstallMessage.Starting))
 
-        val assets = InstallerAssets.load(context.assets)
+        val bundledAssets = InstallerAssets.load(context.assets)
+        val assets = if (customVentoyDiskImgUri == null) {
+            bundledAssets
+        } else {
+            val customVentoyDiskImg = context.contentResolver.openInputStream(customVentoyDiskImgUri)
+                ?.use { it.readBytes() }
+                ?: throw IOException("Unable to open selected Ventoy image.")
+            onProgress(InstallProgress.Log(InstallMessage.CustomImageSelected))
+            bundledAssets.copy(
+                ventoyDiskImg = customVentoyDiskImg,
+                secureBootSupport = InstallerAssets.detectSecureBootSupport(customVentoyDiskImg),
+            )
+        }
         if (assets.secureBootSupport.supported) {
             onProgress(InstallProgress.Log(InstallMessage.SecureBootVerified))
         } else {
@@ -89,4 +103,5 @@ enum class InstallMessage {
     WriteProtectTip,
     SecureBootVerified,
     SecureBootUnavailable,
+    CustomImageSelected,
 }
