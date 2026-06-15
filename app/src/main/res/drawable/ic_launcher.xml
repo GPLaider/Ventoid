@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:fillColor="@color/ventoid_window"
+        android:pathData="M0,0 L108,0 L108,108 L0,108 Z" />
+
+    <path
+        android:strokeColor="#86F2A3"
+        android:strokeLineCap="round"
+        android:strokeWidth="5"
+        android:pathData="M41,31 L34,18" />
+    <path
+        android:strokeColor="#86F2A3"
+        android:strokeLineCap="round"
+        android:strokeWidth="5"
+        android:pathData="M67,31 L74,18" />
+
+    <path
+        android:fillColor="#86F2A3"
+        android:pathData="M24,56 C25,36 39,26 54,26 C69,26 83,36 84,56 Z" />
+
+    <path
+        android:fillColor="#17211C"
+        android:pathData="M39,43 L46,43 L46,50 L39,50 Z" />
+    <path
+        android:fillColor="#17211C"
+        android:pathData="M62,43 L69,43 L69,50 L62,50 Z" />
+
+    <path
+        android:fillColor="#D63A31"
+        android:pathData="M35,32 L54,53 L73,32 L61,64 L54,78 L47,64 Z" />
+
+    <path
+        android:fillColor="#F7F8F4"
+        android:pathData="M30,60 L78,60 L78,91 L30,91 Z" />
+    <path
+        android:fillColor="#17211C"
+        android:pathData="M40,75 L48,75 L48,83 L40,83 Z" />
+    <path
+        android:fillColor="#17211C"
+        android:pathData="M60,75 L68,75 L68,83 L60,83 Z" />
+</vector>
