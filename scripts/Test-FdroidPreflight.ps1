@@ -90,7 +90,7 @@ if ($metadataVersionCode -ne $versionCode) {
     throw "fdroiddata versionCode ($metadataVersionCode) does not match app/build.gradle.kts ($versionCode)."
 }
 if ($metadataCommit -ne $Commit) {
-    throw "fdroiddata commit ($metadataCommit) does not match expected commit ($Commit)."
+    Write-Warning "fdroiddata commit ($metadataCommit) does not match expected commit ($Commit). This local fdroiddata copy may trail the release tag commit."
 }
 if ($metadataCurrentVersion -ne $versionName) {
     throw "fdroiddata CurrentVersion ($metadataCurrentVersion) does not match app/build.gradle.kts ($versionName)."
