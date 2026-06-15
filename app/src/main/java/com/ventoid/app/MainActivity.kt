@@ -19,6 +19,11 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.updatePadding
 import com.ventoid.app.install.InstallMessage
 import com.ventoid.app.install.InstallProgress
 import com.ventoid.app.install.InstallStage
@@ -78,8 +83,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        configureSystemBars()
         setContentView(R.layout.activity_main)
         UsbMassStorageHelper.ensureLibusbRegistered()
+        applySystemBarInsets()
 
         spinnerUsb = findViewById(R.id.spinner_usb)
         spinnerPartitionScheme = findViewById(R.id.spinner_partition_scheme)
@@ -108,6 +115,31 @@ class MainActivity : AppCompatActivity() {
         buttonSelectImage.setOnClickListener { selectVentoyImage.launch(arrayOf("application/octet-stream", "application/x-raw-disk-image", "*/*")) }
 
         refreshDeviceList()
+    }
+
+    @Suppress("DEPRECATION")
+    private fun configureSystemBars() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.ventoid_window)
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.ventoid_window)
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
+    }
+
+    private fun applySystemBarInsets() {
+        val root = findViewById<View>(R.id.root_scroll)
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(
+                left = systemBars.left,
+                top = systemBars.top,
+                right = systemBars.right,
+                bottom = systemBars.bottom,
+            )
+            insets
+        }
     }
 
     private fun setupPartitionSchemeSpinner() {
