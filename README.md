@@ -1,5 +1,7 @@
 # Ventoid
 
+[![F-Droid](https://img.shields.io/f-droid/v/com.ventoid.app?label=F-Droid)](https://f-droid.org/packages/com.ventoid.app/)
+
 ![Ventoid logo](docs/assets/ventoid-logo.png)
 
 Ventoid turns an Android phone into a practical Ventoy-style USB writer. Plug in a drive over OTG, pick the target device, and prepare bootable media without needing to go back to a PC for the write step.
@@ -12,6 +14,12 @@ Ventoid turns an Android phone into a practical Ventoy-style USB writer. Plug in
 - Clear stage-based install flow for `MBR`, `CORE`, `DATA`, and `EFI`
 - Bundled Secure Boot marker verification for the EFI image before install
 - No ads, no analytics, no network dependency
+
+## Install
+
+Ventoid is available on F-Droid:
+
+- https://f-droid.org/packages/com.ventoid.app/
 
 ## Build from source
 
