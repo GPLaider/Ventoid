@@ -1,6 +1,8 @@
-# F-Droid Readiness
+# F-Droid
 
-This project is being prepared for F-Droid style distribution.
+Ventoid is published on F-Droid:
+
+- https://f-droid.org/packages/com.ventoid.app/
 
 ## App Summary
 
@@ -42,9 +44,9 @@ These files are documented in `ASSET_PROVENANCE.md` so reviewers can trace their
 
 For F-Droid builds, the script defaults to a reduced `DEBLOB_FDROID=1` mode which removes Ventoy-packaged binaries that upstream documents as downloaded/prebuilt blobs (`imdisk`, `memdisk`, Secure Boot wrapper EFI binaries, and `7za.exe`). The resulting image keeps the source-built EFI/grub path and installs normally, but Secure Boot support is intentionally unavailable in that variant.
 
-## Suggested Submission Notes
+## Maintenance Notes
 
-- Emphasize that the project is open source and contains no advertising or tracking
+- Keep the F-Droid metadata updated when publishing a new release
 - Call out that the app is for advanced users because it performs destructive USB writes
 - Keep `ASSET_PROVENANCE.md` in sync whenever bundled Ventoy-derived assets are updated
 - Rebuild `ventoy.disk.img` with `bash scripts/build-ventoy-disk-img.sh` when updating the upstream Ventoy baseline
