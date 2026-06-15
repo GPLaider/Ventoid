@@ -1,0 +1,4 @@
+Fix status bar and launcher icon polish.
+
+- Prevent the main screen from overlapping the Android status bar
+- Use an adaptive launcher icon on stock Android launchers
