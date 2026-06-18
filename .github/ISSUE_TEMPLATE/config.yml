@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: F-Droid package page
+    url: https://f-droid.org/packages/com.ventoid.app/
+    about: Install the recommended F-Droid build.
+  - name: Latest GitHub release
+    url: https://github.com/GPLaider/Ventoid/releases/latest
+    about: Download GitHub APKs or read release notes.
