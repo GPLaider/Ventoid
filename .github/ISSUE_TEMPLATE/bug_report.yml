@@ -1,0 +1,93 @@
+name: Bug report
+description: Report a Ventoid problem with enough device and USB context to debug it.
+title: "[Bug]: "
+labels:
+  - bug
+  - needs-device-info
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Ventoid depends heavily on Android USB host behavior, OTG adapters, USB bridge chips, and drive firmware, so device details matter.
+  - type: input
+    id: ventoid-version
+    attributes:
+      label: Ventoid version
+      description: Example: 0.1.7, F-Droid build 8, GitHub APK 0.1.7.
+      placeholder: "0.1.7"
+    validations:
+      required: true
+  - type: dropdown
+    id: install-source
+    attributes:
+      label: Install source
+      options:
+        - F-Droid
+        - GitHub APK
+        - Local debug build
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: android-device
+    attributes:
+      label: Android device
+      description: Phone/tablet model and vendor ROM if relevant.
+      placeholder: "Pixel 8, One UI device, LineageOS device, etc."
+    validations:
+      required: true
+  - type: input
+    id: android-version
+    attributes:
+      label: Android version
+      placeholder: "Android 14"
+    validations:
+      required: true
+  - type: input
+    id: usb-setup
+    attributes:
+      label: USB setup
+      description: OTG adapter or hub, USB drive model/capacity, and whether external power was used.
+      placeholder: "USB-C OTG adapter + SanDisk 64 GB, no powered hub"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you tap, what target did you select, and when did the problem happen?
+      placeholder: |
+        1. Open Ventoid
+        2. Select USB drive
+        3. Tap Install
+        4. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include exact error text if Ventoid showed one.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Ventoid log or screenshot
+      description: Paste the local write log text or attach screenshots if available. Remove personal data if needed.
+      render: text
+    validations:
+      required: false
+  - type: checkboxes
+    id: destructive-confirmation
+    attributes:
+      label: Safety check
+      options:
+        - label: I understand Ventoid writes directly to the selected USB drive and this bug report should not include private files or secrets.
+          required: true

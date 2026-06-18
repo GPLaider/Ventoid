@@ -1,0 +1,85 @@
+name: Device compatibility report
+description: Share whether Ventoid works with a specific Android device, OTG adapter, and USB drive.
+title: "[Device]: "
+labels:
+  - device-compatibility
+  - needs-device-info
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Compatibility reports help map which phones, adapters, hubs, and USB drives work well with Ventoid.
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - Works
+        - Partially works
+        - Does not work
+    validations:
+      required: true
+  - type: input
+    id: ventoid-version
+    attributes:
+      label: Ventoid version
+      placeholder: "0.1.7"
+    validations:
+      required: true
+  - type: dropdown
+    id: install-source
+    attributes:
+      label: Install source
+      options:
+        - F-Droid
+        - GitHub APK
+        - Local debug build
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Android device and OS
+      placeholder: "Pixel 8, Android 15"
+    validations:
+      required: true
+  - type: input
+    id: usb-adapter
+    attributes:
+      label: OTG adapter or hub
+      placeholder: "USB-C OTG adapter, powered hub, etc."
+    validations:
+      required: true
+  - type: input
+    id: usb-drive
+    attributes:
+      label: USB drive
+      placeholder: "Brand/model/capacity if known"
+    validations:
+      required: true
+  - type: dropdown
+    id: partition-style
+    attributes:
+      label: Partition style used
+      options:
+        - MBR
+        - GPT
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: boot-test
+    attributes:
+      label: Boot test result
+      description: Did the prepared drive boot on a PC? Mention BIOS/UEFI/Secure Boot if tested.
+      placeholder: "UEFI boot worked on ThinkPad. Secure Boot not tested."
+    validations:
+      required: false
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Permission prompts, disconnects, speed, powered hub behavior, or other useful details.
+    validations:
+      required: false
