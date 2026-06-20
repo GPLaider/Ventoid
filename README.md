@@ -7,20 +7,66 @@
 
 ![Ventoid logo](docs/assets/ventoid-logo.png)
 
-Ventoid is an Android app for creating Ventoy-style USB drives directly from a phone. It is built for OTG workflows, repair kits, and those moments when your phone is the only working device nearby.
+Ventoid turns an Android phone into a practical Ventoy-style USB preparation tool. Plug in a USB drive over OTG, choose a layout, and prepare bootable USB media without needing a working PC.
+
+It is built for offline Android OTG workflows, released on F-Droid, licensed as `GPL-3.0-only`, and includes no ads, no analytics, and no network dependency for normal use.
 
 ![Ventoid screenshot](docs/assets/ventoid-screenshot.jpg)
 
+## What Ventoid is for
+
+- Emergency repair kits
+- Linux installation USBs
+- Recovery USB preparation
+- Situations where a phone is the only working device
+- Users who want a GPL-compliant, offline, ad-free USB preparation tool
+
+## Quick Start
+
+1. Install Ventoid from [F-Droid](https://f-droid.org/packages/com.ventoid.app/) or [GitHub Releases](https://github.com/GPLaider/Ventoid/releases/latest).
+2. Connect a USB drive using Android OTG.
+3. Open Ventoid and grant USB permission.
+4. Select the target USB device carefully.
+5. Choose MBR or GPT layout.
+6. Start the install process.
+7. After Ventoid prepares the drive, copy ISO files to the exFAT data partition.
+
+Ventoid writes to the selected USB drive. This can erase or overwrite existing data. Back up anything important first.
+
+## What Ventoid is not
+
+- Ventoid is not the official Ventoy Android app.
+- Ventoid is an independent GPL-licensed Android project that prepares Ventoy-style USB media.
+- It does not require root.
+- It does not download ISO files for you.
+- It does not guarantee that every phone, USB drive, hub, or firmware will behave the same way.
+
+## Compatibility Notes
+
+- Requires Android USB host / OTG support.
+- Requires a USB mass-storage device visible to Android.
+- Some phones, USB-C hubs, card readers, or flash drives may behave differently.
+- Large ISO files require the exFAT data partition.
+- Boot success still depends on the target computer firmware, Secure Boot settings, and ISO compatibility.
+
 ## Features
+
+### USB preparation
 
 - Prepare bootable USB media without a PC
 - Write directly to USB mass-storage devices over Android OTG
 - Choose MBR or GPT Ventoy-compatible disk layouts
 - Write the Ventoy core image and EFI partition image
-- Verify bundled Secure Boot markers before install
 - Format the data partition as exFAT for large ISO files
+
+### Safety and transparency
+
+- Verify bundled Secure Boot markers before install
 - Show stage-based progress for `MBR`, `CORE`, `DATA`, and `EFI`
-- No ads, no analytics, no network dependency
+- No ads
+- No analytics
+- No network dependency
+- `GPL-3.0-only` source code
 
 ## Install
 
@@ -37,6 +83,14 @@ GitHub APKs are also attached to tagged releases:
 Ventoid 0.1.7 and later GitHub APKs use a new GitHub release signing key. If you installed an older GitHub APK, Android may reject an in-place update. Uninstall the older GitHub APK first, then install the latest release, or switch to the F-Droid build.
 
 F-Droid builds are unaffected because F-Droid builds from source and signs packages with its own repository key.
+
+## Privacy
+
+Ventoid is designed to work offline. It does not include ads, analytics, tracking SDKs, or network-dependent behavior.
+
+## Relationship to Ventoy
+
+Ventoid focuses on Android OTG workflows for preparing Ventoy-style USB media from a phone. Ventoy itself remains the original bootable USB project. This project is independent and aims to provide a clean, GPL-compliant Android implementation for mobile USB preparation.
 
 ## Project Info
 
@@ -82,10 +136,23 @@ On Windows, run these commands from the repository root:
 .\gradlew.bat :app:assembleDebug
 ```
 
-For a release build:
+For a release build on Windows:
 
 ```powershell
 .\gradlew.bat :app:assembleRelease
+```
+
+On Linux or macOS:
+
+```bash
+./gradlew :app:testDebugUnitTest
+./gradlew :app:assembleDebug
+```
+
+For a release build on Linux or macOS:
+
+```bash
+./gradlew :app:assembleRelease
 ```
 
 Release signing is optional. If no `VENTOID_RELEASE_*` environment variables or Gradle properties are set, Gradle generates an unsigned release APK.
