@@ -30,6 +30,23 @@ Ventoid is already in active F-Droid review.
 5. Rebase the fork branch onto the latest `fdroiddata/master` if `need rebase` appears.
 6. Leave a short MR comment only when there is a meaningful update or reviewer request to address.
 
+## Automated update MR
+
+The repository includes a GitHub Actions workflow for follow-up F-Droid metadata updates:
+
+```powershell
+./scripts/Submit-FdroidUpdate.ps1
+```
+
+The default mode is a dry-run that does not require `FDROID_GITLAB_TOKEN`. To create or update the GitLab merge request from a trusted maintainer environment:
+
+```powershell
+./scripts/Test-FdroidPreflight.ps1 -UpdateMetadata -SkipBuild
+./scripts/Submit-FdroidUpdate.ps1 -Submit
+```
+
+The workflow `.github/workflows/fdroid-update.yml` runs on `v*` tags and manual dispatch. It writes to a fork branch and opens or updates a merge request against `fdroid/fdroiddata`; it does not write directly to upstream `master`.
+
 ## Useful official references
 
 - Inclusion checklist: https://fdroid.gitlab.io/jekyll-fdroid/en/docs/Inclusion_How-To
