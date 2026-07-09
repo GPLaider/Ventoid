@@ -1,0 +1,56 @@
+name: F-Droid Update MR
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      submit:
+        description: "Create or update the GitLab fdroiddata merge request"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: read
+
+jobs:
+  fdroid-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Refresh local F-Droid metadata
+        shell: pwsh
+        run: ./scripts/Test-FdroidPreflight.ps1 -UpdateMetadata -SkipBuild
+
+      - name: Submit or dry-run F-Droid update
+        shell: pwsh
+        env:
+          FDROID_GITLAB_TOKEN: ${{ secrets.FDROID_GITLAB_TOKEN }}
+        run: |
+          $submit = "${{ github.event_name }}" -eq "push" -or "${{ inputs.submit }}" -eq "true"
+          if ($submit) {
+            ./scripts/Submit-FdroidUpdate.ps1 -Submit
+          } else {
+            ./scripts/Submit-FdroidUpdate.ps1
+          }
