@@ -114,8 +114,26 @@ $bootOut = Join-Path $repoRoot "app/src/main/assets/boot/boot.img"
 $coreOut = Join-Path $repoRoot "app/src/main/assets/boot/core.img"
 
 Copy-Item -LiteralPath $bootImg -Destination $bootOut -Force
-& bash -lc "xz -dc '$coreImgXz' > '$coreOut'"
-if ($LASTEXITCODE -ne 0) {
+$xzProcess = [System.Diagnostics.Process]::new()
+$xzProcess.StartInfo.FileName = "xz"
+$xzProcess.StartInfo.ArgumentList.Add("-dc")
+$xzProcess.StartInfo.ArgumentList.Add($coreImgXz)
+$xzProcess.StartInfo.RedirectStandardOutput = $true
+$xzProcess.StartInfo.RedirectStandardError = $true
+$xzProcess.StartInfo.UseShellExecute = $false
+$xzProcess.Start() | Out-Null
+$coreStream = [System.IO.File]::Open($coreOut, [System.IO.FileMode]::Create, [System.IO.FileAccess]::Write)
+try {
+    $xzProcess.StandardOutput.BaseStream.CopyTo($coreStream)
+} finally {
+    $coreStream.Dispose()
+}
+$xzProcess.WaitForExit()
+if ($xzProcess.ExitCode -ne 0) {
+    $xzError = $xzProcess.StandardError.ReadToEnd()
+    if ($xzError) {
+        Write-Error $xzError
+    }
     throw "core.img decompression failed."
 }
 
