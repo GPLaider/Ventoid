@@ -56,8 +56,9 @@ $versionCode = Get-RequiredMatch -InputText $gradleContent -Pattern '^\s*version
 
 if (-not $Commit) {
     $releaseTag = "v$versionName"
-    $tagCommit = (& git rev-list -n 1 $releaseTag 2>$null).Trim()
-    if ($LASTEXITCODE -eq 0 -and $tagCommit -match '^[0-9a-f]{40}$') {
+    $matchingTag = ((& git tag --list $releaseTag) -join "").Trim()
+    if ($matchingTag -eq $releaseTag) {
+        $tagCommit = (& git rev-list -n 1 $releaseTag).Trim()
         $Commit = $tagCommit
     } else {
         $Commit = (& git rev-parse HEAD).Trim()
@@ -99,10 +100,10 @@ if ($metadataCurrentVersionCode -ne $versionCode) {
     throw "fdroiddata CurrentVersionCode ($metadataCurrentVersionCode) does not match app/build.gradle.kts ($versionCode)."
 }
 
-if (-not $readmeContent.Contains("## Build from source")) {
+if ($readmeContent.IndexOf("## Build From Source", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
     throw "README is missing the 'Build from source' section."
 }
-if (-not $readmeContent.Contains("### Android Studio")) {
+if ($readmeContent.IndexOf("### Android Studio", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
     throw "README is missing the Android Studio build instructions."
 }
 

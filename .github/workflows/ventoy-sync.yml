@@ -1,0 +1,68 @@
+name: Ventoy Update Check
+
+on:
+  schedule:
+    - cron: "23 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  ventoy-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check upstream Ventoy release
+        id: check
+        shell: pwsh
+        run: ./scripts/Check-VentoyUpdate.ps1 -WriteGitHubOutput -OutputPath ventoy-update.json
+
+      - name: Install asset build tools
+        if: steps.check.outputs.update_available == 'true'
+        run: sudo apt-get update && sudo apt-get install -y dosfstools mtools xz-utils
+
+      - name: Update bundled Ventoy assets
+        if: steps.check.outputs.update_available == 'true'
+        shell: pwsh
+        run: ./scripts/Update-VentoyAssets.ps1 -Version "${{ steps.check.outputs.latest_version }}"
+
+      - name: Validate Android project
+        if: steps.check.outputs.update_available == 'true'
+        run: ./gradlew :app:testDebugUnitTest :app:assembleDebug
+
+      - name: Open Ventoy asset update PR
+        if: steps.check.outputs.update_available == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LATEST_VERSION: ${{ steps.check.outputs.latest_version }}
+        run: |
+          set -euo pipefail
+          branch="agent/update-ventoy-${LATEST_VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$branch"
+          git add ASSET_PROVENANCE.md app/src/main/assets/boot/README.txt app/src/main/assets/boot/boot.img app/src/main/assets/boot/core.img app/src/main/assets/ventoy/README.txt app/src/main/assets/ventoy/ventoy.disk.img app/src/main/assets/ventoy/ventoy.disk.img.sha256
+          if git diff --cached --quiet; then
+            echo "No Ventoy asset changes to publish."
+            exit 0
+          fi
+          git commit -m "Update Ventoy assets to ${LATEST_VERSION}"
+          git push --force-with-lease origin "$branch"
+          existing_pr="$(gh pr list --state open --base master --head "$branch" --json url --jq '.[0].url // ""')"
+          if [ -n "$existing_pr" ]; then
+            echo "Ventoy asset update PR already exists: $existing_pr"
+          else
+            gh pr create \
+              --draft \
+              --base master \
+              --head "$branch" \
+              --title "Update Ventoy assets to ${LATEST_VERSION}" \
+              --body "Automated Ventoy asset refresh for upstream Ventoy ${LATEST_VERSION}."
+          fi
