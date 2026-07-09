@@ -52,7 +52,7 @@ function Invoke-GitLabApi {
 
     if ($null -ne $Body) {
         $invoke.ContentType = "application/json"
-        $invoke.Body = ($Body | ConvertTo-Json -Depth 8)
+        $invoke.Body = ConvertTo-Json -InputObject ([pscustomobject]$Body) -Depth 8
     }
 
     try {
