@@ -107,7 +107,9 @@ if ($readmeContent.IndexOf("### Android Studio", [System.StringComparison]::Ordi
     throw "README is missing the Android Studio build instructions."
 }
 
-$gradleCommand = if ($IsWindows -or $env:OS -eq "Windows_NT") {
+$isWindowsVariable = Get-Variable -Name IsWindows -ErrorAction SilentlyContinue
+$isWindowsHost = (($null -ne $isWindowsVariable) -and $isWindowsVariable.Value) -or $env:OS -eq "Windows_NT"
+$gradleCommand = if ($isWindowsHost) {
     Join-Path $repoRoot "gradlew.bat"
 } else {
     Join-Path $repoRoot "gradlew"
