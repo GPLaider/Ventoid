@@ -152,7 +152,7 @@ if ($null -eq $branch) {
     $branch = Invoke-GitLabApi -Method POST -Path "projects/$encodedFork/repository/branches" -Body $branchBody
 }
 
-$file = Invoke-GitLabApi -Method GET -Path "projects/$encodedFork/repository/files/$encodedFile?ref=$encodedBranch" -AllowNotFound
+$file = Invoke-GitLabApi -Method GET -Path "projects/$encodedFork/repository/files/${encodedFile}?ref=$encodedBranch" -AllowNotFound
 $fileBody = @{
     branch = $SourceBranch
     content = $metadataContent
