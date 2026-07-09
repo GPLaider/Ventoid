@@ -103,8 +103,8 @@ if ($UpdateMetadata) {
     $metadataContent = Update-LastLineValue -InputText $metadataContent -Pattern '^\s*- versionName:\s*.*$' -Replacement "  - versionName: $versionName" -FieldName "Builds.versionName"
     $metadataContent = Update-LastLineValue -InputText $metadataContent -Pattern '^\s*versionCode:\s*.*$' -Replacement "    versionCode: $versionCode" -FieldName "Builds.versionCode"
     $metadataContent = Update-LastLineValue -InputText $metadataContent -Pattern '^\s*commit:\s*.*$' -Replacement "    commit: $Commit" -FieldName "Builds.commit"
-    $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^CurrentVersion:\s*.*$' -Replacement "CurrentVersion: $versionName" -FieldName "CurrentVersion"
-    $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^CurrentVersionCode:\s*.*$' -Replacement "CurrentVersionCode: $versionCode" -FieldName "CurrentVersionCode"
+    $metadataContent = Update-LastLineValue -InputText $metadataContent -Pattern '^CurrentVersion:\s*.*$' -Replacement "CurrentVersion: $versionName" -FieldName "CurrentVersion"
+    $metadataContent = Update-LastLineValue -InputText $metadataContent -Pattern '^CurrentVersionCode:\s*.*$' -Replacement "CurrentVersionCode: $versionCode" -FieldName "CurrentVersionCode"
     Set-Content -LiteralPath $metadataFile -Value $metadataContent -Encoding utf8
 }
 
