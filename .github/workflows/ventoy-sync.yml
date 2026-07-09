@@ -55,9 +55,14 @@ jobs:
           fi
           git commit -m "Update Ventoy assets to ${LATEST_VERSION}"
           git push --force-with-lease origin "$branch"
-          gh pr create \
-            --draft \
-            --base master \
-            --head "$branch" \
-            --title "Update Ventoy assets to ${LATEST_VERSION}" \
-            --body "Automated Ventoy asset refresh for upstream Ventoy ${LATEST_VERSION}."
+          existing_pr="$(gh pr list --state open --base master --head "$branch" --json url --jq '.[0].url // ""')"
+          if [ -n "$existing_pr" ]; then
+            echo "Ventoy asset update PR already exists: $existing_pr"
+          else
+            gh pr create \
+              --draft \
+              --base master \
+              --head "$branch" \
+              --title "Update Ventoy assets to ${LATEST_VERSION}" \
+              --body "Automated Ventoy asset refresh for upstream Ventoy ${LATEST_VERSION}."
+          fi

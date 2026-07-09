@@ -76,6 +76,14 @@ Require-Command bash
 if (-not $WorkDir) {
     $WorkDir = Join-Path ([System.IO.Path]::GetTempPath()) "ventoid-ventoy-update-$versionName"
 }
+$resolvedWorkDir = [System.IO.Path]::GetFullPath($WorkDir)
+$resolvedTempDir = [System.IO.Path]::GetFullPath([System.IO.Path]::GetTempPath())
+if (-not $resolvedTempDir.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
+    $resolvedTempDir = "$resolvedTempDir$([System.IO.Path]::DirectorySeparatorChar)"
+}
+if (-not $resolvedWorkDir.StartsWith($resolvedTempDir, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "WorkDir must be inside the system temporary directory."
+}
 if (Test-Path -LiteralPath $WorkDir) {
     Remove-Item -LiteralPath $WorkDir -Recurse -Force
 }
