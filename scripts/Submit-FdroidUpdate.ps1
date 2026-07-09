@@ -162,7 +162,10 @@ $fileBody = @{
 if ($null -eq $file) {
     $file = Invoke-GitLabApi -Method POST -Path "projects/$encodedFork/repository/files/$encodedFile" -Body $fileBody
 } else {
-    $file = Invoke-GitLabApi -Method PUT -Path "projects/$encodedFork/repository/files/$encodedFile" -Body $fileBody
+    $remoteContent = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String(($file.content -replace '\s', '')))
+    if ($remoteContent -ne $metadataContent) {
+        $file = Invoke-GitLabApi -Method PUT -Path "projects/$encodedFork/repository/files/$encodedFile" -Body $fileBody
+    }
 }
 
 $mrsPath = "projects/$encodedUpstream/merge_requests?state=opened&source_project_id=$($fork.id)&source_branch=$encodedBranch&target_branch=$TargetBranch"
