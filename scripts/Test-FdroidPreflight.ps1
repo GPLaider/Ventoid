@@ -40,6 +40,36 @@ function Update-LineValue {
     return $updated
 }
 
+function Get-LastRequiredMatch {
+    param(
+        [string]$InputText,
+        [string]$Pattern,
+        [string]$FieldName
+    )
+
+    $matches = [regex]::Matches($InputText, $Pattern, [System.Text.RegularExpressions.RegexOptions]::Multiline)
+    if ($matches.Count -eq 0) {
+        throw "Could not find $FieldName."
+    }
+    return $matches[$matches.Count - 1].Groups[1].Value.Trim()
+}
+
+function Update-LastLineValue {
+    param(
+        [string]$InputText,
+        [string]$Pattern,
+        [string]$Replacement,
+        [string]$FieldName
+    )
+
+    $matches = [regex]::Matches($InputText, $Pattern, [System.Text.RegularExpressions.RegexOptions]::Multiline)
+    if ($matches.Count -eq 0) {
+        throw "Could not update $FieldName."
+    }
+    $match = $matches[$matches.Count - 1]
+    return $InputText.Substring(0, $match.Index) + $Replacement + $InputText.Substring($match.Index + $match.Length)
+}
+
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $repoRoot
 
@@ -70,17 +100,17 @@ if ($Commit -notmatch '^[0-9a-f]{40}$') {
 }
 
 if ($UpdateMetadata) {
-    $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^\s*- versionName:\s*.*$' -Replacement "  - versionName: $versionName" -FieldName "Builds.versionName"
-    $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^\s*versionCode:\s*.*$' -Replacement "    versionCode: $versionCode" -FieldName "Builds.versionCode"
-    $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^\s*commit:\s*.*$' -Replacement "    commit: $Commit" -FieldName "Builds.commit"
+    $metadataContent = Update-LastLineValue -InputText $metadataContent -Pattern '^\s*- versionName:\s*.*$' -Replacement "  - versionName: $versionName" -FieldName "Builds.versionName"
+    $metadataContent = Update-LastLineValue -InputText $metadataContent -Pattern '^\s*versionCode:\s*.*$' -Replacement "    versionCode: $versionCode" -FieldName "Builds.versionCode"
+    $metadataContent = Update-LastLineValue -InputText $metadataContent -Pattern '^\s*commit:\s*.*$' -Replacement "    commit: $Commit" -FieldName "Builds.commit"
     $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^CurrentVersion:\s*.*$' -Replacement "CurrentVersion: $versionName" -FieldName "CurrentVersion"
     $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^CurrentVersionCode:\s*.*$' -Replacement "CurrentVersionCode: $versionCode" -FieldName "CurrentVersionCode"
     Set-Content -LiteralPath $metadataFile -Value $metadataContent -Encoding utf8
 }
 
-$metadataVersionName = Get-RequiredMatch -InputText $metadataContent -Pattern '^\s*- versionName:\s*(.+?)\s*$' -FieldName "metadata Builds.versionName"
-$metadataVersionCode = Get-RequiredMatch -InputText $metadataContent -Pattern '^\s*versionCode:\s*(\d+)\s*$' -FieldName "metadata Builds.versionCode"
-$metadataCommit = Get-RequiredMatch -InputText $metadataContent -Pattern '^\s*commit:\s*([0-9a-f]{40})\s*$' -FieldName "metadata Builds.commit"
+$metadataVersionName = Get-LastRequiredMatch -InputText $metadataContent -Pattern '^\s*- versionName:\s*(.+?)\s*$' -FieldName "metadata Builds.versionName"
+$metadataVersionCode = Get-LastRequiredMatch -InputText $metadataContent -Pattern '^\s*versionCode:\s*(\d+)\s*$' -FieldName "metadata Builds.versionCode"
+$metadataCommit = Get-LastRequiredMatch -InputText $metadataContent -Pattern '^\s*commit:\s*([0-9a-f]{40})\s*$' -FieldName "metadata Builds.commit"
 $metadataCurrentVersion = Get-RequiredMatch -InputText $metadataContent -Pattern '^CurrentVersion:\s*(.+?)\s*$' -FieldName "metadata CurrentVersion"
 $metadataCurrentVersionCode = Get-RequiredMatch -InputText $metadataContent -Pattern '^CurrentVersionCode:\s*(\d+)\s*$' -FieldName "metadata CurrentVersionCode"
 

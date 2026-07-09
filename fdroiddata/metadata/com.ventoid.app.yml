@@ -11,12 +11,43 @@ RepoType: git
 Repo: https://github.com/GPLaider/Ventoid.git
 
 Builds:
-  - versionName: 0.1.7
-    versionCode: 8
-    commit: a84b26183c17c21d3116c8f18d6878654a104bfb
+  - versionName: 0.1.6
+    versionCode: 7
+    commit: 9e774f1a20f0d0f9400ac610169390f4a13a0b0d
     subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y dosfstools mtools
     gradle:
       - yes
+    srclibs:
+      - Ventoy@v1.1.10
+    prebuild: mv $$Ventoy$$ ..
+    scandelete:
+      - Ventoy
+    build:
+      - cd ..
+      - export PATH=$PATH:/usr/sbin
+      - VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
+
+  - versionName: 0.1.7
+    versionCode: 8
+    commit: d65234d86123297ecb7284dd1cbf5a54104fcd1b
+    subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y dosfstools mtools
+    gradle:
+      - yes
+    srclibs:
+      - Ventoy@v1.1.10
+    prebuild: mv $$Ventoy$$ ..
+    scandelete:
+      - Ventoy
+    build:
+      - cd ..
+      - export PATH=$PATH:/usr/sbin
+      - VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[\d.]+$
