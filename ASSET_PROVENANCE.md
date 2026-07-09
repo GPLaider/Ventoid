@@ -5,7 +5,7 @@ These bundled boot assets are treated as release-critical inputs and are verifie
 ## Source baseline
 
 - Upstream project: `ventoy/Ventoy`
-- Upstream version: `1.1.10`
+- Upstream version: `1.1.16`
 - Packaging note:
   - `boot.img` and `core.img` are documented in `app/src/main/assets/boot/README.txt`
   - `ventoy.disk.img` is generated from the upstream Ventoy `INSTALL/` tree using `scripts/build-ventoy-disk-img.sh`
@@ -15,7 +15,7 @@ These bundled boot assets are treated as release-critical inputs and are verifie
 The 32 MiB Ventoy EFI partition image can be rebuilt without root privileges:
 
 ```sh
-export VENTOY_SRC=/path/to/Ventoy-1.1.10
+export VENTOY_SRC=/path/to/Ventoy-1.1.16
 bash scripts/build-ventoy-disk-img.sh
 ```
 
@@ -33,15 +33,15 @@ For F-Droid builds, the script defaults to `DEBLOB_FDROID=1`. In that mode it st
 
 ### `app/src/main/assets/boot/boot.img`
 
-- SHA-256: `CA73F11DE68CEC7366C897F2153C871012B52DC86AC4765E8C563D3A2BF63466`
+- SHA-256: `F97FC398940E9D2CC796C38AACA614E7DAE194E1AAEF378280DB7C1890E10DF9`
 
 ### `app/src/main/assets/boot/core.img`
 
-- SHA-256: `5A4A1AD869D8DEB4D74AE71BFC64FFA3204089F606C636829116376B0CB61012`
+- SHA-256: `756864E4CD1DE559DC868F6C0037544CDC480E3FCC9CEA9A2B5A5AAAD07DBBAA`
 
 ### `app/src/main/assets/ventoy/ventoy.disk.img`
 
-- SHA-256: `02046E5EE6A0030FE2ECB225A6A2EBBF0EF7971CD4BB82A2BD691FE68CB61E9B`
+- SHA-256: `61D5E38664AA00D0274CDF6B8987C4B985EF410DBBEE933162E657D6E0EB7DB0`
 
 ## Maintenance rule
 
