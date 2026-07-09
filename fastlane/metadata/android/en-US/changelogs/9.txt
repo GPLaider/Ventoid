@@ -1,0 +1,5 @@
+Release Ventoid 0.2.0.
+
+- Bundle Ventoy 1.1.16 disk image assets
+- Clarify phone-side ISO copy behavior for Android file managers
+- Improve F-Droid and Ventoy update automation
