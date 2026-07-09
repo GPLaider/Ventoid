@@ -49,7 +49,26 @@ Builds:
       - export PATH=$PATH:/usr/sbin
       - VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
 
+  - versionName: 0.2.0
+    versionCode: 9
+    commit: c0ad5d72364bb08a778b9c336a2c630f463de986
+    subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y dosfstools mtools
+    gradle:
+      - yes
+    srclibs:
+      - Ventoy@v1.1.16
+    prebuild: mv $$Ventoy$$ ..
+    scandelete:
+      - Ventoy
+    build:
+      - cd ..
+      - export PATH=$PATH:/usr/sbin
+      - VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[\d.]+$
-CurrentVersion: 0.1.7
-CurrentVersionCode: 8
+CurrentVersion: 0.2.0
+CurrentVersionCode: 9
