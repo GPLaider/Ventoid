@@ -28,8 +28,8 @@ It is built for offline Android OTG workflows, released on F-Droid, licensed as 
 3. Open Ventoid and grant USB permission.
 4. Select the target USB device carefully.
 5. Choose MBR or GPT layout.
-6. Start the install process.
-7. After Ventoid prepares the drive, copy ISO files to the exFAT data partition.
+6. Start USB preparation.
+7. After Ventoid prepares the drive, remount it if needed, then copy ISO files to the exFAT data partition with Android Files or another file manager.
 
 Ventoid writes to the selected USB drive. This can erase or overwrite existing data. Back up anything important first.
 
@@ -61,7 +61,7 @@ Ventoid writes to the selected USB drive. This can erase or overwrite existing d
 
 ### Safety and transparency
 
-- Verify bundled Secure Boot markers before install
+- Verify bundled Secure Boot markers before writing
 - Show stage-based progress for `MBR`, `CORE`, `DATA`, and `EFI`
 - No ads
 - No analytics
