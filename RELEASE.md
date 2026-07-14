@@ -20,7 +20,29 @@ F-Droid APKs and GitHub APKs are signed with different keys. Android treats thos
 
 Do not mix installs signed with different keys. If Android reports that an update cannot be installed because the package signatures do not match, uninstall the existing build first, then install the build you want to use.
 
-Ventoid 0.1.7 and later GitHub APKs use the current GitHub release signing key. F-Droid users are unaffected because F-Droid builds and signs its own APKs.
+GitHub release APKs are signed with the project GitHub release key. F-Droid users are unaffected because F-Droid builds and signs its own APKs.
+
+### Where the GitHub release key is stored
+
+The private keystore is **not** in the public git tree. It is stored as repository secrets on GitHub (Settings → Secrets and variables → Actions):
+
+| Secret | Purpose |
+| --- | --- |
+| `VENTOID_RELEASE_KEYSTORE_BASE64` | Base64-encoded JKS/PKCS12 keystore bytes |
+| `VENTOID_RELEASE_STORE_PASSWORD` | Keystore password |
+| `VENTOID_RELEASE_KEY_ALIAS` | Key alias (currently `ventoid`) |
+| `VENTOID_RELEASE_KEY_PASSWORD` | Key password |
+
+Local builds can use the same values via environment variables or Gradle properties:
+
+- `VENTOID_RELEASE_STORE_FILE` — path to the keystore file on disk
+- `VENTOID_RELEASE_STORE_PASSWORD`
+- `VENTOID_RELEASE_KEY_ALIAS`
+- `VENTOID_RELEASE_KEY_PASSWORD`
+
+The workflow `.github/workflows/github-release.yml` runs on `v*` tags (or manual dispatch), decodes the keystore secret, builds a signed APK/AAB, and uploads them to the GitHub Release.
+
+Keep a private offline backup of the keystore and passwords. Losing them means users must uninstall before installing a newly signed GitHub APK.
 
 ## USB Safety
 
