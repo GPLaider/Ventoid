@@ -1,6 +1,6 @@
-# Submit To F-Droid
+﻿# Submit To F-Droid
 
-Ventoid is already in active F-Droid review.
+Ventoid is published on F-Droid and updates are submitted via GitLab `fdroid/fdroiddata`.
 
 ## Current status
 
@@ -11,37 +11,19 @@ Ventoid is already in active F-Droid review.
   - `FDROID.md`
 - Asset provenance:
   - `ASSET_PROVENANCE.md`
-- Active merge request:
-  - `https://gitlab.com/fdroid/fdroiddata/-/merge_requests/34749`
+- Latest update MR (0.2.1):
+  - https://gitlab.com/fdroid/fdroiddata/-/merge_requests/42888
 
 ## What is already prepared
 
 - Fastlane-style app metadata under `fastlane/metadata/android/en-US/`
 - F-Droid-compatible metadata under `fdroiddata/metadata/com.ventoid.app.yml`
 - Bundled asset provenance in `ASSET_PROVENANCE.md`
-- Successful F-Droid pipeline for the submitted MR
-
-## Suggested next steps
-
-1. Update `app/build.gradle.kts` with the new `versionName` and `versionCode`.
-2. Create and push the upstream Git tag and release assets.
-3. Update `fdroiddata/metadata/com.ventoid.app.yml` to the new version and commit hash.
-4. Sync the same metadata into the fork used for the active F-Droid MR.
-5. Rebase the fork branch onto the latest `fdroiddata/master` if `need rebase` appears.
-6. Leave a short MR comment only when there is a meaningful update or reviewer request to address.
 
 ## Automated update MR
 
-The repository includes a GitHub Actions workflow for follow-up F-Droid metadata updates:
-
 ```powershell
 ./scripts/Submit-FdroidUpdate.ps1
-```
-
-The default mode is a dry-run that does not require `FDROID_GITLAB_TOKEN`. To create or update the GitLab merge request from a trusted maintainer environment:
-
-```powershell
-./scripts/Test-FdroidPreflight.ps1 -UpdateMetadata -SkipBuild
 ./scripts/Submit-FdroidUpdate.ps1 -Submit
 ```
 
