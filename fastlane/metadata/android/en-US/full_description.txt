@@ -6,8 +6,8 @@ What Ventoid does:
 
 - Detects supported USB mass-storage devices connected over OTG
 - Requests Android USB permission only when needed
-- Writes a Ventoy-compatible MBR layout
-- Writes the Ventoy boot core and EFI image
+- Writes a Ventoy-compatible MBR or GPT layout
+- Writes the Ventoy boot core and EFI image, including the x86_64 Secure Boot chain
 - Formats the main data partition as exFAT
 - Shows a clear install progress view and local write log
 

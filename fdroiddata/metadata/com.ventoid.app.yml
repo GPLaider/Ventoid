@@ -68,7 +68,22 @@ Builds:
       - export PATH=$PATH:/usr/sbin
       - VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
 
+  - versionName: 0.2.1
+    versionCode: 10
+    commit: REPLACE_WITH_0_2_1_COMMIT
+    subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y mtools xz-utils
+    gradle:
+      - yes
+    # Bundled ventoy.disk.img is the official Ventoy 1.1.16 VTOYEFI with imdisk/memdisk/7z
+    # removed and the Rocky-signed x86_64 Secure Boot PE chain retained. Pins and licenses
+    # are in ASSET_PROVENANCE.md. F-Droid accepted this narrow FLOSS-signed pin set.
+    # Optional exact-path scanignore if required for the PE files inside the image:
+    #   app/src/main/assets/ventoy/ventoy.disk.img
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[\d.]+$
-CurrentVersion: 0.2.0
-CurrentVersionCode: 9
+CurrentVersion: 0.2.1
+CurrentVersionCode: 10

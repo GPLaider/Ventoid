@@ -42,7 +42,7 @@ The app currently includes boot assets under `app/src/main/assets/`:
 
 These files are documented in `ASSET_PROVENANCE.md` so reviewers can trace their upstream source and licensing basis. The `ventoy.disk.img` file is rebuildable with `bash scripts/build-ventoy-disk-img.sh` from the upstream Ventoy `INSTALL/` tree using `dosfstools` and `mtools`.
 
-For F-Droid builds, the script defaults to a reduced `DEBLOB_FDROID=1` mode which removes Ventoy-packaged binaries that upstream documents as downloaded/prebuilt blobs (`imdisk`, `memdisk`, Secure Boot wrapper EFI binaries, and `7za.exe`). The resulting image keeps the source-built EFI/grub path and installs normally, but Secure Boot support is intentionally unavailable in that variant.
+For F-Droid builds, the script defaults to `DEBLOB_FDROID=1`, which removes non-Secure-Boot prebuilt blobs (`imdisk`, `memdisk`, `7za.exe`) while **retaining** the pinned x86_64 Secure Boot chain (Rocky Linux 9.8 signed `BOOTX64.EFI` + `mmx64.efi`, plus Ventoy `fbx64.efi` / `grubx64_real.efi`). Full PE hashes, SBAT, license, and source pins are in `ASSET_PROVENANCE.md`.
 
 ## Maintenance Notes
 

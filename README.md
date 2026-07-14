@@ -47,7 +47,8 @@ Ventoid writes to the selected USB drive. This can erase or overwrite existing d
 - Requires a USB mass-storage device visible to Android.
 - Some phones, USB-C hubs, card readers, or flash drives may behave differently.
 - Large ISO files require the exFAT data partition.
-- Boot success still depends on the target computer firmware, Secure Boot settings, and ISO compatibility.
+- Bundled media includes the Ventoy Secure Boot chain; first boot on a Secure Boot PC may require a one-time MOK enrollment of the Ventoy certificate.
+- Boot success still depends on the target computer firmware, Secure Boot settings, MOK enrollment, and ISO compatibility.
 
 ## Features
 
@@ -61,6 +62,7 @@ Ventoid writes to the selected USB drive. This can erase or overwrite existing d
 
 ### Safety and transparency
 
+- Ship the Ventoy x86_64 Secure Boot chain (Rocky-signed shim + MOK manager) with pinned provenance
 - Verify bundled Secure Boot markers before writing
 - Show stage-based progress for `MBR`, `CORE`, `DATA`, and `EFI`
 - No ads

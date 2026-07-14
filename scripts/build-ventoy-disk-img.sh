@@ -89,34 +89,23 @@ cp -a "$INSTALL_DIR/ventoy" "$WORK_DIR/root/"
 cp -a "$INSTALL_DIR/EFI" "$WORK_DIR/root/"
 mkdir -p "$WORK_DIR/root/tool"
 
-if [ "$DEBLOB_FDROID" != "1" ]; then
+# Always ship the MOK enrollment certificate used by the Secure Boot chain.
+if [ -f "$INSTALL_DIR/tool/ENROLL_THIS_KEY_IN_MOKMANAGER.cer" ]; then
     cp -a "$INSTALL_DIR/tool/ENROLL_THIS_KEY_IN_MOKMANAGER.cer" "$WORK_DIR/root/"
+fi
+
+if [ "$DEBLOB_FDROID" != "1" ]; then
     dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/i386/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_i386"
     dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/x86_64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_x86_64"
     dd status=none bs=1024 count=16 if="$INSTALL_DIR/tool/aarch64/vtoycli" of="$WORK_DIR/root/tool/mount.exfat-fuse_aarch64"
 fi
 
 if [ "$DEBLOB_FDROID" = "1" ]; then
+    # Strip non-Secure-Boot prebuilt blobs only. Keep the x86_64 Secure Boot chain:
+    # Rocky-signed BOOTX64.EFI + mmx64.efi, Ventoy fbx64.efi fallback, and grubx64_real.efi.
+    # F-Droid maintainers accepted this narrow FLOSS-signed pin set (see ASSET_PROVENANCE.md).
     rm -rf "$WORK_DIR/root/ventoy/7z" "$WORK_DIR/root/ventoy/imdisk"
     rm -f "$WORK_DIR/root/ventoy/memdisk"
-
-    rm -f \
-        "$WORK_DIR/root/EFI/BOOT/grub.efi" \
-        "$WORK_DIR/root/EFI/BOOT/grubia32.efi" \
-        "$WORK_DIR/root/EFI/BOOT/mmia32.efi" \
-        "$WORK_DIR/root/EFI/BOOT/MokManager.efi"
-
-    if [ -f "$WORK_DIR/root/EFI/BOOT/grubx64_real.efi" ]; then
-        cp -f "$WORK_DIR/root/EFI/BOOT/grubx64_real.efi" "$WORK_DIR/root/EFI/BOOT/BOOTX64.EFI"
-    else
-        rm -f "$WORK_DIR/root/EFI/BOOT/BOOTX64.EFI"
-    fi
-
-    if [ -f "$WORK_DIR/root/EFI/BOOT/grubia32_real.efi" ]; then
-        cp -f "$WORK_DIR/root/EFI/BOOT/grubia32_real.efi" "$WORK_DIR/root/EFI/BOOT/BOOTIA32.EFI"
-    else
-        rm -f "$WORK_DIR/root/EFI/BOOT/BOOTIA32.EFI"
-    fi
 fi
 
 find "$WORK_DIR/root/grub/i386-pc" -name '*.img' -delete 2>/dev/null || true

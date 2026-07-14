@@ -56,8 +56,8 @@
     <string name="secure_boot_missing">内置 EFI 镜像缺少 Secure Boot 标记：%1$s</string>
     <string name="secure_boot_check_failed">Secure Boot 验证检查失败：%1$s</string>
     <string name="secure_boot_log">内置 Secure Boot 支持已验证。</string>
-    <string name="secure_boot_limited_log">内置 F-Droid EFI 镜像不包含 Secure Boot 支持。</string>
-    <string name="custom_image_default">使用内置 F-Droid EFI 镜像。</string>
+    <string name="secure_boot_limited_log">内置 EFI 镜像缺少部分 Secure Boot 链标记。</string>
+    <string name="custom_image_default">使用内置 Ventoy EFI 镜像（包含 Secure Boot 链）。</string>
     <string name="custom_image_select">选择自定义 Ventoy 镜像</string>
     <string name="custom_image_selected">使用自定义 EFI 镜像：%1$s</string>
     <string name="custom_image_selected_log">使用用户选择的 Ventoy EFI 镜像。</string>
