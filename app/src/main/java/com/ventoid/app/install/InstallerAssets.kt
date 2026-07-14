@@ -22,13 +22,16 @@ data class InstallerAssets(
     companion object {
         private const val ventoyDigestAssetPath = "ventoy/ventoy.disk.img.sha256"
         private val requiredDigests = mapOf(
-            "boot/boot.img" to "CA73F11DE68CEC7366C897F2153C871012B52DC86AC4765E8C563D3A2BF63466",
-            "boot/core.img" to "5A4A1AD869D8DEB4D74AE71BFC64FFA3204089F606C636829116376B0CB61012",
+            "boot/boot.img" to "F97FC398940E9D2CC796C38AACA614E7DAE194E1AAEF378280DB7C1890E10DF9",
+            "boot/core.img" to "756864E4CD1DE559DC868F6C0037544CDC480E3FCC9CEA9A2B5A5AAAD07DBBAA",
         )
+        // Ventoy 1.1.x x86_64 Secure Boot chain (Rocky-signed shim + MOK manager,
+        // Ventoy fallback, source-built GRUB). Legacy names fallback.efi / MokManager.efi
+        // are no longer present on the VTOYEFI image.
         private val secureBootMarkers = listOf(
             "BOOTX64.EFI",
-            "fallback.efi",
-            "MokManager.efi",
+            "fbx64.efi",
+            "mmx64.efi",
             "grubx64_real.efi",
         )
 

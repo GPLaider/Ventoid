@@ -56,8 +56,8 @@
     <string name="secure_boot_missing">Bundled EFI image is missing Secure Boot markers: %1$s</string>
     <string name="secure_boot_check_failed">Secure Boot verification check failed: %1$s</string>
     <string name="secure_boot_log">Bundled Secure Boot support verified.</string>
-    <string name="secure_boot_limited_log">Bundled F-Droid EFI image does not include Secure Boot support.</string>
-    <string name="custom_image_default">Using bundled F-Droid EFI image.</string>
+    <string name="secure_boot_limited_log">Bundled EFI image is missing one or more Secure Boot chain markers.</string>
+    <string name="custom_image_default">Using bundled Ventoy EFI image (Secure Boot chain included).</string>
     <string name="custom_image_select">Select custom Ventoy image</string>
     <string name="custom_image_selected">Using custom EFI image: %1$s</string>
     <string name="custom_image_selected_log">Using user-selected Ventoy EFI image.</string>

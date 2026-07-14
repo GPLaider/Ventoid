@@ -49,10 +49,10 @@ class InstallerAssetsTest {
         val bytes = buildString {
             append("BOOTX64.EFI")
             append('\u0000')
-            append("fallback.efi")
+            append("fbx64.efi")
             append('\u0000')
             append("grubx64_real.efi")
-        }.toByteArray() + "MokManager.efi".toByteArray(Charsets.UTF_16LE)
+        }.toByteArray() + "mmx64.efi".toByteArray(Charsets.UTF_16LE)
 
         val support = InstallerAssets.detectSecureBootSupport(bytes)
 
@@ -65,6 +65,38 @@ class InstallerAssetsTest {
         val support = InstallerAssets.detectSecureBootSupport("BOOTX64.EFI".toByteArray())
 
         assertFalse(support.supported)
-        assertTrue(support.missingMarkers.contains("MokManager.efi"))
+        assertTrue(support.missingMarkers.contains("mmx64.efi"))
+        assertTrue(support.missingMarkers.contains("fbx64.efi"))
+    }
+
+    @Test
+    fun `detectSecureBootSupport reports support on real bundled ventoy disk image`() {
+        val imageBytes = resolveBundledVentoyImageBytes()
+        val support = InstallerAssets.detectSecureBootSupport(imageBytes)
+
+        assertTrue(
+            support.supported,
+            "Expected full Secure Boot support on bundled image; missing=${support.missingMarkers}"
+        )
+        assertEquals(
+            listOf("BOOTX64.EFI", "fbx64.efi", "mmx64.efi", "grubx64_real.efi"),
+            support.verifiedMarkers
+        )
+        assertTrue(support.missingMarkers.isEmpty())
+    }
+
+    private fun resolveBundledVentoyImageBytes(): ByteArray {
+        val candidates = listOf(
+            // Running from :app unit tests: cwd is typically app/
+            java.io.File("src/main/assets/ventoy/ventoy.disk.img"),
+            java.io.File("app/src/main/assets/ventoy/ventoy.disk.img"),
+            java.io.File("../app/src/main/assets/ventoy/ventoy.disk.img"),
+        )
+        val file = candidates.firstOrNull { it.isFile }
+            ?: error(
+                "Could not locate bundled ventoy.disk.img for Secure Boot test. " +
+                    "Tried: ${candidates.map { it.absolutePath }}"
+            )
+        return file.readBytes()
     }
 }

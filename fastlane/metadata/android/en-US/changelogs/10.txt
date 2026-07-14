@@ -1,0 +1,1 @@
+0.2.1: Restore Ventoy x86_64 Secure Boot chain on the bundled EFI image (Rocky-signed shim + MOK manager, pinned in ASSET_PROVENANCE). Fixes missing Secure Boot markers reported after 0.1.7/0.2.0.
