@@ -78,8 +78,22 @@ if (-not $LocalMetadataPath) {
 
 $gradleFile = Join-Path $repoRoot "app/build.gradle.kts"
 $metadataFile = Resolve-Path $LocalMetadataPath
-$gradleContent = Get-Content -LiteralPath $gradleFile -Raw
-$metadataContent = Get-Content -LiteralPath $metadataFile -Raw
+# Read as plain UTF-8 text only. Never pass Get-Content objects into GitLab JSON
+# bodies — PowerShell can serialize provider metadata into the file content.
+$gradleContent = [System.IO.File]::ReadAllText($gradleFile)
+$metadataContent = [System.IO.File]::ReadAllText($metadataFile.Path)
+$metadataContent = $metadataContent -replace "`r`n", "`n" -replace "`r", "`n"
+if (-not $metadataContent.EndsWith("`n")) {
+    $metadataContent += "`n"
+}
+foreach ($marker in @("PSPath", "System.Management", "{:value=>", "ReadCount=>")) {
+    if ($metadataContent.Contains($marker)) {
+        throw "Local metadata looks polluted with PowerShell object dump ($marker)."
+    }
+}
+if ($metadataContent.Length -gt 20000) {
+    throw "Local metadata is unexpectedly large ($($metadataContent.Length) chars)."
+}
 
 $versionName = Get-RequiredMatch -InputText $gradleContent -Pattern '^\s*versionName\s*=\s*"([^"]+)"\s*$' -FieldName "versionName"
 $versionCode = Get-RequiredMatch -InputText $gradleContent -Pattern '^\s*versionCode\s*=\s*(\d+)\s*$' -FieldName "versionCode"

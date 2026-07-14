@@ -51,7 +51,7 @@ Builds:
 
   - versionName: 0.2.0
     versionCode: 9
-    commit: c0ad5d72364bb08a778b9c336a2c630f463de986
+    commit: bc90d889982bd6db7b364704bd748f30ca5963c4
     subdir: app
     sudo:
       - apt-get update
@@ -72,16 +72,14 @@ Builds:
     versionCode: 10
     commit: 940d3febf94aa9964410ed683fe5d8e0183073cb
     subdir: app
-    sudo:
-      - apt-get update
-      - apt-get install -y mtools xz-utils
     gradle:
       - yes
-    # Bundled ventoy.disk.img is the official Ventoy 1.1.16 VTOYEFI with imdisk/memdisk/7z
-    # removed and the Rocky-signed x86_64 Secure Boot PE chain retained. Pins and licenses
-    # are in ASSET_PROVENANCE.md. F-Droid accepted this narrow FLOSS-signed pin set.
-    # Optional exact-path scanignore if required for the PE files inside the image:
-    #   app/src/main/assets/ventoy/ventoy.disk.img
+    # Official Ventoy 1.1.16 VTOYEFI is bundled with imdisk/memdisk/7z stripped and the
+    # Rocky Linux 9.8 signed x86_64 Secure Boot PE chain retained. Hashes, SBAT, source
+    # and license pins are in ASSET_PROVENANCE.md. Narrow FLOSS-signed pin set discussed
+    # with F-Droid maintainers.
+    scanignore:
+      - app/src/main/assets/ventoy/ventoy.disk.img
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[\d.]+$
