@@ -70,7 +70,7 @@ Builds:
 
   - versionName: 0.2.1
     versionCode: 10
-    commit: REPLACE_WITH_0_2_1_COMMIT
+    commit: 940d3febf94aa9964410ed683fe5d8e0183073cb
     subdir: app
     sudo:
       - apt-get update
