@@ -17,6 +17,11 @@ When this skill triggers, **do not jump straight to opening/editing a GitLab MR*
 Run the verification ladder below, fix failures, then only after checks pass prepare
 or update the fdroiddata MR.
 
+Also read:
+
+- `references/checklist.md` — short pre-MR checklist
+- `references/merge-checklist.md` — full hygiene + historical linsui review smells
+
 Default project (Ventoid) unless the user names another app:
 
 | Variable | Default |
@@ -99,7 +104,7 @@ Must pass for Ventoid:
 
 - `boot/boot.img` and `boot/core.img` digests match `InstallerAssets.kt` requiredDigests
 - `ventoy.disk.img` matches `ventoy.disk.img.sha256`
-- Secure Boot markers present (ASCII or UTF-16LE):  
+- Secure Boot markers present (ASCII or UTF-16LE):
   `BOOTX64.EFI`, `fbx64.efi`, `mmx64.efi`, `grubx64_real.efi`
 - PE/MZ files under `app/src/main` **outside** `scanignore` paths: report list; for Ventoid 0.2.1+ expect **zero** extra PE files outside the ignored disk image
 
@@ -130,7 +135,7 @@ This script must:
 
 1. Use **WSL distro Debian** (not Ubuntu unless Debian unavailable — then note the deviation).
 2. Clean-checkout the **metadata-pinned commit** (not dirty workspace).
-3. Use a **Linux** Android SDK under WSL (`~/android-sdk` or script-managed path).  
+3. Use a **Linux** Android SDK under WSL (`~/android-sdk` or script-managed path).
    Do **not** point Gradle at Windows `%LOCALAPPDATA%\Android\Sdk` (aapt path breaks).
 4. Run `./gradlew --no-daemon :app:assembleRelease` plus InstallerAssets unit tests when present.
 5. Write logs under a scratch dir and print `GRADLE_EXIT=0` on success.
@@ -197,6 +202,7 @@ State clearly:
 - Provenance: `ASSET_PROVENANCE.md`
 - Secure Boot PE pins live inside `ventoy.disk.img`; `scanignore` that path only
 - Do not strip Rocky-signed `BOOTX64.EFI` / `mmx64.efi` when packaging
+- Current F-Droid update track: MR `!42889` (0.2.1 / versionCode 10) — do not thrash rebase while `waiting-for-upstream`
 
 ## Anti-patterns (from past incidents)
 
@@ -205,3 +211,4 @@ State clearly:
 - Replacing entire metadata file history commits with wrong SHAs after git rewrite
 - Claiming F-Droid CI green when fork pipeline has 0 jobs
 - Shipping APK discussion inside this skill unless user also asks for GitHub release
+- Nested accidental clones under `$REPO_ROOT/Ventoid/` (never commit)
