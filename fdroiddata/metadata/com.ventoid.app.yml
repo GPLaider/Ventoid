@@ -74,12 +74,15 @@ Builds:
     subdir: app
     gradle:
       - yes
-    # Official Ventoy 1.1.16 VTOYEFI is bundled with imdisk/memdisk/7z stripped and the
-    # Rocky Linux 9.8 signed x86_64 Secure Boot PE chain retained. Hashes, SBAT, source
-    # and license pins are in ASSET_PROVENANCE.md. Narrow FLOSS-signed pin set discussed
-    # with F-Droid maintainers.
     scanignore:
       - app/src/main/assets/ventoy/ventoy.disk.img
+
+MaintainerNotes: |-
+  0.2.1 ships the official Ventoy 1.1.16 VTOYEFI image with imdisk/memdisk/7z
+  stripped and the Rocky Linux 9.8 signed x86_64 Secure Boot PE chain retained
+  (BOOTX64.EFI, mmx64.efi). Hashes, SBAT, source and license pins are in
+  ASSET_PROVENANCE.md. scanignore is limited to ventoy.disk.img for those
+  pinned FLOSS-signed PE artifacts.
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[\d.]+$
