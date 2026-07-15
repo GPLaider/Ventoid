@@ -42,7 +42,7 @@ Local builds can use the same values via environment variables or Gradle propert
 
 The workflow `.github/workflows/github-release.yml` runs on `v*` tags (or manual dispatch), decodes the keystore secret, builds a signed APK/AAB, and uploads them to the GitHub Release.
 
-Keep a private offline backup of the keystore and passwords. Losing them means users must uninstall before installing a newly signed GitHub APK.
+Keep a private offline backup of the keystore and passwords **outside git**. Losing them means users must uninstall before installing a newly signed GitHub APK. Do not invent a replacement key for a published GitHub track unless you intentionally break update continuity.
 
 ## USB Safety
 
