@@ -20,10 +20,15 @@ Use this checklist for fdroid/fdroiddata work, especially new-app metadata MRs.
 
 ## Build And Pipeline Checks
 
-- Run `fdroid build <appid>` where feasible and never claim it passed if it was not run.
-- Check lint/schema/pipeline failures and fix them before marking checklist items complete.
-- Run small local checks when full F-Droid build is unavailable: YAML parse, `git diff --check`, appid-specific scripts such as `tools/rewrite-git-redirects.py`.
+- For every MR submission, update, or merge defense, run the full pinned recipe with
+  `fdroid build --stop --test --no-tarball <appid>:<versionCode>` and require exit 0.
+- Run `fdroid rewritemeta`, retain its output, rerun it, and require a byte-identical second pass.
+- Run `fdroid lint <appid>` and check schema/pipeline failures before marking items complete.
+- If the full F-Droid build is unavailable, install the missing tooling; remain blocked until the
+  real recipe build passes. Small checks do not replace this gate.
 - In MR notes, separate passed checks from unavailable checks.
+- For every red pipeline, query jobs for the exact project/pipeline/SHA and preserve failed traces.
+  Jobs `[]` proves only that exact pipeline is empty; inspect upstream CI independently.
 
 ## Source And Payload Supply Chain
 

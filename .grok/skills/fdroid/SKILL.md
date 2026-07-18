@@ -2,8 +2,9 @@
 name: fdroid
 description: >
   F-Droid update verification and merge-prep for Android apps (especially Ventoid).
-  Run metadata/asset/build checks, GitLab fdroiddata MR hygiene, and WSL2 Debian
-  F-Droid-like build simulation before or during F-Droid submissions.
+  Run metadata/asset checks, a full fdroidserver recipe build, rewritemeta validation,
+  GitLab pipeline job-trace review, and WSL2 Debian verification before or during
+  F-Droid submissions.
   Use when: user says "fdroid 머지", "fdroid merge", "F-Droid 제출", "fdroiddata",
   "fdroid build", "fdroid 검증", "fdroid 테스트", "/fdroid", or asks to prepare,
   verify, fix, or submit an F-Droid metadata update / merge request.
@@ -54,9 +55,15 @@ Prefer the **project** skill scripts when both exist (repo may be newer).
    reviewer explicitly asks to change them. Only append the new version block + bump CurrentVersion*.
 5. Do not force-push, re-fork, or mass-rebase fdroiddata unless verification proves the fork is
    unrecoverable **and** the user approves.
-6. Fork CI "failed with 0 jobs" is **not** a metadata content failure. Treat review notes and
-   local/Debian build results as the real gate.
-7. Report honestly what was and was not run (especially full `fdroidserver` vs sim).
+6. A red pipeline must be inspected at job level for that exact project, pipeline ID, and source
+   SHA. Classify it as an empty fork pipeline only when its jobs API returns exactly `[]`; inspect
+   upstream pipelines separately and preserve every failed job trace.
+7. For MR submission, update, or merge defense, a full `fdroidserver` recipe build is mandatory.
+   A Gradle/Debian simulation does not satisfy this gate.
+8. Do not say `done`, `ready`, `fixed`, `green`, or `mergeable` without the tested commit SHA,
+   exact command, exit code, raw log path, and an explicit list of checks not run.
+9. Never add `scanignore` preemptively. Run the real scanner first. If `prebuild` replaces an
+   artifact before scanning, an unused `scanignore` is itself a build failure.
 
 ## Trigger modes
 
@@ -106,7 +113,10 @@ Must pass for Ventoid:
 - `ventoy.disk.img` matches `ventoy.disk.img.sha256`
 - Secure Boot markers present (ASCII or UTF-16LE):
   `BOOTX64.EFI`, `fbx64.efi`, `mmx64.efi`, `grubx64_real.efi`
-- PE/MZ files under `app/src/main` **outside** `scanignore` paths: report list; for Ventoid 0.2.1+ expect **zero** extra PE files outside the ignored disk image
+- Run the real scanner before deciding whether any `scanignore` is needed.
+- For Ventoid 0.2.1, `prebuild` replaces `ventoy.disk.img` before scanning, so the recipe must not
+  contain `scanignore` unless a current scanner run reports an exact unavoidable path.
+- Treat both an unhandled binary finding and an unused `scanignore` as gating failures.
 
 ## Phase 3 — Unit tests (gating)
 
@@ -142,9 +152,20 @@ This script must:
 
 If Linux SDK packages are missing, install via `sdkmanager` **from a .sh file** (avoid `;` package names being eaten by nested PowerShell quoting).
 
-Optional deeper check (non-gating unless user asks "fdroidserver" / "전수"):
+### Full fdroidserver recipe build (mandatory for MR work)
 
-- Install/use `fdroidserver` and run scanner/build if environment allows; always label as optional.
+Use the fdroidserver revision from the current upstream CI trace when available. Otherwise pin and
+report the exact revision used locally.
+
+1. Run `fdroid rewritemeta <appid>` and retain its formatting output.
+2. Hash the metadata, run `rewritemeta` again, and require an identical hash.
+3. Run `fdroid lint <appid>`.
+4. Run `fdroid build --stop --test --no-tarball <appid>:<versionCode>`.
+5. Preserve raw logs and require exit code 0 from every command.
+6. If local test mode skips `sudo`, preinstall the declared packages and report the deviation.
+
+Do not push or request merge while any gate fails. Missing tooling is a setup task, not permission
+to downgrade this check to a simulation.
 
 ## Phase 5 — GitLab MR hygiene
 
@@ -162,6 +183,16 @@ Inspect:
 - Human notes (not only system notes)
 - Remote raw metadata size + pollution scan
 - Diff should be minimal: new build stanza + CurrentVersion* + MaintainerNotes only
+
+After every push:
+
+1. Re-read the MR source SHA and require it to match the tested commit.
+2. Enumerate pipelines for that SHA, retaining each `project_id`, pipeline ID, source, and status.
+3. Query jobs for every red pipeline. Preserve and inspect each failed job trace.
+4. Treat jobs `[]` as empty only for that exact pipeline; never generalize it to upstream CI.
+5. If the upstream pipeline has not rerun, report `reviewer rerun required`, not `green`.
+6. Do not mark the MR ready until relevant upstream jobs pass or a maintainer explicitly overrides
+   the failed gate.
 
 ### Updating an existing MR (safe path)
 
@@ -187,20 +218,27 @@ End with a table:
 | Asset digests / SB markers | PASS/FAIL/N/A |
 | Unit tests | PASS/FAIL |
 | Debian WSL assembleRelease | PASS/FAIL/SKIPPED (reason) |
+| rewritemeta second pass | PASS/FAIL |
+| Full fdroidserver recipe build | PASS/FAIL |
 | GitLab MR conflicts | none / yes / no MR |
+| Upstream pipeline jobs | PASS/FAIL/REVIEWER RERUN REQUIRED |
 | Reviewer threads | open / none |
 
 State clearly:
 
 - Ready to ask for merge / still blocked (why)
-- What was **not** run (e.g. full fdroidserver)
+- Tested source SHA and fdroidserver revision
+- Exact raw log paths and every check not run
 
 ## Project-specific notes (Ventoid)
 
 - Package: `com.ventoid.app`
 - Scripts already in repo: `scripts/Submit-FdroidUpdate.ps1` (use only after Python path hardened; prefer Python updater on failure history)
 - Provenance: `ASSET_PROVENANCE.md`
-- Secure Boot PE pins live inside `ventoy.disk.img`; `scanignore` that path only
+- Secure Boot packaging extracts and hash-verifies only `BOOTX64.EFI`, `mmx64.efi`, `fbx64.efi`,
+  and `grubx64_real.efi`, then replaces `ventoy.disk.img` from pinned Ventoy source before scan.
+- Ventoid 0.2.1 needs no `scanignore` for that rebuilt image. Add one only after a current scanner
+  reports an unavoidable exact path; verify that it is not unused.
 - Do not strip Rocky-signed `BOOTX64.EFI` / `mmx64.efi` when packaging
 - Current F-Droid update track: MR `!42889` (0.2.1 / versionCode 10) — do not thrash rebase while `waiting-for-upstream`
 
@@ -210,5 +248,9 @@ State clearly:
 - Shallow-push of fdroiddata fork (`shallow update not allowed`)
 - Replacing entire metadata file history commits with wrong SHAs after git rewrite
 - Claiming F-Droid CI green when fork pipeline has 0 jobs
+- Treating a Gradle/Debian simulation as a full fdroidserver recipe build
+- Adding `scanignore` before running the scanner, or ignoring an unused-scanignore failure
+- Skipping `rewritemeta`, its second-pass idempotence check, or an upstream failed-job trace
+- Repeating stale handoff conclusions after the MR source SHA changes
 - Shipping APK discussion inside this skill unless user also asks for GitHub release
 - Nested accidental clones under `$REPO_ROOT/Ventoid/` (never commit)
