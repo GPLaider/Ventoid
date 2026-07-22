@@ -26,7 +26,7 @@
     <string name="workflow_step_title_3">写入</string>
     <string name="workflow_step_1">1. 通过 OTG 或带电源的 Hub 连接 U 盘。</string>
     <string name="workflow_step_2">2. 刷新列表并确认目标设备无误。</string>
-    <string name="workflow_step_3">3. 开始准备 U 盘，并在下方查看写入日志。</string>
+    <string name="workflow_step_3">3. 开始准备 U 盘，并在上方查看状态和进度条。</string>
     <string name="log_path">日志文件：%1$s</string>
     <string name="no_usb">没有可用的 U 盘。请通过 OTG 连接后点击刷新。</string>
     <string name="permission_denied">USB 权限被拒绝。</string>

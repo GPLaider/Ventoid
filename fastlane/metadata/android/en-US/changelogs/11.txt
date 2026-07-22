@@ -1,0 +1,7 @@
+0.2.2 maintenance release.
+
+- Simplify installation progress to one status line and progress bar
+- Use the repository logo for the launcher and add a themed monochrome icon
+- Close USB communication when block-device initialization fails
+- Add release-version, F-Droid metadata, and bundled boot-asset validation
+- Explicitly exclude app data from backup and device transfer

@@ -12,6 +12,7 @@ val releaseKeyAlias = providers.gradleProperty("VENTOID_RELEASE_KEY_ALIAS")
     .orElse(providers.environmentVariable("VENTOID_RELEASE_KEY_ALIAS"))
 val releaseKeyPassword = providers.gradleProperty("VENTOID_RELEASE_KEY_PASSWORD")
     .orElse(providers.environmentVariable("VENTOID_RELEASE_KEY_PASSWORD"))
+val qemuImagePath = providers.gradleProperty("ventoidQemuImage")
 
 android {
     namespace = "com.ventoid.app"
@@ -21,8 +22,8 @@ android {
         applicationId = "com.ventoid.app"
         minSdk = 21
         targetSdk = 35
-        versionCode = 10
-        versionName = "0.2.1"
+        versionCode = 11
+        versionName = "0.2.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -65,6 +66,9 @@ android {
     testOptions {
         unitTests.all {
             it.useJUnitPlatform()
+            if (qemuImagePath.isPresent) {
+                it.systemProperty("ventoid.qemu.image", qemuImagePath.get())
+            }
         }
     }
 }

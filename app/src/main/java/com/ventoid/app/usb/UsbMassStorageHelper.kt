@@ -121,10 +121,12 @@ object UsbMassStorageHelper {
         VentoidFileLogger.log("createBlockDevice LUN=$lun")
         val blockDevice = BlockDeviceDriverFactory.createBlockDevice(usbCommunication, lun = lun.toByte())
         try {
-            blockDevice.init()
+            closeOnFailure(
+                close = usbCommunication::close,
+                operation = blockDevice::init,
+            )
             VentoidFileLogger.log("blockDevice.init() OK")
         } catch (e: MediaNotInserted) {
-            usbCommunication.close()
             VentoidFileLogger.log(e)
             throw IOException("No media in drive", e)
         }
@@ -137,6 +139,21 @@ object UsbMassStorageHelper {
                 VentoidFileLogger.log("close failed: $e")
             }
         }
+    }
+}
+
+internal inline fun <T> closeOnFailure(close: () -> Unit, operation: () -> T): T {
+    try {
+        return operation()
+    } catch (error: Exception) {
+        try {
+            close()
+        } catch (closeError: Exception) {
+            if (closeError !== error) {
+                error.addSuppressed(closeError)
+            }
+        }
+        throw error
     }
 }
 
