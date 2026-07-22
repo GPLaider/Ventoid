@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to build and attach (e.g. v0.2.1). Leave empty on tag push."
+        description: "Existing tag to build and attach (e.g. v0.2.2). Leave empty on tag push."
         required: false
         type: string
 
@@ -37,6 +37,10 @@ jobs:
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Verify tag matches Android version
+        shell: pwsh
+        run: ./scripts/Test-ReleaseVersion.ps1 -Tag "${{ steps.meta.outputs.tag }}"
+
       - name: Set up Java
         uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9
         with:
@@ -57,12 +61,16 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
-      - name: Build signed release APK and AAB
+      - name: Test and build signed release APK and AAB
         env:
           VENTOID_RELEASE_STORE_PASSWORD: ${{ secrets.VENTOID_RELEASE_STORE_PASSWORD }}
           VENTOID_RELEASE_KEY_ALIAS: ${{ secrets.VENTOID_RELEASE_KEY_ALIAS }}
           VENTOID_RELEASE_KEY_PASSWORD: ${{ secrets.VENTOID_RELEASE_KEY_PASSWORD }}
-        run: ./gradlew :app:assembleRelease :app:bundleRelease
+        run: ./gradlew :app:lintRelease :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease
+
+      - name: Verify APK manifest matches tag and Gradle
+        shell: pwsh
+        run: ./scripts/Test-ReleaseVersion.ps1 -Tag "${{ steps.meta.outputs.tag }}" -ApkPath app/build/outputs/apk/release/app-release.apk
 
       - name: Package release assets
         id: assets

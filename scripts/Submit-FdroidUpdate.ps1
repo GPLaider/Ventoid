@@ -8,7 +8,8 @@ param(
     [string]$SourceBranch = "",
     [string]$MetadataPath = "metadata/com.ventoid.app.yml",
     [string]$LocalMetadataPath = "",
-    [string]$Commit = ""
+    [string]$Commit = "",
+    [string]$GradleFile = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -26,6 +27,20 @@ function Get-RequiredMatch {
         throw "Could not find $FieldName."
     }
     return $match.Groups[1].Value.Trim()
+}
+
+function Get-FdroidBuilds {
+    param([string]$InputText)
+
+    $pattern = '(?ms)^  - versionName:\s*(?<versionName>\S+)\s*\n    versionCode:\s*(?<versionCode>\d+)\s*\n    commit:\s*(?<commit>[0-9a-f]{40})\s*\n(?<body>.*?)(?=^  - versionName:|^MaintainerNotes:|^AutoUpdateMode:)'
+    return @([regex]::Matches($InputText, $pattern) | ForEach-Object {
+        [pscustomobject]@{
+            VersionName = $_.Groups["versionName"].Value
+            VersionCode = [int]$_.Groups["versionCode"].Value
+            Commit = $_.Groups["commit"].Value
+            Raw = $_.Value.TrimEnd("`r", "`n")
+        }
+    })
 }
 
 function ConvertTo-GitLabPath {
@@ -76,11 +91,14 @@ if (-not $LocalMetadataPath) {
     $LocalMetadataPath = Join-Path $repoRoot "fdroiddata/metadata/com.ventoid.app.yml"
 }
 
-$gradleFile = Join-Path $repoRoot "app/build.gradle.kts"
+if (-not $GradleFile) {
+    $GradleFile = Join-Path $repoRoot "app/build.gradle.kts"
+}
+$gradleFilePath = (Resolve-Path -LiteralPath $GradleFile).Path
 $metadataFile = Resolve-Path $LocalMetadataPath
 # Read as plain UTF-8 text only. Never pass Get-Content objects into GitLab JSON
 # bodies — PowerShell can serialize provider metadata into the file content.
-$gradleContent = [System.IO.File]::ReadAllText($gradleFile)
+$gradleContent = [System.IO.File]::ReadAllText($gradleFilePath)
 $metadataContent = [System.IO.File]::ReadAllText($metadataFile.Path)
 $metadataContent = $metadataContent -replace "`r`n", "`n" -replace "`r", "`n"
 if (-not $metadataContent.EndsWith("`n")) {
@@ -103,6 +121,23 @@ if (-not $Commit) {
 }
 if ($Commit -notmatch '^[0-9a-f]{40}$') {
     throw "Commit must be a 40-character lowercase SHA-1 hash."
+}
+
+if ($metadataContent -match '(?m)^\s*scanignore:\s*$') {
+    throw "scanignore is forbidden for Ventoid metadata."
+}
+$localBuilds = @(Get-FdroidBuilds -InputText $metadataContent)
+if ($localBuilds.Count -eq 0) {
+    throw "Local metadata contains no build entries."
+}
+$localBuild = $localBuilds[$localBuilds.Count - 1]
+if ($localBuild.VersionName -cne $versionName -or $localBuild.VersionCode -ne [int]$versionCode -or $localBuild.Commit -cne $Commit) {
+    throw "Newest local metadata build does not match Gradle version and release commit."
+}
+$currentVersion = Get-RequiredMatch -InputText $metadataContent -Pattern '^CurrentVersion:\s*(\S+)\s*$' -FieldName "CurrentVersion"
+$currentVersionCode = Get-RequiredMatch -InputText $metadataContent -Pattern '^CurrentVersionCode:\s*(\d+)\s*$' -FieldName "CurrentVersionCode"
+if ($currentVersion -cne $versionName -or [int]$currentVersionCode -ne [int]$versionCode) {
+    throw "CurrentVersion fields do not match the newest local build."
 }
 
 if (-not $SourceBranch) {
@@ -156,33 +191,62 @@ $encodedFork = ConvertTo-GitLabPath $ForkProject
 $encodedUpstream = ConvertTo-GitLabPath $UpstreamProject
 $encodedBranch = ConvertTo-GitLabPath $SourceBranch
 $encodedFile = ConvertTo-GitLabPath $MetadataPath
+$encodedTargetBranch = ConvertTo-GitLabPath $TargetBranch
+
+$upstreamBranch = Invoke-GitLabApi -Method GET -Path "projects/$encodedUpstream/repository/branches/$encodedTargetBranch"
+$upstreamSha = $upstreamBranch.commit.id
+$upstreamFile = Invoke-GitLabApi -Method GET -Path "projects/$encodedUpstream/repository/files/${encodedFile}?ref=$encodedTargetBranch"
+$upstreamContent = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String(($upstreamFile.content -replace '\s', '')))
+$upstreamContent = $upstreamContent -replace "`r`n", "`n" -replace "`r", "`n"
+$upstreamBuilds = @(Get-FdroidBuilds -InputText $upstreamContent)
+
+if ($localBuilds.Count -ne $upstreamBuilds.Count + 1) {
+    throw "Local metadata must contain exactly one new build beyond upstream $TargetBranch."
+}
+for ($index = 0; $index -lt $upstreamBuilds.Count; $index++) {
+    if ($localBuilds[$index].Raw -cne $upstreamBuilds[$index].Raw) {
+        throw "Existing F-Droid build $($upstreamBuilds[$index].VersionCode) differs from upstream; only one appended build is allowed."
+    }
+}
 
 $branch = Invoke-GitLabApi -Method GET -Path "projects/$encodedFork/repository/branches/$encodedBranch" -AllowNotFound
 if ($null -eq $branch) {
-    $branchBody = @{
+    $commitBody = @{
         branch = $SourceBranch
-        ref = $fork.default_branch
+        start_branch = $TargetBranch
+        start_project = $upstream.id
+        commit_message = $title
+        actions = @(
+            @{
+                action = "update"
+                file_path = $MetadataPath
+                content = $metadataContent
+            }
+        )
     }
-    $branch = Invoke-GitLabApi -Method POST -Path "projects/$encodedFork/repository/branches" -Body $branchBody
-}
-
-$file = Invoke-GitLabApi -Method GET -Path "projects/$encodedFork/repository/files/${encodedFile}?ref=$encodedBranch" -AllowNotFound
-$fileBody = @{
-    branch = $SourceBranch
-    content = $metadataContent
-    commit_message = $title
-}
-
-if ($null -eq $file) {
-    $file = Invoke-GitLabApi -Method POST -Path "projects/$encodedFork/repository/files/$encodedFile" -Body $fileBody
+    Invoke-GitLabApi -Method POST -Path "projects/$encodedFork/repository/commits" -Body $commitBody | Out-Null
+    $branch = Invoke-GitLabApi -Method GET -Path "projects/$encodedFork/repository/branches/$encodedBranch"
 } else {
+    if ($branch.commit.parent_ids -notcontains $upstreamSha) {
+        throw "Existing source branch is not based directly on current upstream $TargetBranch ($upstreamSha). Use a new source branch."
+    }
+    $file = Invoke-GitLabApi -Method GET -Path "projects/$encodedFork/repository/files/${encodedFile}?ref=$encodedBranch"
     $remoteContent = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String(($file.content -replace '\s', '')))
     if ($remoteContent -ne $metadataContent) {
-        $file = Invoke-GitLabApi -Method PUT -Path "projects/$encodedFork/repository/files/$encodedFile" -Body $fileBody
+        throw "Existing source branch content differs from the prepared metadata. Use a new source branch to preserve the one-commit invariant."
     }
 }
 
-$mrsPath = "projects/$encodedUpstream/merge_requests?state=opened&source_project_id=$($fork.id)&source_branch=$encodedBranch&target_branch=$TargetBranch"
+$encodedUpstreamSha = ConvertTo-GitLabPath $upstreamSha
+$encodedBranchSha = ConvertTo-GitLabPath $branch.commit.id
+$compare = Invoke-GitLabApi -Method GET -Path "projects/$encodedFork/repository/compare?from=$encodedUpstreamSha&to=$encodedBranchSha&straight=true"
+$diffs = @($compare.diffs)
+$commits = @($compare.commits)
+if ($commits.Count -ne 1 -or $diffs.Count -ne 1 -or $diffs[0].new_path -cne $MetadataPath -or $diffs[0].old_path -cne $MetadataPath) {
+    throw "Source branch must be one commit changing only $MetadataPath."
+}
+
+$mrsPath = "projects/$encodedUpstream/merge_requests?state=opened&source_project_id=$($fork.id)&source_branch=$encodedBranch&target_branch=$encodedTargetBranch"
 $openMrs = Invoke-GitLabApi -Method GET -Path $mrsPath
 
 if ($openMrs.Count -gt 0) {

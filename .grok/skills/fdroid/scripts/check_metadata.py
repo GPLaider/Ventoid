@@ -38,6 +38,11 @@ def main() -> int:
             return 1
     print("pollution: PASS")
 
+    if re.search(r"(?m)^\s*scanignore\s*:", text):
+        print("FAIL: scanignore is forbidden; scan the complete packaged artifact")
+        return 1
+    print("scanignore: PASS (absent)")
+
     for key in (
         "AutoName:",
         "RepoType:",
@@ -52,15 +57,13 @@ def main() -> int:
             print(f"FAIL: missing {key}")
             return 1
 
-    if "MaintainerNotes:" not in text:
-        print("FAIL: missing MaintainerNotes (required for non-trivial packaging notes)")
-        return 1
-    if text.find("MaintainerNotes:") > text.find("AutoUpdateMode:"):
-        print("FAIL: MaintainerNotes must appear above AutoUpdateMode")
-        return 1
-    print("MaintainerNotes placement: PASS")
+    if "MaintainerNotes:" in text:
+        if text.find("MaintainerNotes:") > text.find("AutoUpdateMode:"):
+            print("FAIL: MaintainerNotes must appear above AutoUpdateMode")
+            return 1
+        print("MaintainerNotes placement: PASS")
 
-    builds = text.split("MaintainerNotes:")[0]
+    builds = text.split("MaintainerNotes:", 1)[0].split("AutoUpdateMode:", 1)[0]
     for i, line in enumerate(builds.splitlines(), 1):
         if line.lstrip().startswith("#"):
             print(f"FAIL: YAML comment in Builds region line {i}: {line!r}")

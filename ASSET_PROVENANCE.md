@@ -36,7 +36,7 @@ Strips upstream-documented non-Secure-Boot prebuilt blobs:
 - `INSTALL/ventoy/memdisk`
 - `INSTALL/ventoy/7z`
 
-**Retains** the x86_64 Secure Boot chain. F-Droid maintainers accepted this narrow set of pinned FLOSS-signed PE artifacts (Rocky Linux 9.8 signed shim + MOK manager) when package version, RPM/source, SHA-256, PE signer, SBAT, and licenses are fully documented (see F-Droid packaging discussion on the Ventoid metadata PR).
+**Retains** the x86_64 Secure Boot chain. The F-Droid recipe extracts only these four firmware-trusted files from the checked-in image, verifies their exact hashes, then rebuilds the image from the pinned Ventoy source. The recipe remains subject to F-Droid scanner, build, and manual review.
 
 `BOOTIA32` Super-UEFIinSecureBoot chain files may remain present for ia32 targets; they are not required for the app's x86_64 Secure Boot marker contract.
 
@@ -99,9 +99,7 @@ First boot on a Secure Boot PC may require enrolling the Ventoy key via MOK Mana
 | Pre-deblob image SHA-256 | `9dba923d53fc3ef658d0a0419dd6778198547d61341ccea58ebe23027bd6f2e7` |
 | Shipped image (imdisk/memdisk/7z removed) SHA-256 | see Verified hashes below |
 
-If F-Droid scanners require `scanignore`, limit it to exact paths for the two Rocky-signed PE files only:
-
-- `app/src/main/assets/ventoy/ventoy.disk.img` (or the rebuild intermediates under `INSTALL/EFI/BOOT/BOOTX64.EFI` and `INSTALL/EFI/BOOT/mmx64.efi` when building from source)
+The F-Droid recipe must not ignore the complete image. It extracts and hash-verifies the four required EFI files before replacing the checked-in image with a source-built image.
 
 ## Verified hashes
 
