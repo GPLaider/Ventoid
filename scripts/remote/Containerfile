@@ -1,0 +1,58 @@
+FROM docker.io/library/debian:12.11-slim@sha256:cea2634840f5a87503d8210e4df97b9f23a2acd67ff860a76c133d963032f866
+
+ARG POWERSHELL_VERSION=7.4.14
+ARG POWERSHELL_SHA256=a3afb86bf556b8fd5af8b0bf6a7f5d70b7c8850cff025b317f890fc7639bb12d
+ARG ANDROID_CMDLINE_VERSION=15859902
+ARG ANDROID_CMDLINE_SHA256=4e4c464f145a7512b57d088ac6c278c03c9eea610886b35a5e0804e74eedf583
+ARG ACTIONLINT_VERSION=1.7.7
+ARG ACTIONLINT_SHA256=023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 \
+    ANDROID_HOME=/opt/android-sdk \
+    ANDROID_SDK_ROOT=/opt/android-sdk \
+    PATH=/opt/verify-venv/bin:/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:/opt/microsoft/powershell/7:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates curl dosfstools file git jq libicu72 libmagic1 \
+        libssl3 libunwind8 mtools openjdk-17-jdk-headless p7zip-full \
+        python3 python3-pip python3-venv qemu-system-x86 qemu-utils \
+        shellcheck unzip xz-utils zip \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fL \
+        "https://github.com/PowerShell/PowerShell/releases/download/v${POWERSHELL_VERSION}/powershell-${POWERSHELL_VERSION}-linux-x64.tar.gz" \
+        -o /tmp/powershell.tar.gz \
+    && echo "${POWERSHELL_SHA256}  /tmp/powershell.tar.gz" | sha256sum -c - \
+    && mkdir -p /opt/microsoft/powershell/7 \
+    && tar -xzf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7 \
+    && chmod +x /opt/microsoft/powershell/7/pwsh \
+    && ln -s /opt/microsoft/powershell/7/pwsh /usr/local/bin/pwsh \
+    && rm /tmp/powershell.tar.gz
+
+RUN curl -fL \
+        "https://dl.google.com/android/repository/commandlinetools-linux-${ANDROID_CMDLINE_VERSION}_latest.zip" \
+        -o /tmp/android-commandline.zip \
+    && echo "${ANDROID_CMDLINE_SHA256}  /tmp/android-commandline.zip" | sha256sum -c - \
+    && mkdir -p /opt/android-sdk/cmdline-tools /tmp/android-commandline \
+    && unzip -q /tmp/android-commandline.zip -d /tmp/android-commandline \
+    && mv /tmp/android-commandline/cmdline-tools /opt/android-sdk/cmdline-tools/latest \
+    && rm -rf /tmp/android-commandline /tmp/android-commandline.zip \
+    && yes | sdkmanager --licenses >/dev/null \
+    && sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+RUN curl -fL \
+        "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" \
+        -o /tmp/actionlint.tar.gz \
+    && echo "${ACTIONLINT_SHA256}  /tmp/actionlint.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/actionlint.tar.gz -C /usr/local/bin actionlint \
+    && rm /tmp/actionlint.tar.gz
+
+RUN python3 -m venv /opt/verify-venv \
+    && /opt/verify-venv/bin/pip install --no-cache-dir \
+        fdroidserver==2.4.5 \
+        ruff==0.15.22 \
+        basedpyright==1.39.9
+
+WORKDIR /workspace
