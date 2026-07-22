@@ -14,7 +14,6 @@ permissions:
 
 jobs:
   verify:
-    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -33,6 +32,11 @@ jobs:
 
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
+
+      - name: Verify release tag matches Android version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: ./scripts/Test-ReleaseVersion.ps1 -Tag "${{ github.ref_name }}"
 
       - name: Validate automation scripts
         shell: pwsh
@@ -64,7 +68,7 @@ jobs:
 
       - name: Run F-Droid preflight
         shell: pwsh
-        run: ./scripts/Test-FdroidPreflight.ps1
+        run: ./scripts/Test-FdroidPreflight.ps1 -UpdateMetadata
 
   workflow-lint:
     runs-on: ubuntu-latest

@@ -72,17 +72,20 @@ Builds:
     versionCode: 10
     commit: 940d3febf94aa9964410ed683fe5d8e0183073cb
     subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y dosfstools mtools
     gradle:
       - yes
-    scanignore:
-      - app/src/main/assets/ventoy/ventoy.disk.img
-
-MaintainerNotes: |-
-  0.2.1 ships the official Ventoy 1.1.16 VTOYEFI image with imdisk/memdisk/7z
-  stripped and the Rocky Linux 9.8 signed x86_64 Secure Boot PE chain retained
-  (BOOTX64.EFI, mmx64.efi). Hashes, SBAT, source and license pins are in
-  ASSET_PROVENANCE.md. scanignore is limited to ventoy.disk.img for those
-  pinned FLOSS-signed PE artifacts.
+    srclibs:
+      - Ventoy@v1.1.16
+    prebuild: mv $$Ventoy$$ ..
+    scandelete:
+      - Ventoy
+    build:
+      - cd ..
+      - export PATH=$PATH:/usr/sbin
+      - VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[\d.]+$

@@ -103,7 +103,7 @@ fi
 if [ "$DEBLOB_FDROID" = "1" ]; then
     # Strip non-Secure-Boot prebuilt blobs only. Keep the x86_64 Secure Boot chain:
     # Rocky-signed BOOTX64.EFI + mmx64.efi, Ventoy fbx64.efi fallback, and grubx64_real.efi.
-    # F-Droid maintainers accepted this narrow FLOSS-signed pin set (see ASSET_PROVENANCE.md).
+    # These firmware-trusted files are pinned and verified as documented in ASSET_PROVENANCE.md.
     rm -rf "$WORK_DIR/root/ventoy/7z" "$WORK_DIR/root/ventoy/imdisk"
     rm -f "$WORK_DIR/root/ventoy/memdisk"
 fi
