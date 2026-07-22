@@ -9,7 +9,7 @@ What Ventoid does:
 - Writes a Ventoy-compatible MBR or GPT layout
 - Writes the Ventoy boot core and EFI image, including the x86_64 Secure Boot chain
 - Formats the main data partition as exFAT
-- Shows a clear install progress view and local write log
+- Shows a concise install status and progress bar
 
 Why it is useful:
 

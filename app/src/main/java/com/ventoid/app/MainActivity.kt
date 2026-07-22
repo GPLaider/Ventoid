@@ -9,7 +9,6 @@ import android.hardware.usb.UsbManager
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ProgressBar
@@ -46,7 +45,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val ACTION_USB_PERMISSION = "android.hardware.usb.action.USB_PERMISSION"
-        private const val MAX_LOG_LINES = 120
     }
 
     private lateinit var spinnerUsb: Spinner
@@ -54,16 +52,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonRefresh: Button
     private lateinit var buttonInstall: Button
     private lateinit var buttonSelectImage: Button
-    private lateinit var textLog: TextView
-    private lateinit var textLogPath: TextView
     private lateinit var textStageTitle: TextView
     private lateinit var textSecureBootStatus: TextView
     private lateinit var textCustomImageStatus: TextView
     private lateinit var progressInstall: ProgressBar
-    private lateinit var chipMbr: TextView
-    private lateinit var chipCore: TextView
-    private lateinit var chipPart1: TextView
-    private lateinit var chipVentoy: TextView
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var permissionReceiver: BroadcastReceiver? = null
@@ -78,7 +70,7 @@ class MainActivity : AppCompatActivity() {
         contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
         customVentoyDiskImgUri = uri
         textCustomImageStatus.text = getString(R.string.custom_image_selected, uri.lastPathSegment ?: uri.toString())
-        log(getString(R.string.custom_image_selected_log))
+        safeLog(getString(R.string.custom_image_selected_log))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -93,22 +85,13 @@ class MainActivity : AppCompatActivity() {
         buttonRefresh = findViewById(R.id.button_refresh)
         buttonInstall = findViewById(R.id.button_install)
         buttonSelectImage = findViewById(R.id.button_select_image)
-        textLog = findViewById(R.id.text_log)
-        textLogPath = findViewById(R.id.text_log_path)
         textStageTitle = findViewById(R.id.text_stage_title)
         textSecureBootStatus = findViewById(R.id.text_secure_boot_status)
         textCustomImageStatus = findViewById(R.id.text_custom_image_status)
         progressInstall = findViewById(R.id.progress_install)
-        chipMbr = findViewById(R.id.chip_mbr)
-        chipCore = findViewById(R.id.chip_core)
-        chipPart1 = findViewById(R.id.chip_part1)
-        chipVentoy = findViewById(R.id.chip_ventoy)
 
-        textLogPath.text = getString(R.string.log_path, VentoidFileLogger.getLogPath(this))
-        textLogPath.visibility = TextView.VISIBLE
         setupPartitionSchemeSpinner()
         refreshSecureBootStatus()
-        renderInstallStage(InstallStage.UNKNOWN, 0)
 
         buttonRefresh.setOnClickListener { refreshDeviceList() }
         buttonInstall.setOnClickListener { onInstallClicked() }
@@ -149,14 +132,6 @@ class MainActivity : AppCompatActivity() {
                 getString(R.string.partition_scheme_gpt),
             )
         )
-        spinnerPartitionScheme.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updatePartitionSchemeUi()
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
-        }
-        updatePartitionSchemeUi()
     }
 
     private fun refreshSecureBootStatus() {
@@ -213,7 +188,7 @@ class MainActivity : AppCompatActivity() {
         if (deviceList.isEmpty()) {
             textStageTitle.text = getString(R.string.usb_device_none)
         }
-        log(getString(R.string.usb_device_count, deviceList.size))
+        VentoidFileLogger.log(getString(R.string.usb_device_count, deviceList.size))
     }
 
     private fun onInstallClicked() {
@@ -251,7 +226,7 @@ class MainActivity : AppCompatActivity() {
                 if (usbManager.hasPermission(item.usbDevice)) {
                     startInstall(item)
                 } else {
-                    log(getString(R.string.permission_denied))
+                    safeLog(getString(R.string.permission_denied))
                     toast(R.string.permission_denied)
                 }
             }
@@ -278,8 +253,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun startInstall(item: UsbDeviceItem) {
         installJob?.cancel()
-        textLog.text = ""
-        renderInstallStage(InstallStage.UNKNOWN, 0)
+        progressInstall.progress = 0
+        textStageTitle.text = getString(R.string.progress_idle)
         val partitionScheme = selectedPartitionScheme()
         installJob = scope.launch {
             buttonInstall.isEnabled = false
@@ -315,19 +290,16 @@ class MainActivity : AppCompatActivity() {
     private fun handleInstallProgress(progress: InstallProgress) {
         when (progress) {
             is InstallProgress.Log -> {
-                safeLog(progress.message.toDisplayText())
-                if (progress.message == InstallMessage.Starting) {
-                    runOnUiThread {
-                        textStageTitle.text = getString(R.string.install_started)
-                        progressInstall.progress = 2
-                        renderInstallStage(InstallStage.MBR, 2)
-                    }
-                }
-                if (progress.message == InstallMessage.Success) {
-                    runOnUiThread {
-                        textStageTitle.text = getString(R.string.install_success)
-                        progressInstall.progress = 100
-                        renderInstallStage(InstallStage.VENTOY, 100)
+                val message = progress.message.toDisplayText()
+                VentoidFileLogger.log(message)
+                runOnUiThread {
+                    if (!isDestroyed) {
+                        textStageTitle.text = message
+                        when (progress.message) {
+                            InstallMessage.Starting -> progressInstall.progress = 2
+                            InstallMessage.Success -> progressInstall.progress = 100
+                            else -> Unit
+                        }
                     }
                 }
             }
@@ -339,10 +311,8 @@ class MainActivity : AppCompatActivity() {
                         textStageTitle.text =
                             getString(R.string.progress_message, progress.stage.toDisplayLabel(), percent)
                         progressInstall.progress = overallPercent
-                        renderInstallStage(progress.stage, overallPercent)
                     }
                 }
-                safeLog(getString(R.string.progress_message, progress.stage.toDisplayLabel(), percent))
             }
             is InstallProgress.Failure -> VentoidFileLogger.log(progress.error)
         }
@@ -386,48 +356,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun renderInstallStage(activeStage: InstallStage, overallPercent: Int) {
-        chipMbr.text = getString(
-            if (selectedPartitionScheme() == PartitionScheme.GPT) {
-                R.string.progress_gpt_short
-            } else {
-                R.string.progress_mbr_short
-            }
-        )
-        renderChip(chipMbr, InstallStage.MBR, activeStage)
-        renderChip(chipCore, InstallStage.CORE, activeStage)
-        renderChip(chipPart1, InstallStage.PARTITION_1, activeStage)
-        renderChip(chipVentoy, InstallStage.VENTOY, activeStage)
-        if (overallPercent == 0) {
-            textStageTitle.text = getString(R.string.progress_idle)
-        }
-    }
-
-    private fun renderChip(chip: TextView, chipStage: InstallStage, activeStage: InstallStage) {
-        val backgroundRes = when {
-            activeStage == InstallStage.UNKNOWN -> R.drawable.chip_pending
-            chipStage.ordinal < activeStage.ordinal -> R.drawable.chip_complete
-            chipStage == activeStage -> R.drawable.chip_active
-            else -> R.drawable.chip_pending
-        }
-        chip.setBackgroundResource(backgroundRes)
-        val textColorRes = if (backgroundRes == R.drawable.chip_complete) {
-            android.R.color.black
-        } else {
-            R.color.ventoid_text_primary
-        }
-        chip.setTextColor(ContextCompat.getColor(this, textColorRes))
-    }
-
     private fun showError(message: String) {
         safeLog(message)
         safeToast(message)
     }
 
     private fun safeLog(message: String) {
+        VentoidFileLogger.log(message)
         runOnUiThread {
             if (!isDestroyed) {
-                log(message)
+                textStageTitle.text = message
             }
         }
     }
@@ -444,23 +382,8 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
     }
 
-    private fun log(message: String) {
-        val updatedLines = buildList {
-            val current = textLog.text.toString()
-            if (current.isNotBlank()) {
-                addAll(current.lineSequence().filter { it.isNotBlank() }.toList())
-            }
-            add(message)
-        }.takeLast(MAX_LOG_LINES)
-        textLog.text = updatedLines.joinToString("\n")
-    }
-
     private fun selectedPartitionScheme(): PartitionScheme {
         return PartitionScheme.fromSpinnerPosition(spinnerPartitionScheme.selectedItemPosition)
-    }
-
-    private fun updatePartitionSchemeUi() {
-        renderInstallStage(InstallStage.UNKNOWN, progressInstall.progress)
     }
 
     private fun createSpinnerAdapter(items: List<String>): ArrayAdapter<String> {

@@ -26,7 +26,7 @@
     <string name="workflow_step_title_3">Write</string>
     <string name="workflow_step_1">1. Connect a USB drive through OTG or a powered hub.</string>
     <string name="workflow_step_2">2. Refresh the list and confirm the correct target device.</string>
-    <string name="workflow_step_3">3. Start USB preparation and watch the write log below.</string>
+    <string name="workflow_step_3">3. Start USB preparation and watch the status line and progress bar above.</string>
     <string name="log_path">Log file: %1$s</string>
     <string name="no_usb">No USB drive is available. Connect one over OTG, then tap Refresh.</string>
     <string name="permission_denied">USB permission was denied.</string>
