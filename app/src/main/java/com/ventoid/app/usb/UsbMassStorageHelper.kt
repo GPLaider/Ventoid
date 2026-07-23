@@ -131,7 +131,13 @@ object UsbMassStorageHelper {
             throw IOException("No media in drive", e)
         }
 
-        return BlockDeviceSession(blockDevice, usbCommunication, lun.toByte()) {
+        val normalizedBlockDevice = LibaumsScsiBlockDeviceAdapter(blockDevice)
+        VentoidFileLogger.log(
+            "USB capacity: blockSize=${normalizedBlockDevice.blockSize} " +
+                "rawLastBlock=${blockDevice.blocks} blocks=${normalizedBlockDevice.blocks}"
+        )
+
+        return BlockDeviceSession(normalizedBlockDevice, usbCommunication, lun.toByte()) {
             try {
                 usbCommunication.close()
                 VentoidFileLogger.log("USB connection closed")

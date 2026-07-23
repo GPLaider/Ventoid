@@ -1,0 +1,9 @@
+0.3.0 release.
+
+- Show five stable install stages and progress directly on the install action
+- Replace the oversized green card layout with a dense dark USB work surface
+- Restore the established Ventoid launcher icon
+- Close USB communication when block-device initialization fails
+- Keep release, F-Droid metadata, EFI asset, and Fedora QEMU checks project-local
+- Exclude application data from backup and device transfer
+- Always install the bundled, integrity-checked Ventoy EFI image

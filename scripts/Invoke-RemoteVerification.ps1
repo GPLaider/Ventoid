@@ -55,7 +55,11 @@ try {
     }
     $files = @($files |
         ForEach-Object { $_.Replace("\", "/") } |
-        Where-Object { $_ -and $_ -notin $excludedLocalFiles } |
+        Where-Object {
+            $_ -and
+            $_ -notin $excludedLocalFiles -and
+            (Test-Path -LiteralPath (Join-Path $repoRoot $_) -PathType Leaf)
+        } |
         Sort-Object -Unique)
     if ($files.Count -eq 0) {
         throw "No source files were selected for remote verification."

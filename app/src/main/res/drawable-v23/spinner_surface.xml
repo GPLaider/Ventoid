@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false">
+        <layer-list>
+            <item>
+                <shape>
+                    <solid android:color="@color/ventoid_surface_muted" />
+                    <stroke
+                        android:width="@dimen/ventoid_border_width"
+                        android:color="@color/ventoid_stroke" />
+                    <corners android:radius="@dimen/ventoid_control_radius" />
+                </shape>
+            </item>
+            <item
+                android:width="@dimen/ventoid_spinner_arrow_size"
+                android:height="@dimen/ventoid_spinner_arrow_size"
+                android:gravity="end|center_vertical"
+                android:end="@dimen/ventoid_spinner_arrow_end_margin"
+                android:drawable="@drawable/ic_arrow_drop_down" />
+        </layer-list>
+    </item>
+    <item android:state_focused="true">
+        <layer-list>
+            <item>
+                <shape>
+                    <solid android:color="@color/ventoid_surface_2" />
+                    <stroke
+                        android:width="@dimen/ventoid_border_width"
+                        android:color="@color/ventoid_primary" />
+                    <corners android:radius="@dimen/ventoid_control_radius" />
+                </shape>
+            </item>
+            <item
+                android:width="@dimen/ventoid_spinner_arrow_size"
+                android:height="@dimen/ventoid_spinner_arrow_size"
+                android:gravity="end|center_vertical"
+                android:end="@dimen/ventoid_spinner_arrow_end_margin"
+                android:drawable="@drawable/ic_arrow_drop_down" />
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <item>
+                <shape>
+                    <solid android:color="@color/ventoid_surface_muted" />
+                    <stroke
+                        android:width="@dimen/ventoid_border_width"
+                        android:color="@color/ventoid_stroke" />
+                    <corners android:radius="@dimen/ventoid_control_radius" />
+                </shape>
+            </item>
+            <item
+                android:width="@dimen/ventoid_spinner_arrow_size"
+                android:height="@dimen/ventoid_spinner_arrow_size"
+                android:gravity="end|center_vertical"
+                android:end="@dimen/ventoid_spinner_arrow_end_margin"
+                android:drawable="@drawable/ic_arrow_drop_down" />
+        </layer-list>
+    </item>
+</selector>

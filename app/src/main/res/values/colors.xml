@@ -1,13 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ventoid_window">#101814</color>
-    <color name="ventoid_surface">#17211C</color>
-    <color name="ventoid_surface_2">#213029</color>
-    <color name="ventoid_stroke">#2B4035</color>
-    <color name="ventoid_primary">#71E08E</color>
-    <color name="ventoid_primary_dark">#0C120F</color>
-    <color name="ventoid_accent">#D63A31</color>
-    <color name="ventoid_text_primary">#F2F7F3</color>
-    <color name="ventoid_text_secondary">#A9B8AF</color>
-    <color name="ventoid_success">#86F2A3</color>
+    <color name="ventoid_window">#090D0E</color>
+    <color name="ventoid_surface">#111718</color>
+    <color name="ventoid_surface_2">#182123</color>
+    <color name="ventoid_surface_muted">#0D1314</color>
+    <color name="ventoid_panel_stroke">#263638</color>
+    <color name="ventoid_stroke">#5B6E6D</color>
+    <color name="ventoid_stroke_strong">#6B7E7C</color>
+    <color name="ventoid_primary">#67D6C5</color>
+    <color name="ventoid_primary_pressed">#4DBAAA</color>
+    <color name="ventoid_primary_disabled">#315B56</color>
+    <color name="ventoid_primary_dark">#090D0E</color>
+    <color name="ventoid_text_primary">#EDF5F4</color>
+    <color name="ventoid_text_secondary">#9BADAB</color>
+    <color name="ventoid_text_disabled">#637271</color>
+    <color name="ventoid_success">#78D6A1</color>
+    <color name="ventoid_warning">#E0B66C</color>
+    <color name="ventoid_error">#E07272</color>
 </resources>

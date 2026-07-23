@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/ventoid_spinner_arrow_size"
+    android:height="@dimen/ventoid_spinner_arrow_size"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@color/ventoid_text_secondary"
+        android:pathData="M7,10l5,5 5,-5z" />
+</vector>

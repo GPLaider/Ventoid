@@ -10,14 +10,20 @@ from pathlib import Path
 POLLUTION = ("PSPath", "System.Management", "{:value=>", "ReadCount")
 
 
+class Args(argparse.Namespace):
+    meta: Path = Path()
+    app_id: str = ""
+    max_bytes: int = 20000
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--meta", required=True, help="Path to metadata yml")
-    ap.add_argument("--app-id", default="")
-    ap.add_argument("--max-bytes", type=int, default=20000)
-    args = ap.parse_args()
+    _ = ap.add_argument("--meta", required=True, type=Path, help="Path to metadata yml")
+    _ = ap.add_argument("--app-id", default="")
+    _ = ap.add_argument("--max-bytes", type=int, default=20000)
+    args = ap.parse_args(namespace=Args())
 
-    path = Path(args.meta)
+    path = args.meta
     if not path.is_file():
         print(f"FAIL: missing {path}")
         return 1
@@ -74,22 +80,21 @@ def main() -> int:
     #   - versionName: 1.2.3
     #     versionCode: 4
     #     commit: <40 hex>
-    versions = re.findall(
+    version_matches = re.finditer(
         r"^\s*-\s*versionName:\s*(\S+)\s*$|^\s+versionName:\s*(\S+)\s*$",
         text,
         re.M,
     )
-    versions = [a or b for a, b in versions]
+    versions = [match.group(1) or match.group(2) for match in version_matches]
     codes = re.findall(r"^\s+versionCode:\s*(\d+)\s*$", text, re.M)
     commits = re.findall(r"^\s+commit:\s*([0-9a-f]{40})\s*$", text, re.M)
     if not versions or not codes or not commits:
         print("FAIL: could not parse versionName/versionCode/commit stanzas")
         return 1
     if len(versions) != len(codes) or len(codes) != len(commits):
-        print(
-            f"FAIL: stanza count mismatch versionName={len(versions)} "
-            f"versionCode={len(codes)} commit={len(commits)}"
-        )
+        message = f"FAIL: stanza count mismatch versionName={len(versions)}"
+        message += f" versionCode={len(codes)} commit={len(commits)}"
+        print(message)
         return 1
 
     # newest by last versionCode occurrence order in file (fdroid appends)
@@ -103,10 +108,9 @@ def main() -> int:
         print("FAIL: CurrentVersion fields missing")
         return 1
     if cur_v.group(1) != newest[0] or int(cur_c.group(1)) != newest[1]:
-        print(
-            f"FAIL: CurrentVersion mismatch meta={cur_v.group(1)}/{cur_c.group(1)} "
-            f"newest={newest[0]}/{newest[1]}"
-        )
+        message = f"FAIL: CurrentVersion mismatch meta={cur_v.group(1)}/{cur_c.group(1)}"
+        message += f" newest={newest[0]}/{newest[1]}"
+        print(message)
         return 1
     print("CurrentVersion sync: PASS")
 

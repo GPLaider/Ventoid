@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="VentoidText">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="VentoidText.AppTitle" parent="VentoidText">
+        <item name="android:textColor">@color/ventoid_text_primary</item>
+        <item name="android:textSize">@dimen/ventoid_text_app_title</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="VentoidText.Subtitle" parent="VentoidText">
+        <item name="android:textColor">@color/ventoid_text_secondary</item>
+        <item name="android:textSize">@dimen/ventoid_text_supporting</item>
+    </style>
+
+    <style name="VentoidText.Status" parent="VentoidText">
+        <item name="android:textColor">@color/ventoid_primary</item>
+        <item name="android:textSize">@dimen/ventoid_text_label</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="VentoidText.SectionTitle" parent="VentoidText">
+        <item name="android:textColor">@color/ventoid_text_primary</item>
+        <item name="android:textSize">@dimen/ventoid_text_section_title</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="VentoidText.FieldLabel" parent="VentoidText">
+        <item name="android:textColor">@color/ventoid_text_secondary</item>
+        <item name="android:textSize">@dimen/ventoid_text_label</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="VentoidText.Body" parent="VentoidText">
+        <item name="android:textColor">@color/ventoid_text_primary</item>
+        <item name="android:textSize">@dimen/ventoid_text_body</item>
+    </style>
+
+    <style name="VentoidText.BodyCompact" parent="VentoidText">
+        <item name="android:textColor">@color/ventoid_text_secondary</item>
+        <item name="android:textSize">@dimen/ventoid_text_body_compact</item>
+    </style>
+
+    <style name="VentoidText.Supporting" parent="VentoidText">
+        <item name="android:textColor">@color/ventoid_text_secondary</item>
+        <item name="android:textSize">@dimen/ventoid_text_supporting</item>
+    </style>
+
+    <style name="VentoidText.ProgressIndex" parent="VentoidText">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/ventoid_text_disabled</item>
+        <item name="android:textSize">@dimen/ventoid_text_label</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="VentoidText.ProgressLabel" parent="VentoidText">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/ventoid_text_secondary</item>
+        <item name="android:textSize">@dimen/ventoid_text_body_compact</item>
+    </style>
+
+    <style name="VentoidText.ProgressState" parent="VentoidText">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">end</item>
+        <item name="android:textColor">@color/ventoid_text_secondary</item>
+        <item name="android:textSize">@dimen/ventoid_text_label</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="VentoidButton" parent="Widget.AppCompat.Button">
+        <item name="android:layout_height">@dimen/ventoid_control_height</item>
+        <item name="android:minHeight">@dimen/ventoid_control_height</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">@dimen/ventoid_text_body_compact</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="VentoidButton.Primary" parent="VentoidButton">
+        <item name="android:background">@drawable/button_primary</item>
+        <item name="android:textColor">@color/ventoid_window</item>
+        <item name="android:textSize">@dimen/ventoid_text_body</item>
+    </style>
+
+    <style name="VentoidButton.Secondary" parent="VentoidButton">
+        <item name="android:background">@drawable/button_secondary</item>
+        <item name="android:textColor">@color/ventoid_text_primary</item>
+    </style>
+
+    <style name="VentoidSpinner" parent="Widget.AppCompat.Spinner">
+        <item name="android:layout_height">@dimen/ventoid_control_height</item>
+        <item name="android:minHeight">@dimen/ventoid_control_height</item>
+        <item name="android:popupBackground">@color/ventoid_surface_2</item>
+        <item name="android:spinnerMode">dropdown</item>
+    </style>
+
+    <style name="VentoidReadOnlyField" parent="VentoidText.Supporting">
+        <item name="android:background">@drawable/input_surface</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:minHeight">@dimen/ventoid_control_height</item>
+        <item name="android:padding">@dimen/ventoid_space_standard</item>
+    </style>
+
+    <style name="VentoidPanel">
+        <item name="android:background">@drawable/panel_surface</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">@dimen/ventoid_space_standard</item>
+    </style>
+
+    <style name="VentoidProgressStep">
+        <item name="android:layout_height">@dimen/ventoid_progress_step_height</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+</resources>

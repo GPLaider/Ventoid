@@ -65,9 +65,15 @@ Invoke-Step "Append one immutable F-Droid build" {
     $fixtureMetadata = Join-Path $fixtureDir "com.ventoid.app.yml"
     $fixtureGradle = Join-Path $fixtureDir "build.gradle.kts"
     Copy-Item -LiteralPath (Join-Path $repoRoot "fdroiddata/metadata/com.ventoid.app.yml") -Destination $fixtureMetadata -Force
+    $fixtureMetadataText = [System.IO.File]::ReadAllText($fixtureMetadata)
+    $existingCodes = @([regex]::Matches($fixtureMetadataText, '(?m)^\s+versionCode:\s*(\d+)\s*$') | ForEach-Object {
+        [int]$_.Groups[1].Value
+    })
+    $fixtureVersionCode = (($existingCodes | Measure-Object -Maximum).Maximum + 1)
+    $fixtureVersionName = "9.9.$fixtureVersionCode"
     [System.IO.File]::WriteAllText(
         $fixtureGradle,
-        "applicationId = `"com.ventoid.app`"`nversionCode = 11`nversionName = `"0.2.2`"`n",
+        "applicationId = `"com.ventoid.app`"`nversionCode = $fixtureVersionCode`nversionName = `"$fixtureVersionName`"`n",
         [System.Text.UTF8Encoding]::new($false)
     )
     $commit = "1111111111111111111111111111111111111111"
@@ -80,8 +86,23 @@ Invoke-Step "Append one immutable F-Droid build" {
         -MetadataFile $fixtureMetadata
 
     $firstUpdate = [System.IO.File]::ReadAllText($fixtureMetadata)
+    [System.IO.File]::WriteAllText(
+        (Join-Path $fixtureDir "first-update.yml"),
+        $firstUpdate,
+        [System.Text.UTF8Encoding]::new($false)
+    )
     Assert-True -Condition (-not $firstUpdate.Contains("scanignore:")) -Message "scanignore remained in generated metadata."
-    Assert-True -Condition (([regex]::Matches($firstUpdate, '(?m)^\s*- versionName:\s*0\.2\.2\s*$')).Count -eq 1) -Message "0.2.2 build was not appended exactly once."
+    $fixtureVersionPattern = [regex]::Escape($fixtureVersionName)
+    $fixtureBuildMatch = [regex]::Match(
+        $firstUpdate,
+        "(?ms)^  - versionName:\s*$fixtureVersionPattern\s*$.*?(?=^  - versionName:|^MaintainerNotes:|^AutoUpdateMode:)"
+    )
+    Assert-True -Condition $fixtureBuildMatch.Success -Message "Could not isolate the generated build block."
+    $fixtureBuild = $fixtureBuildMatch.Value
+    Assert-True -Condition (-not $fixtureBuild.Contains("scandelete:")) -Message "Generated build reintroduced stage-invalid scandelete for Ventoy."
+    Assert-True -Condition $fixtureBuild.Contains("&& rm -rf Ventoy") -Message "Generated build does not remove the temporary Ventoy source after the build."
+    Assert-True -Condition $firstUpdate.Contains("Builds from 0.2.2 onward rebuild ventoy.disk.img") -Message "MaintainerNotes were not made version-stable."
+    Assert-True -Condition (([regex]::Matches($firstUpdate, "(?m)^\s*- versionName:\s*$fixtureVersionPattern\s*$")).Count -eq 1) -Message "$fixtureVersionName build was not appended exactly once."
     Assert-True -Condition $firstUpdate.Contains($commit) -Message "Appended build is missing the release commit."
     foreach ($hash in @(
         "1ff3f223c2fcf5b11615d042fcb5674c4651bbbc8505b5b2987d60da0cb65d1a",
@@ -99,6 +120,11 @@ Invoke-Step "Append one immutable F-Droid build" {
         -GradleFile $fixtureGradle `
         -MetadataFile $fixtureMetadata
     $secondUpdate = [System.IO.File]::ReadAllText($fixtureMetadata)
+    [System.IO.File]::WriteAllText(
+        (Join-Path $fixtureDir "second-update.yml"),
+        $secondUpdate,
+        [System.Text.UTF8Encoding]::new($false)
+    )
     Assert-True -Condition ($secondUpdate -ceq $firstUpdate) -Message "Repeated metadata update was not idempotent."
 
     & python scripts/fdroid/check_metadata.py --meta $fixtureMetadata --app-id com.ventoid.app | Out-Null
@@ -145,11 +171,28 @@ Invoke-Step "Inspect signed EFI files inside ventoy.disk.img" {
     Assert-True -Condition $submitScript.Contains("`$commits.Count -ne 1 -or `$diffs.Count -ne 1") -Message "F-Droid submission does not enforce one commit and one changed file."
 }
 
-Invoke-Step "Prepare current F-Droid metadata without rewriting repository history" {
+Invoke-Step "Validate current F-Droid metadata without rewriting repository history" {
     $fixtureMetadata = Join-Path $OutputDir "current-com.ventoid.app.yml"
+    $fixtureGradle = Join-Path $OutputDir "current-build.gradle.kts"
     Copy-Item -LiteralPath (Join-Path $repoRoot "fdroiddata/metadata/com.ventoid.app.yml") -Destination $fixtureMetadata -Force
-    $head = (& git rev-parse HEAD).Trim()
-    ./scripts/Test-FdroidPreflight.ps1 -Commit $head -UpdateMetadata -SkipBuild -MetadataFile $fixtureMetadata
+    $fixtureMetadataText = [System.IO.File]::ReadAllText($fixtureMetadata)
+    $commitMatches = [regex]::Matches($fixtureMetadataText, '(?m)^\s+commit:\s*([0-9a-f]{40})\s*$')
+    Assert-True -Condition ($commitMatches.Count -gt 0) -Message "Current metadata contains no immutable build commit."
+    $currentVersionMatch = [regex]::Match($fixtureMetadataText, '(?m)^CurrentVersion:\s*(\S+)\s*$')
+    $currentVersionCodeMatch = [regex]::Match($fixtureMetadataText, '(?m)^CurrentVersionCode:\s*(\d+)\s*$')
+    Assert-True -Condition $currentVersionMatch.Success -Message "Current metadata is missing CurrentVersion."
+    Assert-True -Condition $currentVersionCodeMatch.Success -Message "Current metadata is missing CurrentVersionCode."
+    [System.IO.File]::WriteAllText(
+        $fixtureGradle,
+        "applicationId = `"com.ventoid.app`"`nversionCode = $($currentVersionCodeMatch.Groups[1].Value)`nversionName = `"$($currentVersionMatch.Groups[1].Value)`"`n",
+        [System.Text.UTF8Encoding]::new($false)
+    )
+    $releaseCommit = $commitMatches[$commitMatches.Count - 1].Groups[1].Value
+    ./scripts/Test-FdroidPreflight.ps1 `
+        -Commit $releaseCommit `
+        -SkipBuild `
+        -GradleFile $fixtureGradle `
+        -MetadataFile $fixtureMetadata
 }
 
 Invoke-Step "Check Ventoy upstream release" {

@@ -4,398 +4,292 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/ventoid_window"
+    android:clipToPadding="true"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:paddingStart="@dimen/ventoid_space_screen"
+        android:paddingTop="@dimen/ventoid_space_screen"
+        android:paddingEnd="@dimen/ventoid_space_screen"
+        android:paddingBottom="@dimen/ventoid_space_screen">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/panel_hero"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="18dp">
+            android:orientation="horizontal">
 
             <ImageView
-                android:layout_width="72dp"
-                android:layout_height="72dp"
+                android:layout_width="@dimen/ventoid_logo_size"
+                android:layout_height="@dimen/ventoid_logo_size"
                 android:contentDescription="@string/app_name"
+                android:scaleType="centerInside"
                 android:src="@drawable/ventoid_icon" />
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="@dimen/ventoid_space_standard"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
                 <TextView
+                    style="@style/VentoidText.AppTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/hero_title"
-                    android:textColor="@color/ventoid_text_primary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+                    android:text="@string/hero_title" />
 
                 <TextView
+                    style="@style/VentoidText.Subtitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:text="@string/hero_subtitle"
-                    android:textColor="@color/ventoid_text_secondary"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/pill_status"
-                    android:paddingStart="12dp"
-                    android:paddingTop="6dp"
-                    android:paddingEnd="12dp"
-                    android:paddingBottom="6dp"
-                    android:text="@string/hero_status"
-                    android:textColor="@color/ventoid_success"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
+                    android:layout_marginTop="@dimen/ventoid_space_tiny"
+                    android:text="@string/hero_subtitle" />
             </LinearLayout>
+
+            <TextView
+                style="@style/VentoidText.Status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/pill_status"
+                android:gravity="center"
+                android:paddingStart="@dimen/ventoid_status_padding_horizontal"
+                android:paddingTop="@dimen/ventoid_status_padding_vertical"
+                android:paddingEnd="@dimen/ventoid_status_padding_horizontal"
+                android:paddingBottom="@dimen/ventoid_status_padding_vertical"
+                android:text="@string/hero_status" />
         </LinearLayout>
 
         <LinearLayout
+            style="@style/VentoidPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/panel_surface"
-            android:orientation="vertical"
-            android:padding="18dp">
+            android:layout_marginTop="@dimen/ventoid_space_standard">
 
             <TextView
+                style="@style/VentoidText.SectionTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/select_usb"
-                android:textColor="@color/ventoid_text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:text="@string/drive_setup_title" />
 
             <TextView
+                style="@style/VentoidText.FieldLabel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/device_help"
-                android:textColor="@color/ventoid_text_secondary"
-                android:textSize="13sp" />
-
-            <Spinner
-                android:id="@+id/spinner_usb"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="14dp"
-                android:background="@drawable/input_surface"
-                android:minHeight="52dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:popupBackground="@drawable/panel_surface" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/partition_scheme_title"
-                android:textColor="@color/ventoid_text_primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/partition_scheme_help"
-                android:textColor="@color/ventoid_text_secondary"
-                android:textSize="13sp" />
-
-            <Spinner
-                android:id="@+id/spinner_partition_scheme"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/input_surface"
-                android:minHeight="52dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:popupBackground="@drawable/panel_surface" />
-
-            <TextView
-                android:id="@+id/text_secure_boot_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/secure_boot_checking"
-                android:textColor="@color/ventoid_text_secondary"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/text_custom_image_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/custom_image_default"
-                android:textColor="@color/ventoid_text_secondary"
-                android:textSize="13sp" />
-
-            <Button
-                android:id="@+id/button_select_image"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/button_secondary"
-                android:text="@string/custom_image_select"
-                android:textAllCaps="false"
-                android:textColor="@color/ventoid_text_primary" />
+                android:layout_marginTop="@dimen/ventoid_space_standard"
+                android:text="@string/device_label" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="@dimen/ventoid_space_compact"
                 android:orientation="horizontal">
+
+                <Spinner
+                    android:id="@+id/spinner_usb"
+                    style="@style/VentoidSpinner"
+                    android:layout_width="0dp"
+                    android:layout_weight="1" />
 
                 <Button
                     android:id="@+id/button_refresh"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/button_secondary"
-                    android:text="@string/refresh"
-                    android:textAllCaps="false"
-                    android:textColor="@color/ventoid_text_primary" />
-
-                <Button
-                    android:id="@+id/button_install"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/button_primary"
-                    android:text="@string/install_ventoy"
-                    android:textAllCaps="false"
-                    android:textColor="@android:color/white" />
+                    style="@style/VentoidButton.Secondary"
+                    android:layout_width="@dimen/ventoid_command_width"
+                    android:layout_marginStart="@dimen/ventoid_space_small"
+                    android:text="@string/refresh" />
             </LinearLayout>
+
+            <TextView
+                style="@style/VentoidText.FieldLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/ventoid_space_standard"
+                android:text="@string/partition_scheme_title" />
+
+            <Spinner
+                android:id="@+id/spinner_partition_scheme"
+                style="@style/VentoidSpinner"
+                android:layout_width="match_parent"
+                android:layout_marginTop="@dimen/ventoid_space_compact" />
+
+            <TextView
+                style="@style/VentoidText.FieldLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/ventoid_space_standard"
+                android:text="@string/bundled_efi_label" />
+
+            <TextView
+                android:id="@+id/text_secure_boot_status"
+                style="@style/VentoidReadOnlyField"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/ventoid_space_compact"
+                android:text="@string/secure_boot_checking" />
         </LinearLayout>
 
         <LinearLayout
+            style="@style/VentoidPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/panel_surface"
-            android:orientation="vertical"
-            android:padding="18dp">
+            android:layout_marginTop="@dimen/ventoid_space_standard">
 
             <TextView
+                style="@style/VentoidText.SectionTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/progress_title"
-                android:textColor="@color/ventoid_text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:text="@string/progress_title" />
 
             <TextView
                 android:id="@+id/text_stage_title"
+                style="@style/VentoidText.BodyCompact"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:text="@string/progress_idle"
-                android:textColor="@color/ventoid_text_secondary"
-                android:textSize="14sp" />
+                android:layout_marginTop="@dimen/ventoid_space_small"
+                android:text="@string/progress_idle" />
 
-            <ProgressBar
-                android:id="@+id/progress_install"
-                style="?android:attr/progressBarStyleHorizontal"
+            <LinearLayout
+                style="@style/VentoidProgressStep"
                 android:layout_width="match_parent"
-                android:layout_height="12dp"
-                android:layout_marginTop="14dp"
-                android:max="100"
-                android:progress="0"
-                android:progressDrawable="@drawable/progress_install" />
+                android:layout_marginTop="@dimen/ventoid_space_small">
+
+                <TextView
+                    style="@style/VentoidText.ProgressIndex"
+                    android:layout_width="@dimen/ventoid_progress_index_width"
+                    android:text="@string/progress_step_number_1" />
+
+                <TextView
+                    android:id="@+id/text_stage_boot_label"
+                    style="@style/VentoidText.ProgressLabel"
+                    android:layout_width="0dp"
+                    android:layout_marginStart="@dimen/ventoid_space_small"
+                    android:layout_weight="1"
+                    android:text="@string/progress_step_boot_record" />
+
+                <TextView
+                    android:id="@+id/text_stage_boot_state"
+                    style="@style/VentoidText.ProgressState"
+                    android:layout_width="@dimen/ventoid_progress_state_width"
+                    android:text="@string/progress_state_pending" />
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/VentoidProgressStep"
+                android:layout_width="match_parent"
+                android:layout_marginTop="@dimen/ventoid_space_tiny">
+
+                <TextView
+                    style="@style/VentoidText.ProgressIndex"
+                    android:layout_width="@dimen/ventoid_progress_index_width"
+                    android:text="@string/progress_step_number_2" />
+
+                <TextView
+                    android:id="@+id/text_stage_core_label"
+                    style="@style/VentoidText.ProgressLabel"
+                    android:layout_width="0dp"
+                    android:layout_marginStart="@dimen/ventoid_space_small"
+                    android:layout_weight="1"
+                    android:text="@string/progress_step_core" />
+
+                <TextView
+                    android:id="@+id/text_stage_core_state"
+                    style="@style/VentoidText.ProgressState"
+                    android:layout_width="@dimen/ventoid_progress_state_width"
+                    android:text="@string/progress_state_pending" />
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/VentoidProgressStep"
+                android:layout_width="match_parent"
+                android:layout_marginTop="@dimen/ventoid_space_tiny">
+
+                <TextView
+                    style="@style/VentoidText.ProgressIndex"
+                    android:layout_width="@dimen/ventoid_progress_index_width"
+                    android:text="@string/progress_step_number_3" />
+
+                <TextView
+                    android:id="@+id/text_stage_data_label"
+                    style="@style/VentoidText.ProgressLabel"
+                    android:layout_width="0dp"
+                    android:layout_marginStart="@dimen/ventoid_space_small"
+                    android:layout_weight="1"
+                    android:text="@string/progress_step_data" />
+
+                <TextView
+                    android:id="@+id/text_stage_data_state"
+                    style="@style/VentoidText.ProgressState"
+                    android:layout_width="@dimen/ventoid_progress_state_width"
+                    android:text="@string/progress_state_pending" />
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/VentoidProgressStep"
+                android:layout_width="match_parent"
+                android:layout_marginTop="@dimen/ventoid_space_tiny">
+
+                <TextView
+                    style="@style/VentoidText.ProgressIndex"
+                    android:layout_width="@dimen/ventoid_progress_index_width"
+                    android:text="@string/progress_step_number_4" />
+
+                <TextView
+                    android:id="@+id/text_stage_efi_label"
+                    style="@style/VentoidText.ProgressLabel"
+                    android:layout_width="0dp"
+                    android:layout_marginStart="@dimen/ventoid_space_small"
+                    android:layout_weight="1"
+                    android:text="@string/progress_step_efi" />
+
+                <TextView
+                    android:id="@+id/text_stage_efi_state"
+                    style="@style/VentoidText.ProgressState"
+                    android:layout_width="@dimen/ventoid_progress_state_width"
+                    android:text="@string/progress_state_pending" />
+            </LinearLayout>
+
+            <LinearLayout
+                style="@style/VentoidProgressStep"
+                android:layout_width="match_parent"
+                android:layout_marginTop="@dimen/ventoid_space_tiny">
+
+                <TextView
+                    style="@style/VentoidText.ProgressIndex"
+                    android:layout_width="@dimen/ventoid_progress_index_width"
+                    android:text="@string/progress_step_number_5" />
+
+                <TextView
+                    android:id="@+id/text_stage_verify_label"
+                    style="@style/VentoidText.ProgressLabel"
+                    android:layout_width="0dp"
+                    android:layout_marginStart="@dimen/ventoid_space_small"
+                    android:layout_weight="1"
+                    android:text="@string/progress_step_verify" />
+
+                <TextView
+                    android:id="@+id/text_stage_verify_state"
+                    style="@style/VentoidText.ProgressState"
+                    android:layout_width="@dimen/ventoid_progress_state_width"
+                    android:text="@string/progress_state_pending" />
+            </LinearLayout>
         </LinearLayout>
 
-        <LinearLayout
+        <TextView
+            style="@style/VentoidText.Supporting"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/panel_surface"
-            android:orientation="vertical"
-            android:padding="18dp">
+            android:layout_marginTop="@dimen/ventoid_space_standard"
+            android:text="@string/install_warning"
+            android:textColor="@color/ventoid_warning" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/workflow_title"
-                android:textColor="@color/ventoid_text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="34dp"
-                        android:layout_height="34dp"
-                        android:background="@drawable/badge_active"
-                        android:gravity="center"
-                        android:text="@string/workflow_badge_1"
-                        android:textColor="@android:color/white"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="2dp"
-                        android:layout_height="72dp"
-                        android:background="@drawable/timeline_connector" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/workflow_card"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/workflow_step_title_1"
-                        android:textColor="@color/ventoid_text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/workflow_step_1"
-                        android:textColor="@color/ventoid_text_secondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="34dp"
-                        android:layout_height="34dp"
-                        android:background="@drawable/badge_pending"
-                        android:gravity="center"
-                        android:text="@string/workflow_badge_2"
-                        android:textColor="@color/ventoid_text_primary"
-                        android:textStyle="bold" />
-
-                    <View
-                        android:layout_width="2dp"
-                        android:layout_height="72dp"
-                        android:background="@drawable/timeline_connector" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/workflow_card"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/workflow_step_title_2"
-                        android:textColor="@color/ventoid_text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/workflow_step_2"
-                        android:textColor="@color/ventoid_text_secondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="34dp"
-                        android:layout_height="34dp"
-                        android:background="@drawable/badge_pending"
-                        android:gravity="center"
-                        android:text="@string/workflow_badge_3"
-                        android:textColor="@color/ventoid_text_primary"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/workflow_card"
-                    android:orientation="vertical"
-                    android:padding="14dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/workflow_step_title_3"
-                        android:textColor="@color/ventoid_text_primary"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/workflow_step_3"
-                        android:textColor="@color/ventoid_text_secondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-
+        <Button
+            android:id="@+id/button_install"
+            style="@style/VentoidButton.Primary"
+            android:layout_width="match_parent"
+            android:layout_marginTop="@dimen/ventoid_space_small"
+            android:text="@string/install_ventoy" />
     </LinearLayout>
 </ScrollView>

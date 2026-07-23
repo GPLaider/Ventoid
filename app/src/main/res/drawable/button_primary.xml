@@ -1,8 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient
-        android:angle="0"
-        android:endColor="#60C97C"
-        android:startColor="@color/ventoid_primary" />
-    <corners android:radius="16dp" />
-</shape>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false">
+        <shape>
+            <solid android:color="@color/ventoid_primary_disabled" />
+            <corners android:radius="@dimen/ventoid_control_radius" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape>
+            <solid android:color="@color/ventoid_primary_pressed" />
+            <corners android:radius="@dimen/ventoid_control_radius" />
+        </shape>
+    </item>
+    <item android:state_focused="true">
+        <shape>
+            <solid android:color="@color/ventoid_primary" />
+            <stroke
+                android:width="@dimen/ventoid_border_width"
+                android:color="@color/ventoid_text_primary" />
+            <corners android:radius="@dimen/ventoid_control_radius" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <solid android:color="@color/ventoid_primary" />
+            <corners android:radius="@dimen/ventoid_control_radius" />
+        </shape>
+    </item>
+</selector>

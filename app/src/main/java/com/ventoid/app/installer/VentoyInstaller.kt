@@ -179,22 +179,28 @@ class VentoyInstaller(
         startLba: Long,
         sectorCount: Long,
     ) {
-        require(startLba <= Int.MAX_VALUE && sectorCount <= Int.MAX_VALUE) {
+        val maxMbrLba = 0xFFFF_FFFFL
+        val endLba = startLba + sectorCount - 1L
+        require(
+            startLba >= 0L &&
+                sectorCount > 0L &&
+                startLba <= maxMbrLba &&
+                sectorCount <= maxMbrLba &&
+                endLba <= maxMbrLba
+        ) {
             "MBR supports only 32-bit LBA; use GPT for large disks"
         }
-        val start = startLba.toInt()
-        val count = sectorCount.toInt()
+        val start = startLba
+        val count = sectorCount
         var nHead = 255
         val nSector = 63
-        var nCyl = (512 * 1024) / nSector / nHead
         while (nHead != 0 && (512L * 1024 / nSector / nHead) > 1024) {
             nHead = (nHead * 2).coerceAtMost(255)
         }
         if (nHead == 0) nHead = 255
-        val cyl = start / nSector / nHead
-        val head = (start / nSector) % nHead
-        val sec = (start % nSector) + 1
-        val endLba = start + count - 1
+        val cyl = (start / nSector / nHead).toInt()
+        val head = ((start / nSector) % nHead).toInt()
+        val sec = (start % nSector).toInt() + 1
         val endCyl = (endLba / nSector / nHead).toInt()
         val endHead = ((endLba / nSector) % nHead).toInt()
         val endSec = (endLba % nSector).toInt() + 1
@@ -206,14 +212,14 @@ class VentoyInstaller(
         mbr[offset + 5] = endHead.toByte()
         mbr[offset + 6] = (endSec or ((endCyl shr 8) shl 6)).toByte()
         mbr[offset + 7] = (endCyl and 0xFF).toByte()
-        mbr[offset + 8] = (start and 0xFF).toByte()
-        mbr[offset + 9] = (start shr 8 and 0xFF).toByte()
-        mbr[offset + 10] = (start shr 16 and 0xFF).toByte()
-        mbr[offset + 11] = (start shr 24 and 0xFF).toByte()
-        mbr[offset + 12] = (count and 0xFF).toByte()
-        mbr[offset + 13] = (count shr 8 and 0xFF).toByte()
-        mbr[offset + 14] = (count shr 16 and 0xFF).toByte()
-        mbr[offset + 15] = (count shr 24 and 0xFF).toByte()
+        mbr[offset + 8] = (start and 0xFFL).toByte()
+        mbr[offset + 9] = (start shr 8 and 0xFFL).toByte()
+        mbr[offset + 10] = (start shr 16 and 0xFFL).toByte()
+        mbr[offset + 11] = (start shr 24 and 0xFFL).toByte()
+        mbr[offset + 12] = (count and 0xFFL).toByte()
+        mbr[offset + 13] = (count shr 8 and 0xFFL).toByte()
+        mbr[offset + 14] = (count shr 16 and 0xFFL).toByte()
+        mbr[offset + 15] = (count shr 24 and 0xFFL).toByte()
     }
 
     /**
@@ -231,10 +237,31 @@ class VentoyInstaller(
         val tag = "Ventoid"
         VentoidFileLogger.log("install: layout start")
         try { Log.d(tag, "install: layout start") } catch (_: Exception) { }
+        val coreSectors = if (useGpt) {
+            VentoyConstants.CORE_IMG_SECTORS_GPT
+        } else {
+            VentoyConstants.CORE_IMG_SECTORS_MBR
+        }
+        val coreOffset = if (useGpt) {
+            VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT
+        } else {
+            VentoyConstants.CORE_IMG_OFFSET_SECTOR_MBR
+        }
+        val coreBytes = coreSectors * VentoyConstants.SECTOR_SIZE
+        require(bootImg.size >= VentoyConstants.MBR_BOOT_CODE_SIZE) {
+            "boot.img must be at least ${VentoyConstants.MBR_BOOT_CODE_SIZE} bytes"
+        }
+        require(coreImg.size >= coreBytes) {
+            "core.img must be at least $coreBytes bytes (${coreSectors} sectors)"
+        }
+        require(ventoyDiskImg.size >= VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) {
+            "ventoy.disk.img must be at least ${VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES} bytes"
+        }
         val layout = calculateLayout(totalBlocks, useGpt = useGpt)
         VentoidFileLogger.log("layout: part1Start=${layout.part1StartSector} part1End=${layout.part1EndSector} part2Start=${layout.part2StartSector} part2End=${layout.part2EndSector} part1Count=${layout.part1SectorCount} part2Count=${layout.part2SectorCount}")
         try { Log.d(tag, "layout: part1Start=${layout.part1StartSector} part2Start=${layout.part2StartSector} part1Count=${layout.part1SectorCount}") } catch (_: Exception) { }
         val bootCode = bootImg.copyOf(VentoyConstants.MBR_BOOT_CODE_SIZE)
+        progress?.invoke("mbr", 0, 1)
         if (useGpt) {
             VentoidFileLogger.log("install: writing GPT")
             try { Log.d(tag, "install: writing GPT") } catch (_: Exception) { }
@@ -272,26 +299,20 @@ class VentoyInstaller(
             VentoidFileLogger.log("MBR verification OK")
         }
         progress?.invoke("mbr", 1, 1)
-        val coreSectors = if (useGpt) VentoyConstants.CORE_IMG_SECTORS_GPT else VentoyConstants.CORE_IMG_SECTORS_MBR
-        val coreOffset = if (useGpt) VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT else VentoyConstants.CORE_IMG_OFFSET_SECTOR_MBR
-        val coreBytes = coreSectors * VentoyConstants.SECTOR_SIZE
-        require(coreImg.size >= coreBytes) {
-            "core.img must be at least $coreBytes bytes (${coreSectors} sectors)"
-        }
+        progress?.invoke("core", 0, coreSectors.toLong())
         VentoidFileLogger.log("install: writing core.img sectors=$coreSectors offset=$coreOffset")
         try { Log.d(tag, "install: writing core.img sectors=$coreSectors offset=$coreOffset") } catch (_: Exception) { }
         writeSectors(coreOffset, coreImg, 0, coreBytes)
         progress?.invoke("core", coreSectors.toLong(), coreSectors.toLong())
+        progress?.invoke("part1", 0, 1)
         VentoidFileLogger.log("install: formatting part1 exFAT label=${ExFatFormatter.VOLUME_LABEL}")
         try { Log.d(tag, "install: formatting part1 exFAT") } catch (_: Exception) { }
         formatPart1ExFat(layout, progress)
         progress?.invoke("part1", 1, 1)
-        require(ventoyDiskImg.size >= VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) {
-            "ventoy.disk.img must be at least ${VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES} bytes"
-        }
+        val ventoyTotalSectors = VentoyConstants.VENTOY_SECTOR_NUM.toLong()
+        progress?.invoke("ventoy", 0, ventoyTotalSectors)
         VentoidFileLogger.log("install: writing ventoy.disk.img at sector ${layout.part2StartSector}")
         try { Log.d(tag, "install: writing ventoy.disk.img at sector ${layout.part2StartSector}") } catch (_: Exception) { }
-        val ventoyTotalSectors = VentoyConstants.VENTOY_SECTOR_NUM.toLong()
         val ventoyChunkSectors = 256L
         var ventoyWritten = 0L
         while (ventoyWritten < ventoyTotalSectors) {

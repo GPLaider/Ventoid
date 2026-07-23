@@ -87,7 +87,47 @@ Builds:
       - export PATH=$PATH:/usr/sbin
       - VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
 
+  - versionName: 0.2.2
+    versionCode: 11
+    commit: 751effd782d053d8d4179b709dd3255fd6c7db87
+    subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y dosfstools mtools
+    gradle:
+      - yes
+    srclibs:
+      - Ventoy@v1.1.16
+    build:
+      - rm -f $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi
+        $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi
+      - mcopy -i src/main/assets/ventoy/ventoy.disk.img ::/EFI/BOOT/BOOTX64.EFI $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI
+      - mcopy -i src/main/assets/ventoy/ventoy.disk.img ::/EFI/BOOT/mmx64.efi $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi
+      - mcopy -i src/main/assets/ventoy/ventoy.disk.img ::/EFI/BOOT/fbx64.efi $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi
+      - mcopy -i src/main/assets/ventoy/ventoy.disk.img ::/EFI/BOOT/grubx64_real.efi
+        $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi
+      - echo "1ff3f223c2fcf5b11615d042fcb5674c4651bbbc8505b5b2987d60da0cb65d1a  $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI"
+        | sha256sum -c -
+      - echo "1a3687f923d077080fe49feb470e3932c2b1d3fd4c6439123aa0226246a24522  $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi"
+        | sha256sum -c -
+      - echo "fb09e3f29ee12bce1fdab73b9c929f8dd810ffbfe0d54979fcb32eb804545844  $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi"
+        | sha256sum -c -
+      - echo "a5e07d901a11fdd10f7ffdee4650e0f52a423dab877f3b8ccbbdc162e6b7221f  $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi"
+        | sha256sum -c -
+      - mv $$Ventoy$$ ..
+      - cd ..
+      - PATH=$PATH:/usr/sbin VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
+        && rm -rf Ventoy
+
+MaintainerNotes: |-
+  0.2.2 rebuilds ventoy.disk.img from the Ventoy 1.1.16 srclib. The build step
+  uses the checked-in image only to extract and hash-verify the four
+  firmware-trusted EFI files, then replaces it with a new FAT16 VTOYEFI image
+  built from pinned source while stripping imdisk/memdisk/7z. Rebuilding those
+  EFI files would invalidate their signatures. Hashes, SBAT, corresponding
+  source, licenses and provenance are documented in ASSET_PROVENANCE.md.
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[\d.]+$
-CurrentVersion: 0.2.1
-CurrentVersionCode: 10
+CurrentVersion: 0.2.2
+CurrentVersionCode: 11

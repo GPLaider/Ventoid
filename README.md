@@ -64,7 +64,8 @@ Ventoid writes to the selected USB drive. This can erase or overwrite existing d
 
 - Ship the Ventoy x86_64 Secure Boot chain (Rocky-signed shim + MOK manager) with pinned provenance
 - Verify bundled Secure Boot markers before writing
-- Show concise stage status and a single progress bar for `MBR`, `CORE`, `DATA`, and `EFI`
+- Keep five stable progress rows for the partition table, core image, exFAT data,
+  Ventoy EFI, and final checks, with progress shown directly on the install action
 - No ads
 - No analytics
 - No network dependency

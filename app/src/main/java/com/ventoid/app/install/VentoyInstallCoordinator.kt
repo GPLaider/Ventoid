@@ -1,7 +1,6 @@
 package com.ventoid.app.install
 
 import android.content.Context
-import android.net.Uri
 import com.ventoid.app.installer.VentoyInstaller
 import com.ventoid.app.usb.UsbDeviceItem
 import com.ventoid.app.usb.UsbMassStorageHelper
@@ -13,47 +12,44 @@ class VentoyInstallCoordinator(
     suspend fun install(
         device: UsbDeviceItem,
         partitionScheme: PartitionScheme,
-        customVentoyDiskImgUri: Uri? = null,
         onProgress: (InstallProgress) -> Unit,
     ) {
         onProgress(InstallProgress.Log(InstallMessage.Starting))
 
-        val bundledAssets = InstallerAssets.load(context.assets)
-        val assets = if (customVentoyDiskImgUri == null) {
-            bundledAssets
-        } else {
-            val customVentoyDiskImg = context.contentResolver.openInputStream(customVentoyDiskImgUri)
-                ?.use { it.readBytes() }
-                ?: throw IOException("Unable to open selected Ventoy image.")
-            onProgress(InstallProgress.Log(InstallMessage.CustomImageSelected))
-            bundledAssets.copy(
-                ventoyDiskImg = customVentoyDiskImg,
-                secureBootSupport = InstallerAssets.detectSecureBootSupport(customVentoyDiskImg),
-            )
-        }
-        if (assets.secureBootSupport.supported) {
-            onProgress(InstallProgress.Log(InstallMessage.SecureBootVerified))
-        } else {
-            onProgress(InstallProgress.Log(InstallMessage.SecureBootUnavailable))
-        }
-        val session = UsbMassStorageHelper.openBlockDevice(context, device)
         try {
-            VentoyInstaller(session.blockDevice).install(
-                bootImg = assets.bootImg,
-                coreImg = assets.coreImg,
-                ventoyDiskImg = assets.ventoyDiskImg,
-                useGpt = partitionScheme.useGpt,
-            ) { step, current, total ->
-                onProgress(
-                    InstallProgress.Step(
-                        stage = InstallStage.fromInstallerStep(step),
-                        current = current,
-                        total = total,
-                    )
-                )
+            val assets = InstallerAssets.load(context.assets)
+            if (assets.secureBootSupport.supported) {
+                onProgress(InstallProgress.Log(InstallMessage.SecureBootVerified))
+            } else {
+                onProgress(InstallProgress.Log(InstallMessage.SecureBootUnavailable))
             }
-            onProgress(InstallProgress.Log(InstallMessage.Success))
+            val session = UsbMassStorageHelper.openBlockDevice(context, device)
+            try {
+                try {
+                    VentoyInstaller(session.blockDevice).install(
+                        bootImg = assets.bootImg,
+                        coreImg = assets.coreImg,
+                        ventoyDiskImg = assets.ventoyDiskImg,
+                        useGpt = partitionScheme.useGpt,
+                    ) { step, current, total ->
+                        onProgress(
+                            InstallProgress.Step(
+                                stage = InstallStage.fromInstallerStep(step),
+                                current = current,
+                                total = total,
+                            )
+                        )
+                    }
+                    onProgress(InstallProgress.Step(InstallStage.VERIFY, 0, 1))
+                } finally {
+                    session.syncBeforeClose()
+                }
+            } finally {
+                session.close()
+            }
+            onProgress(InstallProgress.Step(InstallStage.VERIFY, 1, 1))
             onProgress(InstallProgress.Log(InstallMessage.WriteProtectTip))
+            onProgress(InstallProgress.Log(InstallMessage.Success))
         } catch (e: IOException) {
             onProgress(InstallProgress.Failure(e))
             throw e
@@ -63,9 +59,6 @@ class VentoyInstallCoordinator(
         } catch (e: Exception) {
             onProgress(InstallProgress.Failure(e))
             throw e
-        } finally {
-            session.syncBeforeClose()
-            session.close()
         }
     }
 }
@@ -81,6 +74,7 @@ enum class InstallStage {
     CORE,
     PARTITION_1,
     VENTOY,
+    VERIFY,
     UNKNOWN,
     ;
 
@@ -103,5 +97,4 @@ enum class InstallMessage {
     WriteProtectTip,
     SecureBootVerified,
     SecureBootUnavailable,
-    CustomImageSelected,
 }

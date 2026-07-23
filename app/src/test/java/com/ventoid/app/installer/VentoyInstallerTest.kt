@@ -1,10 +1,12 @@
 package com.ventoid.app.installer
 
 import com.ventoid.app.MemoryBlockDeviceDriver
+import me.jahnen.libaums.core.driver.BlockDeviceDriver
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.nio.ByteBuffer
 
 class VentoyInstallerTest {
 
@@ -141,6 +143,27 @@ class VentoyInstallerTest {
     }
 
     @Test
+    fun `buildMbr accepts unsigned 32-bit LBAs on 2TB disk`() {
+        val diskSectors = 4_000_797_360L
+        val driver = object : BlockDeviceDriver {
+            override val blockSize = 512
+            override val blocks = diskSectors
+            override fun init() = Unit
+            override fun read(deviceOffset: Long, buffer: ByteBuffer) = error("not used")
+            override fun write(deviceOffset: Long, buffer: ByteBuffer) = error("not used")
+        }
+        val installer = VentoyInstaller(driver)
+        val layout = installer.calculateLayout(diskSectors, useGpt = false)
+
+        val mbr = installer.buildMbr(layout, ByteArray(512))
+
+        assertEquals(layout.part1StartSector, readUnsignedLeInt(mbr, 454))
+        assertEquals(layout.part1SectorCount, readUnsignedLeInt(mbr, 458))
+        assertEquals(layout.part2StartSector, readUnsignedLeInt(mbr, 470))
+        assertEquals(layout.part2SectorCount, readUnsignedLeInt(mbr, 474))
+    }
+
+    @Test
     fun `buildProtectiveMbr uses 0xEE partition type`() {
         val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
         val installer = VentoyInstaller(driver)
@@ -204,6 +227,45 @@ class VentoyInstallerTest {
     }
 
     @Test
+    fun `install reports each stage before its write starts`() {
+        val delegate = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val timeline = mutableListOf<String>()
+        val driver = TimelineBlockDeviceDriver(delegate, timeline)
+        val installer = VentoyInstaller(driver)
+        val bootImg = ByteArray(512)
+        val coreImg = ByteArray(2047 * 512)
+        val ventoyImg = ByteArray(VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES)
+        val layout = installer.calculateLayout(driver.blocks, useGpt = false)
+
+        installer.install(bootImg, coreImg, ventoyImg, useGpt = false) { stage, current, total ->
+            timeline += "progress:$stage:$current:$total"
+        }
+
+        assertProgressBeforeWrite(timeline, "mbr", 0)
+        assertProgressBeforeWrite(timeline, "core", VentoyConstants.CORE_IMG_OFFSET_SECTOR_MBR)
+        assertProgressBeforeWrite(timeline, "part1", layout.part1StartSector)
+        assertProgressBeforeWrite(timeline, "ventoy", layout.part2StartSector)
+    }
+
+    @Test
+    fun `install rejects a short Ventoy image before writing anything`() {
+        val delegate = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val timeline = mutableListOf<String>()
+        val installer = VentoyInstaller(TimelineBlockDeviceDriver(delegate, timeline))
+
+        assertThrows<IllegalArgumentException> {
+            installer.install(
+                bootImg = ByteArray(512),
+                coreImg = ByteArray(2047 * 512),
+                ventoyDiskImg = ByteArray(VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES - 1),
+                useGpt = false,
+            )
+        }
+
+        assertTrue(timeline.none { it.startsWith("write:") })
+    }
+
+    @Test
     fun `writeSectors writes data larger than one chunk`() {
         val driver = MemoryBlockDeviceDriver(4L * 1024 * 1024, 512)
         val installer = VentoyInstaller(driver)
@@ -214,5 +276,48 @@ class VentoyInstallerTest {
         val readBack = ByteArray(data.size)
         driver.read(2, java.nio.ByteBuffer.wrap(readBack))
         assertEquals(data.toList(), readBack.toList())
+    }
+
+    private fun readUnsignedLeInt(bytes: ByteArray, offset: Int): Long {
+        return (bytes[offset].toLong() and 0xFF) or
+            ((bytes[offset + 1].toLong() and 0xFF) shl 8) or
+            ((bytes[offset + 2].toLong() and 0xFF) shl 16) or
+            ((bytes[offset + 3].toLong() and 0xFF) shl 24)
+    }
+
+    private fun assertProgressBeforeWrite(
+        timeline: List<String>,
+        stage: String,
+        writeOffset: Long,
+    ) {
+        val progressIndex = timeline.indexOfFirst { it.startsWith("progress:$stage:0:") }
+        val writeIndex = timeline.indexOf("write:$writeOffset")
+        assertTrue(progressIndex >= 0, "Missing start event for $stage: $timeline")
+        assertTrue(writeIndex >= 0, "Missing write at sector $writeOffset: $timeline")
+        assertTrue(
+            progressIndex < writeIndex,
+            "Expected $stage start before sector $writeOffset write: $timeline",
+        )
+    }
+
+    private class TimelineBlockDeviceDriver(
+        private val delegate: MemoryBlockDeviceDriver,
+        private val timeline: MutableList<String>,
+    ) : BlockDeviceDriver {
+        override val blockSize: Int
+            get() = delegate.blockSize
+        override val blocks: Long
+            get() = delegate.blocks
+
+        override fun init() = delegate.init()
+
+        override fun read(deviceOffset: Long, buffer: ByteBuffer) {
+            delegate.read(deviceOffset, buffer)
+        }
+
+        override fun write(deviceOffset: Long, buffer: ByteBuffer) {
+            timeline += "write:$deviceOffset"
+            delegate.write(deviceOffset, buffer)
+        }
     }
 }

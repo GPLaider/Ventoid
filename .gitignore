@@ -1,5 +1,6 @@
 # Built application files
 *.apk
+*.idsig
 *.aar
 *.ap_
 *.aab
@@ -20,6 +21,3 @@ secrets/
 *.iml
 .idea/
 .DS_Store
-
-# Local agent workspaces
-

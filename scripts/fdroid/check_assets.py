@@ -25,6 +25,10 @@ EFI_HASHES = {
 FORBIDDEN_IMAGE_PATHS = ("ventoy/7z", "ventoy/imdisk", "ventoy/memdisk")
 
 
+class Args(argparse.Namespace):
+    repo: Path = Path()
+
+
 def sha256_file(p: Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest().upper()
 
@@ -76,9 +80,9 @@ def read_image_file(seven_zip: Path, image: Path, internal_path: str) -> bytes:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--repo", required=True, help="App repository root")
-    args = ap.parse_args()
-    root = Path(args.repo)
+    _ = ap.add_argument("--repo", required=True, type=Path, help="App repository root")
+    args = ap.parse_args(namespace=Args())
+    root = args.repo
 
     installer = root / "app/src/main/java/com/ventoid/app/install/InstallerAssets.kt"
     if not installer.is_file():

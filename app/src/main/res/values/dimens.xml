@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="ventoid_space_tiny">2dp</dimen>
+    <dimen name="ventoid_space_compact">4dp</dimen>
+    <dimen name="ventoid_space_small">8dp</dimen>
+    <dimen name="ventoid_space_standard">12dp</dimen>
+    <dimen name="ventoid_space_screen">16dp</dimen>
+
+    <dimen name="ventoid_border_width">1dp</dimen>
+    <dimen name="ventoid_control_radius">6dp</dimen>
+    <dimen name="ventoid_panel_radius">8dp</dimen>
+    <dimen name="ventoid_pill_radius">999dp</dimen>
+
+    <dimen name="ventoid_control_height">48dp</dimen>
+    <dimen name="ventoid_command_width">92dp</dimen>
+    <dimen name="ventoid_logo_size">48dp</dimen>
+    <dimen name="ventoid_progress_step_height">32dp</dimen>
+    <dimen name="ventoid_progress_index_width">24dp</dimen>
+    <dimen name="ventoid_progress_state_width">80dp</dimen>
+
+    <dimen name="ventoid_status_padding_horizontal">9dp</dimen>
+    <dimen name="ventoid_status_padding_vertical">5dp</dimen>
+    <dimen name="ventoid_spinner_text_end_padding">40dp</dimen>
+    <dimen name="ventoid_spinner_arrow_size">24dp</dimen>
+    <dimen name="ventoid_spinner_arrow_end_margin">8dp</dimen>
+
+    <dimen name="ventoid_text_app_title">22sp</dimen>
+    <dimen name="ventoid_text_section_title">15sp</dimen>
+    <dimen name="ventoid_text_body">14sp</dimen>
+    <dimen name="ventoid_text_body_compact">13sp</dimen>
+    <dimen name="ventoid_text_supporting">12sp</dimen>
+    <dimen name="ventoid_text_label">11sp</dimen>
+</resources>

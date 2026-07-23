@@ -91,7 +91,7 @@ function New-FdroidBuildBlock {
       - yes
     srclibs:
       - Ventoy@v1.1.16
-    prebuild:
+    build:
       - rm -f $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi
         $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi
       - mcopy -i src/main/assets/ventoy/ventoy.disk.img ::/EFI/BOOT/BOOTX64.EFI $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI
@@ -110,10 +110,10 @@ function New-FdroidBuildBlock {
       - mv $$Ventoy$$ ..
       - cd ..
       - PATH=$PATH:/usr/sbin VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
-    scandelete:
-      - Ventoy
+        && rm -rf Ventoy
 '@
-    return $template.Replace("__VERSION_NAME__", $VersionName).Replace("__VERSION_CODE__", $VersionCode.ToString()).Replace("__COMMIT__", $Commit)
+    $normalizedTemplate = $template -replace "`r`n", "`n" -replace "`r", "`n"
+    return $normalizedTemplate.Replace("__VERSION_NAME__", $VersionName).Replace("__VERSION_CODE__", $VersionCode.ToString()).Replace("__COMMIT__", $Commit)
 }
 
 function New-MaintainerNotes {
@@ -121,12 +121,13 @@ function New-MaintainerNotes {
 
     return @"
 MaintainerNotes: |-
-    $VersionName rebuilds ventoy.disk.img from the Ventoy 1.1.16 srclib. prebuild uses
-    the checked-in image only to extract and hash-verify the four firmware-trusted
-    EFI files, then replaces it with a new FAT16 VTOYEFI image built from pinned
-    source while stripping imdisk/memdisk/7z. Rebuilding those EFI files would
-    invalidate their signatures. Hashes, SBAT, corresponding source, licenses
-    and provenance are documented in ASSET_PROVENANCE.md.
+  Builds from 0.2.2 onward rebuild ventoy.disk.img from the Ventoy 1.1.16
+  srclib. The build step uses the checked-in image only to extract and
+  hash-verify the four firmware-trusted EFI files, then replaces it with a new
+  FAT16 VTOYEFI image built from pinned source while stripping
+  imdisk/memdisk/7z. Rebuilding those EFI files would invalidate their
+  signatures. Hashes, SBAT, corresponding source, licenses and provenance are
+  documented in ASSET_PROVENANCE.md.
 "@
 }
 
@@ -197,6 +198,11 @@ if ($UpdateMetadata) {
     }
     $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^CurrentVersion:\s*.*$' -Replacement "CurrentVersion: $versionName" -FieldName "CurrentVersion"
     $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^CurrentVersionCode:\s*.*$' -Replacement "CurrentVersionCode: $versionCode" -FieldName "CurrentVersionCode"
+    $metadataContent = [regex]::Replace(
+        $metadataContent,
+        '(?m)^  0\.2\.2 rebuilds ventoy\.disk\.img from the Ventoy 1\.1\.16 srclib\. The build step$',
+        '  Builds from 0.2.2 onward rebuild ventoy.disk.img from the Ventoy 1.1.16 srclib. The build step'
+    )
     $metadataContent = $metadataContent.TrimEnd("`r", "`n") + "`n"
     [System.IO.File]::WriteAllText($metadataFilePath, $metadataContent, [System.Text.UTF8Encoding]::new($false))
 }

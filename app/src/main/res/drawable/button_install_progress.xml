@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/ventoid_primary_pressed" />
+            <corners android:radius="@dimen/ventoid_control_radius" />
+        </shape>
+    </item>
+
+    <item android:id="@+id/button_install_progress_fill">
+        <clip
+            android:clipOrientation="horizontal"
+            android:gravity="start">
+            <shape android:shape="rectangle">
+                <solid android:color="@color/ventoid_primary" />
+                <corners android:radius="@dimen/ventoid_control_radius" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>

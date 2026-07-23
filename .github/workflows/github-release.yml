@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to build and attach (e.g. v0.2.2). Leave empty on tag push."
+        description: "Existing tag to build and attach (e.g. v0.3.0). Leave empty on tag push."
         required: false
         type: string
 

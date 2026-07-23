@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Ventoid" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="Theme.Ventoid.Base" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/ventoid_primary</item>
         <item name="colorPrimaryDark">@color/ventoid_primary_dark</item>
-        <item name="colorAccent">@color/ventoid_accent</item>
+        <item name="colorAccent">@color/ventoid_primary</item>
         <item name="android:windowBackground">@color/ventoid_window</item>
+        <item name="android:colorAccent">@color/ventoid_primary</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:navigationBarColor">@color/ventoid_window</item>
+        <item name="android:statusBarColor">@color/ventoid_window</item>
     </style>
+
+    <style name="Theme.Ventoid" parent="Theme.Ventoid.Base" />
 </resources>

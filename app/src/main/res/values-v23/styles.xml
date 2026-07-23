@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="VentoidSpinner" parent="Widget.AppCompat.Spinner">
+        <item name="android:layout_height">@dimen/ventoid_control_height</item>
+        <item name="android:minHeight">@dimen/ventoid_control_height</item>
+        <item name="android:background">@drawable/spinner_surface</item>
+        <item name="android:popupBackground">@color/ventoid_surface_2</item>
+        <item name="android:spinnerMode">dropdown</item>
+    </style>
+</resources>
