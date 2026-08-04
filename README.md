@@ -160,6 +160,12 @@ For a release build on Linux or macOS:
 
 Release signing is optional. If no `VENTOID_RELEASE_*` environment variables or Gradle properties are set, Gradle generates an unsigned release APK.
 
+To obtain a signed test build without publishing a release, run the
+**GitHub Release APK** workflow manually with `publish` disabled. Leaving
+`tag` empty builds the selected branch and retains the signed APK/AAB as a
+private Actions artifact for seven days. Tag pushes keep the public release
+behavior.
+
 ## Release Preflight
 
 Before pushing a new F-Droid metadata update, run the local preflight from the repository root:

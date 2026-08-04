@@ -6,7 +6,10 @@ VENTOY_SRC="${VENTOY_SRC:-$ROOT_DIR/build/ventoy-src}"
 OUT_IMG="${OUT_IMG:-$ROOT_DIR/app/src/main/assets/ventoy/ventoy.disk.img}"
 OUT_SHA256="${OUT_SHA256:-$ROOT_DIR/app/src/main/assets/ventoy/ventoy.disk.img.sha256}"
 WORK_DIR="${WORK_DIR:-$(mktemp -d "${TMPDIR:-/tmp}/ventoy-disk-img.XXXXXX")}"
-SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-1735689600}"
+# Keep FAT metadata independent of fdroidserver's checkout-dependent epoch.
+SOURCE_DATE_EPOCH="${VENTOID_IMAGE_EPOCH:-1735689600}"
+export SOURCE_DATE_EPOCH
+export TZ=UTC
 DEBLOB_FDROID="${DEBLOB_FDROID:-1}"
 
 cleanup() {
@@ -23,7 +26,9 @@ need() {
 }
 
 need awk
+need date
 need dd
+need faketime
 need find
 need grep
 need mkfs.vfat
@@ -114,12 +119,13 @@ find "$WORK_DIR/root" -exec touch -h -d "@$SOURCE_DATE_EPOCH" '{}' +
 
 rm -f "$OUT_IMG"
 dd if=/dev/zero of="$OUT_IMG" bs=1M count=32 status=none
-mkfs.vfat -F 16 -n VTOYEFI -s 1 -i 56544f59 "$OUT_IMG" >/dev/null
+mkfs.vfat --invariant -F 16 -n VTOYEFI -s 1 -i 56544f59 "$OUT_IMG" >/dev/null
+FAT_BUILD_TIME="$(date -u -d "@$SOURCE_DATE_EPOCH" '+%Y-%m-%d %H:%M:%S')"
 
 copy_tree() {
     local src="$1"
     local dst="$2"
-    mmd -i "$OUT_IMG" "$dst" 2>/dev/null || true
+    faketime -f "$FAT_BUILD_TIME" mmd -i "$OUT_IMG" "$dst" 2>/dev/null || true
     find "$src" -mindepth 1 -maxdepth 1 | sort | while read -r child; do
         local base
         base="$(basename "$child")"

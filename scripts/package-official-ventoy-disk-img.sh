@@ -3,12 +3,21 @@
 # Usage:
 #   OFFICIAL_IMG=/path/to/ventoy.disk.img bash scripts/package-official-ventoy-disk-img.sh
 #   or
-#   VENTOY_RELEASE_DIR=/path/to/ventoy-1.1.16 bash scripts/package-official-ventoy-disk-img.sh
+#   VENTOY_RELEASE_DIR=/path/to/ventoy-X.Y.Z bash scripts/package-official-ventoy-disk-img.sh
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUT_IMG="${OUT_IMG:-$ROOT_DIR/app/src/main/assets/ventoy/ventoy.disk.img}"
 OUT_SHA256="${OUT_SHA256:-$ROOT_DIR/app/src/main/assets/ventoy/ventoy.disk.img.sha256}"
+TMP_IMG=""
+
+cleanup() {
+    if [ -n "$TMP_IMG" ]; then
+        rm -f "$TMP_IMG"
+    fi
+}
+
+trap cleanup EXIT
 
 need() {
     command -v "$1" >/dev/null 2>&1 || {

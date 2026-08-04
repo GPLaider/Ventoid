@@ -1,12 +1,13 @@
-ventoy.disk.img is a 32 MiB Ventoy EFI partition image based on official Ventoy 1.1.16
-(VTOYEFI from ventoy-1.1.16-linux.tar.gz), with non-Secure-Boot prebuilt blobs removed.
+ventoy.disk.img is a 32 MiB Ventoy EFI partition image based on official Ventoy 1.1.17
+(VTOYEFI from ventoy-1.1.17-linux.tar.gz), with non-Secure-Boot prebuilt blobs removed.
 
-Rebuild from a Ventoy INSTALL tree with:
+Package from the official Ventoy release tree with:
 
-    VENTOY_SRC=/path/to/Ventoy-1.1.16 bash scripts/build-ventoy-disk-img.sh
+    VENTOY_RELEASE_DIR=/path/to/ventoy-1.1.17 bash scripts/package-official-ventoy-disk-img.sh
 
-The script creates a FAT16 VTOYEFI image and copies the same grub, ventoy, EFI, and MOK
-assets that official Ventoy packages in INSTALL/ventoy_pack.sh.
+The script copies the official VTOYEFI image and removes only the three non-Secure-Boot
+payloads listed below. F-Droid instead injects the four pinned Secure Boot files into
+the pinned Ventoy source tree and runs scripts/build-ventoy-disk-img.sh.
 
 For F-Droid builds, DEBLOB_FDROID=1 is enabled by default. That mode removes
 upstream-documented non-Secure-Boot prebuilt blobs (imdisk, memdisk, 7za.exe) while

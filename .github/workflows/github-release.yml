@@ -7,9 +7,14 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Existing tag to build and attach (e.g. v0.3.0). Leave empty on tag push."
+        description: "Optional existing tag to build. Leave empty to test the selected branch."
         required: false
         type: string
+      publish:
+        description: "Publish to a GitHub Release. Requires an existing tag."
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -27,11 +32,25 @@ jobs:
       - name: Resolve tag name
         id: meta
         shell: bash
+        env:
+          PUBLISH: ${{ inputs.publish }}
         run: |
           if [ -n "${{ inputs.tag }}" ]; then
             TAG="${{ inputs.tag }}"
-          else
+          elif [ "${GITHUB_EVENT_NAME}" = "push" ]; then
             TAG="${GITHUB_REF_NAME}"
+          elif [ "$PUBLISH" = "true" ]; then
+            echo "Manual publishing requires an existing tag." >&2
+            exit 1
+          else
+            VERSION="$(
+              sed -nE \
+                's/^[[:space:]]*versionName[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' \
+                app/build.gradle.kts \
+                | head -n 1
+            )"
+            test -n "$VERSION"
+            TAG="v$VERSION"
           fi
           VERSION="${TAG#v}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
@@ -99,7 +118,20 @@ jobs:
           )
           echo "dir=$OUT" >> "$GITHUB_OUTPUT"
 
+      - name: Upload signed prerelease artifact
+        if: github.event_name == 'workflow_dispatch' && inputs.publish != true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: Ventoid-${{ steps.meta.outputs.version }}-signed-prerelease
+          path: |
+            ${{ steps.assets.outputs.dir }}/Ventoid_${{ steps.meta.outputs.version }}.apk
+            ${{ steps.assets.outputs.dir }}/Ventoid_${{ steps.meta.outputs.version }}.aab
+            ${{ steps.assets.outputs.dir }}/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
+
       - name: Upload assets to GitHub Release
+        if: github.event_name == 'push' || inputs.publish == true
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash

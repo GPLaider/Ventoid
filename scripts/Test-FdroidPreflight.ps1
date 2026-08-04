@@ -86,11 +86,11 @@ function New-FdroidBuildBlock {
     subdir: app
     sudo:
       - apt-get update
-      - apt-get install -y dosfstools mtools
+      - apt-get install -y dosfstools faketime mtools
     gradle:
       - yes
     srclibs:
-      - Ventoy@v1.1.16
+      - Ventoy@v1.1.17
     build:
       - rm -f $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi
         $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi
@@ -103,9 +103,9 @@ function New-FdroidBuildBlock {
         | sha256sum -c -
       - echo "1a3687f923d077080fe49feb470e3932c2b1d3fd4c6439123aa0226246a24522  $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi"
         | sha256sum -c -
-      - echo "fb09e3f29ee12bce1fdab73b9c929f8dd810ffbfe0d54979fcb32eb804545844  $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi"
+      - echo "c8fc4661f4b64b916e37e4fdd68042d3d64290a696add9199afb84c12ad896c8  $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi"
         | sha256sum -c -
-      - echo "a5e07d901a11fdd10f7ffdee4650e0f52a423dab877f3b8ccbbdc162e6b7221f  $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi"
+      - echo "907c99a8370e953eb4ec34df2c314cf979356bfca97733ccb1139ee3f5e98cce  $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi"
         | sha256sum -c -
       - mv $$Ventoy$$ ..
       - cd ..
@@ -121,10 +121,10 @@ function New-MaintainerNotes {
 
     return @"
 MaintainerNotes: |-
-  Builds from 0.2.2 onward rebuild ventoy.disk.img from the Ventoy 1.1.16
-  srclib. The build step uses the checked-in image only to extract and
-  hash-verify the four firmware-trusted EFI files, then replaces it with a new
-  FAT16 VTOYEFI image built from pinned source while stripping
+  Builds from 0.2.2 onward rebuild ventoy.disk.img from the Ventoy srclib
+  version pinned in each build. The build step uses the checked-in image only
+  to extract and hash-verify the four firmware-trusted EFI files, then replaces
+  it with a new FAT16 VTOYEFI image built from pinned source while stripping
   imdisk/memdisk/7z. Rebuilding those EFI files would invalidate their
   signatures. Hashes, SBAT, corresponding source, licenses and provenance are
   documented in ASSET_PROVENANCE.md.
@@ -198,10 +198,13 @@ if ($UpdateMetadata) {
     }
     $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^CurrentVersion:\s*.*$' -Replacement "CurrentVersion: $versionName" -FieldName "CurrentVersion"
     $metadataContent = Update-LineValue -InputText $metadataContent -Pattern '^CurrentVersionCode:\s*.*$' -Replacement "CurrentVersionCode: $versionCode" -FieldName "CurrentVersionCode"
-    $metadataContent = [regex]::Replace(
-        $metadataContent,
-        '(?m)^  0\.2\.2 rebuilds ventoy\.disk\.img from the Ventoy 1\.1\.16 srclib\. The build step$',
-        '  Builds from 0.2.2 onward rebuild ventoy.disk.img from the Ventoy 1.1.16 srclib. The build step'
+    $stableNote = '  Builds from 0.2.2 onward rebuild ventoy.disk.img from the Ventoy srclib version pinned in each build. The build step'
+    $metadataContent = $metadataContent.Replace(
+        '  0.2.2 rebuilds ventoy.disk.img from the Ventoy 1.1.16 srclib. The build step',
+        $stableNote
+    ).Replace(
+        '  Builds from 0.2.2 onward rebuild ventoy.disk.img from the Ventoy 1.1.16 srclib. The build step',
+        $stableNote
     )
     $metadataContent = $metadataContent.TrimEnd("`r", "`n") + "`n"
     [System.IO.File]::WriteAllText($metadataFilePath, $metadataContent, [System.Text.UTF8Encoding]::new($false))

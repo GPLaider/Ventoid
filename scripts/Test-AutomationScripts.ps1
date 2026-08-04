@@ -99,17 +99,24 @@ Invoke-Step "Append one immutable F-Droid build" {
     )
     Assert-True -Condition $fixtureBuildMatch.Success -Message "Could not isolate the generated build block."
     $fixtureBuild = $fixtureBuildMatch.Value
+    $provenance = [System.IO.File]::ReadAllText((Join-Path $repoRoot "ASSET_PROVENANCE.md"))
+    $ventoyVersionMatch = [regex]::Match($provenance, 'Upstream version:\s*`([^`]+)`')
+    Assert-True -Condition $ventoyVersionMatch.Success -Message "Could not read the pinned Ventoy version."
+    Assert-True -Condition $fixtureBuild.Contains("Ventoy@v$($ventoyVersionMatch.Groups[1].Value)") -Message "Generated build has the wrong Ventoy srclib pin."
     Assert-True -Condition (-not $fixtureBuild.Contains("scandelete:")) -Message "Generated build reintroduced stage-invalid scandelete for Ventoy."
     Assert-True -Condition $fixtureBuild.Contains("&& rm -rf Ventoy") -Message "Generated build does not remove the temporary Ventoy source after the build."
-    Assert-True -Condition $firstUpdate.Contains("Builds from 0.2.2 onward rebuild ventoy.disk.img") -Message "MaintainerNotes were not made version-stable."
+    Assert-True -Condition $firstUpdate.Contains("Ventoy srclib version pinned in each build") -Message "MaintainerNotes were not made version-stable."
     Assert-True -Condition (([regex]::Matches($firstUpdate, "(?m)^\s*- versionName:\s*$fixtureVersionPattern\s*$")).Count -eq 1) -Message "$fixtureVersionName build was not appended exactly once."
     Assert-True -Condition $firstUpdate.Contains($commit) -Message "Appended build is missing the release commit."
-    foreach ($hash in @(
-        "1ff3f223c2fcf5b11615d042fcb5674c4651bbbc8505b5b2987d60da0cb65d1a",
-        "1a3687f923d077080fe49feb470e3932c2b1d3fd4c6439123aa0226246a24522",
-        "fb09e3f29ee12bce1fdab73b9c929f8dd810ffbfe0d54979fcb32eb804545844",
-        "a5e07d901a11fdd10f7ffdee4650e0f52a423dab877f3b8ccbbdc162e6b7221f"
-    )) {
+    $assetChecker = [System.IO.File]::ReadAllText((Join-Path $repoRoot "scripts/fdroid/check_assets.py"))
+    $expectedEfiHashes = @(
+        [regex]::Matches(
+            $assetChecker,
+            '(?m)^\s+"EFI/BOOT/[^"]+":\s+"([0-9a-f]{64})",\s*$'
+        ) | ForEach-Object { $_.Groups[1].Value }
+    )
+    Assert-True -Condition ($expectedEfiHashes.Count -eq 4) -Message "Could not read all four EFI hashes from the asset checker."
+    foreach ($hash in $expectedEfiHashes) {
         Assert-True -Condition $firstUpdate.Contains($hash) -Message "Generated metadata is missing EFI hash $hash."
     }
 
@@ -200,7 +207,13 @@ Invoke-Step "Check Ventoy upstream release" {
 }
 
 Invoke-Step "Run Ventoy asset update dry-run" {
-    ./scripts/Update-VentoyAssets.ps1 -DryRun | Out-File -LiteralPath (Join-Path $OutputDir "ventoy-update-dry-run.json") -Encoding utf8
+    $provenance = [System.IO.File]::ReadAllText((Join-Path $repoRoot "ASSET_PROVENANCE.md"))
+    $ventoyVersionMatch = [regex]::Match($provenance, 'Upstream version:\s*`([^`]+)`')
+    Assert-True -Condition $ventoyVersionMatch.Success -Message "Could not read the pinned Ventoy version."
+    ./scripts/Update-VentoyAssets.ps1 `
+        -Version $ventoyVersionMatch.Groups[1].Value `
+        -DryRun |
+        Out-File -LiteralPath (Join-Path $OutputDir "ventoy-update-dry-run.json") -Encoding utf8
 }
 
 Write-Host "Automation script checks passed."
