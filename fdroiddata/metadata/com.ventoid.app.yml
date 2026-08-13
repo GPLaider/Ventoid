@@ -151,8 +151,40 @@ Builds:
       - PATH=$PATH:/usr/sbin VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
         && rm -rf Ventoy
 
+  - versionName: 0.3.1
+    versionCode: 13
+    commit: 58e97dc8bfb0b07725b3564b631040f19163bb78
+    subdir: app
+    sudo:
+      - apt-get update
+      - apt-get install -y dosfstools faketime mtools
+    gradle:
+      - yes
+    srclibs:
+      - Ventoy@v1.1.17
+    build:
+      - rm -f $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi
+        $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi
+      - mcopy -i src/main/assets/ventoy/ventoy.disk.img ::/EFI/BOOT/BOOTX64.EFI $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI
+      - mcopy -i src/main/assets/ventoy/ventoy.disk.img ::/EFI/BOOT/mmx64.efi $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi
+      - mcopy -i src/main/assets/ventoy/ventoy.disk.img ::/EFI/BOOT/fbx64.efi $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi
+      - mcopy -i src/main/assets/ventoy/ventoy.disk.img ::/EFI/BOOT/grubx64_real.efi
+        $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi
+      - echo "1ff3f223c2fcf5b11615d042fcb5674c4651bbbc8505b5b2987d60da0cb65d1a  $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI"
+        | sha256sum -c -
+      - echo "1a3687f923d077080fe49feb470e3932c2b1d3fd4c6439123aa0226246a24522  $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi"
+        | sha256sum -c -
+      - echo "c8fc4661f4b64b916e37e4fdd68042d3d64290a696add9199afb84c12ad896c8  $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi"
+        | sha256sum -c -
+      - echo "907c99a8370e953eb4ec34df2c314cf979356bfca97733ccb1139ee3f5e98cce  $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi"
+        | sha256sum -c -
+      - mv $$Ventoy$$ ..
+      - cd ..
+      - PATH=$PATH:/usr/sbin VENTOY_SRC=Ventoy bash scripts/build-ventoy-disk-img.sh
+        && rm -rf Ventoy
+
 MaintainerNotes: |-
-  Builds from 0.2.2 onward rebuild ventoy.disk.img from the Ventoy 1.1.16 srclib. The build step
+  Builds from 0.2.2 onward rebuild ventoy.disk.img from the Ventoy srclib version pinned in each build. The build step
   uses the checked-in image only to extract and hash-verify the four
   firmware-trusted EFI files, then replaces it with a new FAT16 VTOYEFI image
   built from pinned source while stripping imdisk/memdisk/7z. Rebuilding those
@@ -161,5 +193,5 @@ MaintainerNotes: |-
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v[\d.]+$
-CurrentVersion: 0.3.0
-CurrentVersionCode: 12
+CurrentVersion: 0.3.1
+CurrentVersionCode: 13
