@@ -23,7 +23,8 @@ body:
     id: ventoid-version
     attributes:
       label: Ventoid version
-      placeholder: "0.1.7"
+      description: Include versionName and versionCode when available.
+      placeholder: "versionName (versionCode)"
     validations:
       required: true
   - type: dropdown

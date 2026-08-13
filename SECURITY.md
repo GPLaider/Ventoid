@@ -8,8 +8,8 @@ Only the latest released version is actively maintained.
 
 | Version | Supported |
 | --- | --- |
-| 0.2.1 | Yes |
-| 0.2.0 | No |
+| 0.3.1 | Yes |
+| 0.3.0 | No |
 | Older releases | No |
 
 F-Droid builds are produced from source and signed by F-Droid. GitHub APKs are signed separately by this project.

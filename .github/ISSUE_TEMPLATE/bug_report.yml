@@ -13,8 +13,8 @@ body:
     id: ventoid-version
     attributes:
       label: Ventoid version
-      description: Example: 0.1.7, F-Droid build 8, GitHub APK 0.1.7.
-      placeholder: "0.1.7"
+      description: Include versionName and versionCode when available.
+      placeholder: "versionName (versionCode)"
     validations:
       required: true
   - type: dropdown
@@ -51,6 +51,29 @@ body:
       placeholder: "USB-C OTG adapter + SanDisk 64 GB, no powered hub"
     validations:
       required: true
+  - type: dropdown
+    id: failure-stage
+    attributes:
+      label: Where did it fail?
+      options:
+        - Detecting the USB device or granting permission
+        - Preparing the USB drive
+        - Remounting the data partition or copying ISO files
+        - Booting the prepared drive on a PC
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: partition-style
+    attributes:
+      label: Partition style
+      options:
+        - MBR
+        - GPT
+        - Not sure
+        - Not applicable
+    validations:
+      required: true
   - type: textarea
     id: steps
     attributes:
@@ -82,6 +105,14 @@ body:
       label: Ventoid log or screenshot
       description: Paste the local write log text or attach screenshots if available. Remove personal data if needed.
       render: text
+    validations:
+      required: false
+  - type: textarea
+    id: boot-result
+    attributes:
+      label: PC boot result, if applicable
+      description: Include BIOS/UEFI, Secure Boot state, and the exact boot error text.
+      placeholder: "UEFI with Secure Boot enabled; error shown before the Ventoy menu: ..."
     validations:
       required: false
   - type: checkboxes

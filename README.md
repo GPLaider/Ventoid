@@ -50,6 +50,32 @@ Ventoid writes to the selected USB drive. This can erase or overwrite existing d
 - Bundled media includes the Ventoy Secure Boot chain; first boot on a Secure Boot PC may require a one-time MOK enrollment of the Ventoy certificate.
 - Boot success still depends on the target computer firmware, Secure Boot settings, MOK enrollment, and ISO compatibility.
 
+## Troubleshooting
+
+### No USB device is detected
+
+- Confirm that the Android device supports USB host / OTG mode.
+- Reconnect the drive after opening Ventoid and grant the USB permission prompt.
+- If the drive disconnects or repeatedly disappears, try a direct OTG adapter, a powered hub, or another USB port or drive.
+
+### The exFAT data partition is not visible after preparation
+
+Remount or physically reconnect the drive after Ventoid finishes. Android should then expose the exFAT data partition so ISO files can be copied with Android Files or another file manager.
+
+### The drive appears read-only
+
+Ventoid does not enable hardware or operating-system write protection. Check for a physical lock switch, reconnect the drive, and inspect the host operating system's disk attributes before preparing it again.
+
+### A PC reports error 4098 or a missing `ventoy/ventoy.cpio`
+
+This indicates that the expected Ventoy payload is missing from the prepared VTOYEFI partition. Prepare the drive again with the latest Ventoid release without disconnecting it during the write. If the error repeats, include the exact message, phone, OTG adapter or hub, drive model, capacity, and Ventoid log in a [bug report](https://github.com/GPLaider/Ventoid/issues/new?template=bug_report.yml).
+
+### A very large drive is rejected
+
+Some USB bridges and very large drives require SCSI READ CAPACITY(16), which the currently released storage library does not support. Report the exact drive size, bridge or enclosure model, and error text rather than retrying destructive writes.
+
+Successful and failed hardware combinations can be submitted with the [device compatibility form](https://github.com/GPLaider/Ventoid/issues/new?template=device_compatibility.yml).
+
 ## Features
 
 ### USB preparation
