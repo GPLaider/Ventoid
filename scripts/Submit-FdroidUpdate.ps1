@@ -74,8 +74,9 @@ function Invoke-GitLabApi {
         return Invoke-RestMethod @invoke
     } catch {
         $statusCode = $null
-        if ($_.Exception.Response) {
-            $statusCode = [int]$_.Exception.Response.StatusCode
+        $responseProperty = $_.Exception.PSObject.Properties["Response"]
+        if ($null -ne $responseProperty -and $null -ne $responseProperty.Value) {
+            $statusCode = [int]$responseProperty.Value.StatusCode
         }
         if ($AllowNotFound -and $statusCode -eq 404) {
             return $null
