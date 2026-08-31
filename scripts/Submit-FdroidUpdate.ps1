@@ -15,6 +15,8 @@ param(
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
+$Token = [regex]::Replace($Token, '[^\x21-\x7E]', '')
+
 function Get-RequiredMatch {
     param(
         [string]$InputText,
