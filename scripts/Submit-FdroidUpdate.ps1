@@ -83,7 +83,7 @@ function Invoke-GitLabApi {
         if ($AllowNotFound -and $statusCode -eq 404) {
             return $null
         }
-        throw
+        throw "GitLab API $Method $Path failed (HTTP $statusCode): $($_.Exception.Message)"
     }
 }
 
