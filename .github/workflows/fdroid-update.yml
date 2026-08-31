@@ -18,6 +18,10 @@ on:
         description: "Optional release commit SHA; defaults to the selected ref"
         required: false
         type: string
+      source_branch:
+        description: "Optional GitLab source branch name"
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -59,11 +63,15 @@ jobs:
         env:
           FDROID_GITLAB_TOKEN: ${{ secrets.FDROID_GITLAB_TOKEN }}
           RELEASE_COMMIT: ${{ inputs.release_commit }}
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
         run: |
           $submit = "${{ github.event_name }}" -eq "push" -or "${{ inputs.submit }}" -eq "true"
           $arguments = @{}
           if ($env:RELEASE_COMMIT) {
             $arguments.Commit = $env:RELEASE_COMMIT
+          }
+          if ($env:SOURCE_BRANCH) {
+            $arguments.SourceBranch = $env:SOURCE_BRANCH
           }
           if ($submit) {
             $arguments.Submit = $true
