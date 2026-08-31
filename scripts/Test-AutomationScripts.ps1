@@ -176,6 +176,8 @@ Invoke-Step "Inspect signed EFI files inside ventoy.disk.img" {
     Assert-True -Condition $submitScript.Contains("start_project = `$upstream.id") -Message "F-Droid source branch is not anchored to upstream."
     Assert-True -Condition (-not $submitScript.Contains("`$fork.default_branch")) -Message "F-Droid source branch still uses the fork default branch."
     Assert-True -Condition $submitScript.Contains("`$commits.Count -ne 1 -or `$diffs.Count -ne 1") -Message "F-Droid submission does not enforce one commit and one changed file."
+    Assert-True -Condition $submitScript.Contains('target_project_id = $upstream.id') -Message "F-Droid merge request does not target upstream."
+    Assert-True -Condition $submitScript.Contains('Invoke-GitLabApi -Method POST -Path "projects/$encodedFork/merge_requests"') -Message "F-Droid merge request is not created from the source fork."
 }
 
 Invoke-Step "Validate current F-Droid metadata without rewriting repository history" {

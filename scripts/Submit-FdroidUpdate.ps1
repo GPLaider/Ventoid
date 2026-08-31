@@ -256,14 +256,14 @@ if ($openMrs.Count -gt 0) {
     $mr = $openMrs[0]
 } else {
     $mrBody = @{
-        source_project_id = $fork.id
         source_branch = $SourceBranch
         target_branch = $TargetBranch
+        target_project_id = $upstream.id
         title = $title
         description = $description
         remove_source_branch = $false
     }
-    $mr = Invoke-GitLabApi -Method POST -Path "projects/$encodedUpstream/merge_requests" -Body $mrBody
+    $mr = Invoke-GitLabApi -Method POST -Path "projects/$encodedFork/merge_requests" -Body $mrBody
 }
 
 [ordered]@{
