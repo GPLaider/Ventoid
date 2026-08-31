@@ -236,12 +236,12 @@ class MainActivity : AppCompatActivity() {
 
         permissionReceiver = receiver
         val filter = IntentFilter(ACTION_USB_PERMISSION)
-        ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
 
         val pendingIntent = PendingIntent.getBroadcast(
             this,
             0,
-            Intent(ACTION_USB_PERMISSION),
+            Intent(ACTION_USB_PERMISSION).setPackage(packageName),
             PendingIntent.FLAG_IMMUTABLE,
         )
         usbManager.requestPermission(item.usbDevice, pendingIntent)
@@ -282,6 +282,7 @@ class MainActivity : AppCompatActivity() {
                 showError(getString(R.string.unexpected_error_with_reason, e.message ?: e.javaClass.simpleName))
             } finally {
                 if (!isDestroyed) {
+                    refreshDeviceList()
                     buttonInstall.isEnabled = deviceList.isNotEmpty()
                 }
             }

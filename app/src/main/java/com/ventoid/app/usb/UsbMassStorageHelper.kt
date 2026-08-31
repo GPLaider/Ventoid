@@ -9,7 +9,6 @@ import android.hardware.usb.UsbManager
 import android.util.Log
 import com.ventoid.app.util.VentoidFileLogger
 import me.jahnen.libaums.core.driver.BlockDeviceDriver
-import me.jahnen.libaums.core.driver.BlockDeviceDriverFactory
 import me.jahnen.libaums.core.driver.scsi.commands.sense.MediaNotInserted
 import me.jahnen.libaums.core.usb.UsbCommunication
 import me.jahnen.libaums.core.usb.UsbCommunicationFactory
@@ -119,7 +118,7 @@ object UsbMassStorageHelper {
         }
 
         VentoidFileLogger.log("createBlockDevice LUN=$lun")
-        val blockDevice = BlockDeviceDriverFactory.createBlockDevice(usbCommunication, lun = lun.toByte())
+        val blockDevice = VentoidScsiBlockDevice(usbCommunication, lun.toByte())
         try {
             closeOnFailure(
                 close = usbCommunication::close,

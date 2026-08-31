@@ -1,0 +1,5 @@
+0.3.2 USB compatibility release.
+
+- Recover from malformed USB mass-storage command status responses
+- Fix dynamic SCSI response sizing and retry buffer handling
+- Improve USB permission delivery and refresh the device list after preparation
