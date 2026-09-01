@@ -125,6 +125,7 @@
 
             <EditText
                 android:id="@+id/edit_reserved_space"
+                android:importantForAutofill="no"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/ventoid_space_compact"
