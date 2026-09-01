@@ -36,7 +36,8 @@ class VentoyInstaller(
 
     /**
      * Compute partition layout from total disk sector count.
-     * Part2 (VTOY_EFI) is fixed at 32MB at the end of the disk; part2_start is 4KB-aligned.
+     * Part2 (VTOY_EFI) is fixed at 32MB immediately before any optional reserved end space;
+     * part2_start is 4KB-aligned.
      *
      * @param diskSectors Total number of 512-byte sectors on the disk
      * @param useGpt If true, reserve 34 sectors at the end for GPT backup (part1_end = disk - 65536 - 34)
@@ -47,19 +48,32 @@ class VentoyInstaller(
         useGpt: Boolean = false,
         reserveSectors: Long = 0L,
     ): VentoyLayout {
-        require(diskSectors > VentoyConstants.VENTOY_SECTOR_NUM + VentoyConstants.PART1_START_SECTOR) {
-            "Disk too small for Ventoy layout"
+        require(reserveSectors >= 0L) {
+            "Reserved space cannot be negative"
         }
         val part1Start = VentoyConstants.PART1_START_SECTOR
         val efiSectors = VentoyConstants.VENTOY_SECTOR_NUM.toLong()
         val gptOverhead = if (useGpt) 34L else 0L
-        var part1End = diskSectors - reserveSectors - efiSectors - gptOverhead - 1
+        require(diskSectors > part1Start + efiSectors + gptOverhead) {
+            "Disk too small for Ventoy layout"
+        }
+
+        val usableEndExclusive = diskSectors - reserveSectors - gptOverhead
+        require(usableEndExclusive > part1Start + efiSectors) {
+            "Reserved space leaves insufficient room for Ventoy"
+        }
+
+        var part1End = usableEndExclusive - efiSectors - 1
         var part2Start = part1End + 1
-        var mod = (part2Start % VentoyConstants.ALIGNMENT_SECTORS).toInt()
+        val mod = (part2Start % VentoyConstants.ALIGNMENT_SECTORS).toInt()
         if (mod != 0) {
             part1End -= mod
             part2Start = part1End + 1
         }
+        require(part1End >= part1Start) {
+            "Reserved space leaves insufficient room for the Ventoy data partition"
+        }
+
         val part2End = part2Start + efiSectors - 1
         val part1Count = part1End - part1Start + 1
         return VentoyLayout(
@@ -232,6 +246,7 @@ class VentoyInstaller(
         coreImg: ByteArray,
         ventoyDiskImg: ByteArray,
         useGpt: Boolean = false,
+        reserveSectors: Long = 0L,
         progress: ((step: String, current: Long, total: Long) -> Unit)? = null,
     ) {
         val tag = "Ventoid"
@@ -257,8 +272,12 @@ class VentoyInstaller(
         require(ventoyDiskImg.size >= VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) {
             "ventoy.disk.img must be at least ${VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES} bytes"
         }
-        val layout = calculateLayout(totalBlocks, useGpt = useGpt)
-        VentoidFileLogger.log("layout: part1Start=${layout.part1StartSector} part1End=${layout.part1EndSector} part2Start=${layout.part2StartSector} part2End=${layout.part2EndSector} part1Count=${layout.part1SectorCount} part2Count=${layout.part2SectorCount}")
+        val layout = calculateLayout(
+            diskSectors = totalBlocks,
+            useGpt = useGpt,
+            reserveSectors = reserveSectors,
+        )
+        VentoidFileLogger.log("layout: reserveSectors=$reserveSectors part1Start=${layout.part1StartSector} part1End=${layout.part1EndSector} part2Start=${layout.part2StartSector} part2End=${layout.part2EndSector} part1Count=${layout.part1SectorCount} part2Count=${layout.part2SectorCount}")
         try { Log.d(tag, "layout: part1Start=${layout.part1StartSector} part2Start=${layout.part2StartSector} part1Count=${layout.part1SectorCount}") } catch (_: Exception) { }
         val bootCode = bootImg.copyOf(VentoyConstants.MBR_BOOT_CODE_SIZE)
         progress?.invoke("mbr", 0, 1)

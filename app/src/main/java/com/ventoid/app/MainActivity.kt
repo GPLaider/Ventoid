@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -26,6 +27,7 @@ import com.ventoid.app.install.InstallStage
 import com.ventoid.app.install.InstallerAssets
 import com.ventoid.app.install.PartitionScheme
 import com.ventoid.app.install.VentoyInstallCoordinator
+import com.ventoid.app.installer.VentoyConstants
 import com.ventoid.app.util.VentoidFileLogger
 import com.ventoid.app.usb.UsbDeviceItem
 import com.ventoid.app.usb.UsbMassStorageHelper
@@ -46,6 +48,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var spinnerUsb: Spinner
     private lateinit var spinnerPartitionScheme: Spinner
+    private lateinit var editReservedSpace: EditText
     private lateinit var buttonRefresh: Button
     private lateinit var buttonInstall: Button
     private lateinit var textStageTitle: TextView
@@ -68,6 +71,7 @@ class MainActivity : AppCompatActivity() {
 
         spinnerUsb = findViewById(R.id.spinner_usb)
         spinnerPartitionScheme = findViewById(R.id.spinner_partition_scheme)
+        editReservedSpace = findViewById(R.id.edit_reserved_space)
         buttonRefresh = findViewById(R.id.button_refresh)
         buttonInstall = findViewById(R.id.button_install)
         textStageTitle = findViewById(R.id.text_stage_title)
@@ -258,14 +262,18 @@ class MainActivity : AppCompatActivity() {
         renderInstallProgress(InstallProgressPresenter.idle())
         textStageTitle.text = getString(R.string.progress_idle)
         val partitionScheme = selectedPartitionScheme()
+        val reserveSectors = selectedReserveSectors() ?: return
+        val reservedSpaceGiB = reserveSectors / VentoyConstants.SECTORS_PER_GIB
         installJob = scope.launch {
             buttonInstall.isEnabled = false
             try {
                 safeLog(getString(R.string.partition_scheme_log, partitionScheme.toDisplayLabel()))
+                safeLog(getString(R.string.reserved_space_log, reservedSpaceGiB))
                 withContext(Dispatchers.IO) {
                     VentoyInstallCoordinator(applicationContext).install(
                         device = item,
                         partitionScheme = partitionScheme,
+                        reserveSectors = reserveSectors,
                         onProgress = ::handleInstallProgress,
                     )
                 }
@@ -458,6 +466,21 @@ class MainActivity : AppCompatActivity() {
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show()
     }
 
+    private fun selectedReserveSectors(): Long? {
+        val rawValue = editReservedSpace.text?.toString()?.trim().orEmpty()
+        val reservedSpaceGiB = if (rawValue.isEmpty()) 0L else rawValue.toLongOrNull()
+        if (reservedSpaceGiB == null || reservedSpaceGiB < 0L) {
+            toast(R.string.reserved_space_invalid)
+            return null
+        }
+
+        return try {
+            Math.multiplyExact(reservedSpaceGiB, VentoyConstants.SECTORS_PER_GIB)
+        } catch (_: ArithmeticException) {
+            toast(R.string.reserved_space_too_large)
+            null
+        }
+    }
     private fun selectedPartitionScheme(): PartitionScheme {
         return PartitionScheme.fromSpinnerPosition(spinnerPartitionScheme.selectedItemPosition)
     }

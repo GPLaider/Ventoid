@@ -120,6 +120,35 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/ventoid_space_standard"
+                android:labelFor="@id/edit_reserved_space"
+                android:text="@string/reserved_space_title" />
+
+            <EditText
+                android:id="@+id/edit_reserved_space"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/ventoid_space_compact"
+                android:backgroundTint="@color/ventoid_primary"
+                android:imeOptions="actionDone"
+                android:inputType="number"
+                android:maxLines="1"
+                android:selectAllOnFocus="true"
+                android:text="@string/reserved_space_default"
+                android:textColor="@color/ventoid_text_primary"
+                android:textColorHint="@color/ventoid_text_secondary" />
+
+            <TextView
+                style="@style/VentoidText.Supporting"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/ventoid_space_tiny"
+                android:text="@string/reserved_space_help" />
+
+            <TextView
+                style="@style/VentoidText.FieldLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/ventoid_space_standard"
                 android:text="@string/bundled_efi_label" />
 
             <TextView

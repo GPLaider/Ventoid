@@ -78,13 +78,92 @@ class VentoyInstallerTest {
     }
 
     @Test
-    fun `calculateLayout applies reserve sectors before EFI partition`() {
+    fun `calculateLayout reserve sectors leaves requested space after EFI partition`() {
         val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
         val installer = VentoyInstaller(driver)
-        val layoutWithoutReserve = installer.calculateLayout(driver.blocks, useGpt = false, reserveSectors = 0)
-        val layoutWithReserve = installer.calculateLayout(driver.blocks, useGpt = false, reserveSectors = 128)
-        assertTrue(layoutWithReserve.part1EndSector < layoutWithoutReserve.part1EndSector)
-        assertTrue(layoutWithReserve.part2EndSector <= layoutWithoutReserve.part2EndSector - 128)
+        val reserveSectors = 128L
+
+        val layout = installer.calculateLayout(
+            diskSectors = driver.blocks,
+            useGpt = false,
+            reserveSectors = reserveSectors,
+        )
+
+        val trailingSectors = driver.blocks - layout.part2EndSector - 1
+        assertTrue(trailingSectors >= reserveSectors)
+        assertTrue(trailingSectors < reserveSectors + VentoyConstants.ALIGNMENT_SECTORS)
+        assertEquals(0L, layout.part2StartSector % VentoyConstants.ALIGNMENT_SECTORS)
+        assertEquals(VentoyConstants.VENTOY_SECTOR_NUM.toLong(), layout.part2SectorCount)
+    }
+
+    @Test
+    fun `calculateLayout 256GB disk with 150GiB reserve keeps EFI below 128GiB`() {
+        val diskSectors = 256_000_000_000L / VentoyConstants.SECTOR_SIZE
+        val reserveSectors = 150L * VentoyConstants.SECTORS_PER_GIB
+        val legacyBiosLimitSectors = 128L * VentoyConstants.SECTORS_PER_GIB
+        val driver = object : BlockDeviceDriver {
+            override val blockSize = VentoyConstants.SECTOR_SIZE
+            override val blocks = diskSectors
+            override fun init() = Unit
+            override fun read(deviceOffset: Long, buffer: ByteBuffer) = error("not used")
+            override fun write(deviceOffset: Long, buffer: ByteBuffer) = error("not used")
+        }
+        val installer = VentoyInstaller(driver)
+
+        val layout = installer.calculateLayout(
+            diskSectors = diskSectors,
+            useGpt = false,
+            reserveSectors = reserveSectors,
+        )
+
+        assertTrue(layout.part2EndSector < legacyBiosLimitSectors)
+        assertTrue(diskSectors - layout.part2EndSector - 1 >= reserveSectors)
+    }
+
+    @Test
+    fun `calculateLayout GPT reserve leaves space before backup metadata`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+        val reserveSectors = 128L
+
+        val layout = installer.calculateLayout(
+            diskSectors = driver.blocks,
+            useGpt = true,
+            reserveSectors = reserveSectors,
+        )
+
+        val trailingSectors = driver.blocks - layout.part2EndSector - 1
+        val expectedMinimumTrailing = reserveSectors + 34L
+        assertTrue(trailingSectors >= expectedMinimumTrailing)
+        assertTrue(trailingSectors < expectedMinimumTrailing + VentoyConstants.ALIGNMENT_SECTORS)
+    }
+
+    @Test
+    fun `calculateLayout rejects negative reserve sectors`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+
+        assertThrows<IllegalArgumentException> {
+            installer.calculateLayout(
+                diskSectors = driver.blocks,
+                useGpt = false,
+                reserveSectors = -1L,
+            )
+        }
+    }
+
+    @Test
+    fun `calculateLayout rejects reserve that consumes the disk`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+
+        assertThrows<IllegalArgumentException> {
+            installer.calculateLayout(
+                diskSectors = driver.blocks,
+                useGpt = false,
+                reserveSectors = driver.blocks,
+            )
+        }
     }
 
     @Test
@@ -204,6 +283,38 @@ class VentoyInstallerTest {
         assertEquals(VentoyConstants.MBR_SIGNATURE_AA, readMbr[511])
         assertEquals(0x80.toByte(), readMbr[446])
         assertEquals(VentoyConstants.MBR_PART2_TYPE_EFI.toByte(), readMbr[466])
+    }
+
+    @Test
+    fun `install writes EFI partition at reserved layout position`() {
+        val sizeBytes = 256L * 1024 * 1024
+        val reserveSectors = 128L
+        val driver = MemoryBlockDeviceDriver(sizeBytes, 512)
+        val installer = VentoyInstaller(driver)
+        val bootImg = ByteArray(512) { it.toByte() }
+        val coreImg = ByteArray(2047 * 512) { 0x42 }
+        val ventoyImg = ByteArray(VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) { 0x57 }
+        val layout = installer.calculateLayout(
+            diskSectors = driver.blocks,
+            useGpt = false,
+            reserveSectors = reserveSectors,
+        )
+
+        installer.install(
+            bootImg = bootImg,
+            coreImg = coreImg,
+            ventoyDiskImg = ventoyImg,
+            useGpt = false,
+            reserveSectors = reserveSectors,
+        )
+
+        assertEquals(layout.part2StartSector, readUnsignedLeInt(driver.backingBuffer, 470))
+        val efiStartByte = (layout.part2StartSector * VentoyConstants.SECTOR_SIZE).toInt()
+        val efiEndByte = ((layout.part2EndSector + 1) * VentoyConstants.SECTOR_SIZE - 1).toInt()
+        val firstReservedByte = ((layout.part2EndSector + 1) * VentoyConstants.SECTOR_SIZE).toInt()
+        assertEquals(0x57.toByte(), driver.backingBuffer[efiStartByte])
+        assertEquals(0x57.toByte(), driver.backingBuffer[efiEndByte])
+        assertEquals(0x00.toByte(), driver.backingBuffer[firstReservedByte])
     }
 
     @Test

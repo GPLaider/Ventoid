@@ -11,6 +11,11 @@
     <string name="partition_scheme_gpt">GPT（面向 UEFI）</string>
     <string name="partition_scheme_mbr_short">MBR</string>
     <string name="partition_scheme_gpt_short">GPT</string>
+    <string name="reserved_space_title">在驱动器末尾预留空间 (GiB)</string>
+    <string name="reserved_space_help">保留 0 以使用正常的 Ventoy 布局。在大容量驱动器上预留空间会将 VTOYEFI 移到更靠前的位置，这可能有助于无法访问磁盘末尾的旧式 BIOS。预留空间将保持未分配状态。</string>
+    <string name="reserved_space_invalid">请输入以 GiB 为单位的整数预留空间（0 或更大）。</string>
+    <string name="reserved_space_too_large">预留空间值过大。</string>
+    <string name="reserved_space_log">正在驱动器末尾预留 %1$d GiB 空间。</string>
     <string name="refresh">刷新</string>
     <string name="install_ventoy">准备 USB</string>
     <string name="install_flashing_progress">正在写入 · %1$d%%</string>
