@@ -76,6 +76,7 @@ class VentoyInstaller(
 
         val part2End = part2Start + efiSectors - 1
         val part1Count = part1End - part1Start + 1
+        ExFatFormatter.computeVolumeLayout(part1Count, ExFatFormatter.sectorsPerCluster(part1Count))
         return VentoyLayout(
             part1StartSector = part1Start,
             part1EndSector = part1End,

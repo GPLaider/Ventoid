@@ -167,6 +167,20 @@ class VentoyInstallerTest {
     }
 
     @Test
+    fun `calculateLayout rejects reserve that leaves too little space for exFAT metadata`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+
+        assertThrows<IllegalArgumentException> {
+            installer.calculateLayout(
+                diskSectors = driver.blocks,
+                useGpt = false,
+                reserveSectors = driver.blocks - 67_840L,
+            )
+        }
+    }
+
+    @Test
     fun `calculateLayout fails when disk too small`() {
         val driver = MemoryBlockDeviceDriver(16L * 1024 * 1024, 512) // 16MB
         val installer = VentoyInstaller(driver)
