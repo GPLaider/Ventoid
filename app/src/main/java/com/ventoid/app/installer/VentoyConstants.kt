@@ -9,6 +9,7 @@ object VentoyConstants {
     const val VENTOY_SECTOR_NUM = 65536                      // 32MB / 512
     const val PART1_START_SECTOR = 2048L
     const val ALIGNMENT_SECTORS = 8L                         // 4KB alignment
+    const val SECTORS_PER_GIB = (1024L * 1024L * 1024L) / SECTOR_SIZE
 
     const val MBR_PART1_TYPE_EXFAT_NTFS: Int = 0x07
     const val MBR_PART2_TYPE_EFI: Int = 0xEF

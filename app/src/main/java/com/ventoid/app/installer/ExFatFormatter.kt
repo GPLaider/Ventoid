@@ -72,6 +72,7 @@ object ExFatFormatter {
         val upcaseClusterCount = ((upcaseLengthBytes + clusterSizeBytes - 1) / clusterSizeBytes).toInt()
         val upcaseFirstCluster = bitmapFirstCluster + bitmapClusterCount
         val rootDirFirstCluster = upcaseFirstCluster + upcaseClusterCount
+        require(rootDirFirstCluster <= clusterCount + 1) { "Part1 too small for exFAT metadata" }
 
         return VolumeLayout(
             fatLengthSectors = fatLengthSectors,

@@ -11,6 +11,11 @@
     <string name="partition_scheme_gpt">GPT (UEFI-focused)</string>
     <string name="partition_scheme_mbr_short">MBR</string>
     <string name="partition_scheme_gpt_short">GPT</string>
+    <string name="reserved_space_title">Reserve space at end (GiB)</string>
+    <string name="reserved_space_default" translatable="false">0</string>
+    <string name="reserved_space_help">Leave 0 for the normal Ventoy layout. Reserving space moves VTOYEFI earlier on large drives, which can help legacy BIOSes that cannot access the end of the disk. The reserved space is left unallocated.</string>
+    <string name="reserved_space_invalid">Enter reserved space as a whole number of GiB (0 or greater).</string>
+    <string name="reserved_space_too_large">The reserved-space value is too large.</string>
     <string name="refresh">Refresh</string>
     <string name="install_ventoy">Prepare USB</string>
     <string name="install_flashing_progress">Flashing · %1$d%%</string>
@@ -53,6 +58,7 @@
     <string name="unexpected_error_with_reason">Unexpected error during USB preparation: %1$s</string>
     <string name="write_protect_tip">Ventoid does not enable write protection. If the drive shows as read-only on a PC, check the hardware lock switch first, then clear the readonly flag with diskpart, or test with another USB port or device.</string>
     <string name="partition_scheme_log">Using %1$s partition scheme.</string>
+    <string name="reserved_space_log">Reserving %1$d GiB at the end of the drive.</string>
     <string name="secure_boot_checking">Scanning bundled EFI markers...</string>
     <string name="secure_boot_verified">Bundled EFI markers found. Physical Secure Boot is not verified here.</string>
     <string name="secure_boot_missing">Expected EFI markers missing: %1$s</string>

@@ -12,6 +12,7 @@ class VentoyInstallCoordinator(
     suspend fun install(
         device: UsbDeviceItem,
         partitionScheme: PartitionScheme,
+        reserveSectors: Long = 0L,
         onProgress: (InstallProgress) -> Unit,
     ) {
         onProgress(InstallProgress.Log(InstallMessage.Starting))
@@ -31,6 +32,7 @@ class VentoyInstallCoordinator(
                         coreImg = assets.coreImg,
                         ventoyDiskImg = assets.ventoyDiskImg,
                         useGpt = partitionScheme.useGpt,
+                        reserveSectors = reserveSectors,
                     ) { step, current, total ->
                         onProgress(
                             InstallProgress.Step(
