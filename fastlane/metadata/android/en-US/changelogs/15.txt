@@ -1,0 +1,5 @@
+0.3.3 reserved-space release.
+
+- Add optional end-of-disk reserved space during Ventoy installation
+- Keep the GPT backup header at the physical end of the disk
+- Reject reserve sizes that leave an undersized exFAT data partition
