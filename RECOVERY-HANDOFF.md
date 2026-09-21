@@ -46,7 +46,8 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 
 | 검사 | 결과 |
 |------|------|
-| `:app:testDebugUnitTest` | BUILD SUCCESSFUL. 56개 테스트, 0 실패, 0 오류(9개 클래스). `QemuDiskImageTest`는 이미지 경로 미지정 시 스킵(설계상 정상, 이 실행에서 skipped=1), `-PventoidQemuImage` 지정 실행 시 통과 |
+| `:app:testDebugUnitTest` (일반 전체 실행) | BUILD SUCCESSFUL. 56 total / 55 passed / 1 skipped, 0 failures, 0 errors(9개 클래스). skipped 1개는 `QemuDiskImageTest`로 이미지 경로 미지정 시 설계상 스킵 |
+| `:app:testDebugUnitTest --tests com.ventoid.app.installer.QemuDiskImageTest` (선택 실행, `-PventoidQemuImage` 지정) | BUILD SUCCESSFUL. 1/1 통과, 스킵 아님. 64 MiB 디스크 이미지 생성 |
 | `:app:lintRelease` | BUILD SUCCESSFUL. 리포트 `app/build/reports/lint-results-release.html` |
 | `:app:assembleDebug` | `app-debug.apk` 23,589,687 bytes |
 | `:app:assembleRelease` | `app-release-unsigned.apk` 21,523,340 bytes (서명 속성 미설정 — 설계상 unsigned) |
@@ -63,7 +64,7 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 3. 모니터 `screendump`로 PPM 캡처 → `python scripts/Verify-QemuScreenshot.py build/qemu/ventoid-smoke.ppm` → PASS (1024x768, ranges=(255,255,169), non_dark_ratio=1.000000)
 4. 육안 확인: Ventoy 1.1.17 BIOS 부팅 메뉴가 표시됨 ("No ISO or supported IMG files found (Press enter to reboot ...)", 하단에 "1.1.17 BIOS www.ventoy.net" 및 F1~F6 키 안내)
 
-이 검증은 `VentoyInstaller`가 생성한 MBR + core.img + exFAT + VTOYEFI 레이아웃이 실제 펌웨어 부팅까지 도달함을 보인다. 물리 USB/폰에 대한 쓰기나 포맷은 수행하지 않았다.
+이 검증이 증명하는 범위는 BIOS 모드에서 Ventoy 메뉴 진입까지의 스모크뿐이다. ISO/IMG 게스트 부팅, UEFI 부팅, Secure Boot 체인 동작, 물리 USB 쓰기/설치의 엔드투엔드 수락은 이 검증이 증명하지 않으며 그런 검증은 수행하지 않았다. 물리 USB/폰에 대한 쓰기나 포맷도 수행하지 않았다.
 
 ## 4. 산출물 경로
 
@@ -73,6 +74,7 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 - `build/qemu/ventoid-smoke.img` (64 MiB, gitignored), `build/qemu/ventoid-smoke.ppm`, `build/qemu/ventoid-smoke.png`, `build/qemu/qemu.log`
 - 테스트 리포트: `app/build/reports/tests/testDebugUnitTest/index.html`, `app/build/test-results/testDebugUnitTest/`
 - 실행 로그: `D:\AgentWork\temp\Ventoid\hq-20260921\ventoid-*.log`
+- QEMU 러너 스크립트: `D:\AgentWork\temp\Ventoid\hq-20260921\qemu-boot.sh`. 이후 실행은 고정 프로젝트 scratch 루트 아래 `mktemp -d`로 만든 고유 디렉터리에만 출력을 쓰고(mkdir/mktemp 실패 시 중단), 기존 증거를 삭제/이동/덮어쓰지 않는다
 
 ## 5. 남은 장애 / 한계
 
