@@ -134,3 +134,40 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 ### 남은 한계
 
 - 이 기능의 검증은 단위 테스트까지다. QEMU BIOS 스모크는 기존 결과를 유지하며 재실행하지 않았다. 실제 >2TB 물리 드라이브에서의 준비/부팅, UEFI/Secure Boot는 검증하지 않았다(위임 범위 밖, 물리 쓰기 금지)
+
+## 9. GPT 레거시 BIOS 부팅 수정 및 검증 (2026-09-26, 사용자 "좀 더 밀어봐" 지시)
+
+### 발견
+
+8절 기능의 검증 범위를 넓히려다가 GPT 설치 이미지가 레거시 BIOS에서 부팅되지 않는 실제 회귀를 찾았다. 번들 GRUB `boot.img`/`core.img`는 MBR 배치(core 디스크 부트 at LBA 1, 나머지 데이터 at LBA 2) 기준 절대 LBA 포인터를 갖고 빌드됐다. GPT 배치(core at LBA 34)에서는 두 포인터가 어긋나 부트 코드가 "VT"만 출력하고 멈췄다. 업스트림 Ventoy 1.1.17 공식 설치 도구(`VentoyWorker.sh`의 dd 패치)와 그 도구로 만든 실제 GPT 디스크의 바이트로 정확한 동작을 확인했다.
+
+### 수정 (Git 기록에 없던 재구현)
+
+- `buildProtectiveMbr`: GRUB kernel_sector 필드(0x5C, LE uint64)를 GPT core 오프셋 34로 패치. 업스트림 `echo -en '\x22' | dd seek=92`와 동일한 결과
+- `install`: core.img diskboot block-list 첫 엔트리(0x1F4, LE uint64)를 35로 패치. 업스트림 `echo -en '\x23' | dd seek=17908`와 동일한 결과
+- `buildGpt`: VTOYEFI GPT 파티션 타입 GUID를 Microsoft Basic Data(EBD0A0A2-B9E5-4433-87C0-68B6B72699C7)로 바꾸고 no-automount 속성(bit 63)을 부여. 업스트림 GPT 설치 디스크와 동일
+
+### 검증 (전부 비파괴)
+
+- 업스트림 기준 디스크: WSL loop 장치에 Ventoy 1.1.17 공식 도구로 GPT 설치 후 첫 2048섹터를 바이트 비교. 두 부팅 포인터 값(34/35) 일치 확인. 남은 차이는 파티션 고유 GUID(업스트림 랜덤, Ventoid 결정적), 디스크 UUID(0x180)/MBR 디스크 시그니처(0x1B8), 파티션 크기·배치의 미세 차이뿐이며 부팅과 무관
+- 단위 테스트: `:app:testDebugUnitTest` BUILD SUCCESSFUL. 81 total / 79 passed / 2 skipped(QemuDiskImageTest 2개, 이미지 경로 미지정 시 설계된 스킵), 0 failures/errors
+- QEMU BIOS 스모크(GPT 이미지, `-snapshot`): 1024x768 그래픽 모드 Ventoy 1.1.17 BIOS 메뉴 도달 확인. 수정 전에는 "VTloading........" 이후 정지. `Verify-QemuScreenshot.py` PASS + 육안 확인. 업스트림 타입 GUID/속성 반영 후에도 동일하게 부팅 성공
+- `scripts/Test-AutomationScripts.ps1` PASS (exit 0, 7z를 PATH에 추가해 실행)
+- `:app:lintRelease :app:assembleRelease` BUILD SUCCESSFUL. `app-release-unsigned.apk` 21,526,200 bytes
+
+### 검증 자동화 확장
+
+- `QemuDiskImageTest`에 GPT 이미지 생성 변형 추가 (`-PventoidQemuImageGpt`, `app/build.gradle.kts` 배선)
+- `scripts/Test-QemuBoot.sh`가 MBR/GPT 두 이미지를 모두 생성하고 순차 부팅
+- `VentoyInstallerTest`에 안전 계약 테스트 추가: >2TB MBR 설치는 쓰기 0섹터로 거부, 4Kn 섹터 드라이브는 생성 시 거부
+
+### 산출물
+
+- `build/qemu/ventoid-smoke-gpt.img` (64 MiB, gitignored)
+- GPT 부팅 성공 캡처: `D:/AgentWork/temp/Ventoid/hq-20260921/qemu-run.SfzW03Zf/`, `qemu-run.ruxgUuSl/`
+- 업스트림 참조: `D:/AgentWork/temp/Ventoid/hq-20260921/ref-gpt.img`, `ventoy-1.1.17/`
+
+### 남은 한계
+
+- 여전히 BIOS 메뉴 스모크 범위다. ISO 게스트 부팅, UEFI, Secure Boot, 물리 USB는 미검증
+- 업스트림은 설치 시 디스크 UUID(0x180, 16바이트)와 MBR 디스크 시그니처(0x1B8, 4바이트)를 난수로 기록한다. 부팅과 무관해 이번 범위에서는 구현하지 않았다

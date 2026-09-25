@@ -22,8 +22,20 @@ object VentoyConstants {
     const val MBR_SIGNATURE_AA = 0xAA.toByte()
 
     /** core.img: MBR style = 2047 sectors; GPT style = 2014 sectors (written from sector 34) */
-    const val CORE_IMG_SECTORS_MBR = 2047
-    const val CORE_IMG_SECTORS_GPT = 2014
-    const val CORE_IMG_OFFSET_SECTOR_MBR = 1L
-    const val CORE_IMG_OFFSET_SECTOR_GPT = 34L
+const val CORE_IMG_SECTORS_MBR = 2047
+const val CORE_IMG_SECTORS_GPT = 2014
+const val CORE_IMG_OFFSET_SECTOR_MBR = 1L
+const val CORE_IMG_OFFSET_SECTOR_GPT = 34L
+
+/** GRUB i386-pc boot.img: little-endian uint64 LBA of the first core.img sector. */
+const val BOOT_IMG_KERNEL_SECTOR_OFFSET = 0x5C
+
+/** GRUB i386-pc diskboot.img block-list entry: absolute LBA of the rest of core.img. */
+const val CORE_IMG_BLOCKLIST_OFFSET = 0x1F4
+
+/**
+ * Upstream Ventoy types both GPT partitions as Microsoft Basic Data and sets the
+ * no-automount attribute (bit 63) on VTOYEFI so operating systems ignore it.
+ */
+const val GPT_ATTR_NO_AUTOMOUNT: Long = Long.MIN_VALUE
 }

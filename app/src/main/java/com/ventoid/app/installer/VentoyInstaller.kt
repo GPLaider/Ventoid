@@ -112,6 +112,14 @@ class VentoyInstaller(
         }
         val mbr = ByteArray(512)
         bootCode.copyInto(mbr, 0, 0, VentoyConstants.MBR_BOOT_CODE_SIZE)
+        // GRUB i386-pc boot.img finds core.img through the kernel_sector field at
+        // 0x5C. The bundled boot.img targets the MBR layout (core at LBA 1); with
+        // GPT the core image starts at LBA 34, behind the GPT header and entries.
+        writeLeLong(
+            mbr,
+            VentoyConstants.BOOT_IMG_KERNEL_SECTOR_OFFSET,
+            VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT,
+        )
         val partitionOffset = 446
         mbr[partitionOffset] = 0x00
         mbr[partitionOffset + 1] = 0x00
@@ -150,10 +158,11 @@ class VentoyInstaller(
         writeGptPartitionEntry(
             entries = entries,
             entryIndex = 1,
-            typeGuid = UUID.fromString("C12A7328-F81F-11D2-BA4B-00A0C93EC93B"),
+            typeGuid = UUID.fromString("EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"),
             uniqueGuid = part2Guid,
             firstLba = layout.part2StartSector,
             lastLba = layout.part2EndSector,
+            attributes = VentoyConstants.GPT_ATTR_NO_AUTOMOUNT,
             name = "VTOYEFI",
         )
 
@@ -322,7 +331,12 @@ class VentoyInstaller(
         progress?.invoke("core", 0, coreSectors.toLong())
         VentoidFileLogger.log("install: writing core.img sectors=$coreSectors offset=$coreOffset")
         try { Log.d(tag, "install: writing core.img sectors=$coreSectors offset=$coreOffset") } catch (_: Exception) { }
-        writeSectors(coreOffset, coreImg, 0, coreBytes)
+        val patchedCoreImg = if (useGpt) {
+            patchGrubCoreBlockList(coreImg, coreOffset)
+        } else {
+            coreImg
+        }
+        writeSectors(coreOffset, patchedCoreImg, 0, coreBytes)
         progress?.invoke("core", coreSectors.toLong(), coreSectors.toLong())
         progress?.invoke("part1", 0, 1)
         VentoidFileLogger.log("install: formatting part1 exFAT label=${ExFatFormatter.VOLUME_LABEL}")
@@ -496,6 +510,7 @@ class VentoyInstaller(
         uniqueGuid: UUID,
         firstLba: Long,
         lastLba: Long,
+        attributes: Long = 0L,
         name: String,
     ) {
         val offset = entryIndex * 128
@@ -504,7 +519,7 @@ class VentoyInstaller(
         putGuidLe(le, offset + 16, uniqueGuid)
         le.putLong(offset + 32, firstLba)
         le.putLong(offset + 40, lastLba)
-        le.putLong(offset + 48, 0L)
+        le.putLong(offset + 48, attributes)
         val nameBytes = name.toByteArray(StandardCharsets.UTF_16LE)
         nameBytes.copyInto(entries, offset + 56, 0, minOf(nameBytes.size, 72))
     }
@@ -530,6 +545,24 @@ class VentoyInstaller(
         target[offset + 1] = ((value ushr 8) and 0xFF).toByte()
         target[offset + 2] = ((value ushr 16) and 0xFF).toByte()
         target[offset + 3] = ((value ushr 24) and 0xFF).toByte()
+    }
+
+    private fun writeLeLong(target: ByteArray, offset: Int, value: Long) {
+        for (index in 0 until 8) {
+            target[offset + index] = ((value ushr (index * 8)) and 0xFF).toByte()
+        }
+    }
+
+    /**
+     * GRUB i386-pc diskboot.img locates the rest of core.img through the absolute
+     * LBA in the block-list entry at 0x1F4. The bundled core.img targets the MBR
+     * layout (diskboot at LBA 1, data at LBA 2); with GPT diskboot sits at LBA 34,
+     * so its data begins at LBA 35.
+     */
+    private fun patchGrubCoreBlockList(coreImg: ByteArray, coreOffset: Long): ByteArray {
+        val patched = coreImg.copyOf()
+        writeLeLong(patched, VentoyConstants.CORE_IMG_BLOCKLIST_OFFSET, coreOffset + 1)
+        return patched
     }
 
     private fun deterministicGuid(seed: String): UUID {

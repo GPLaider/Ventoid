@@ -13,6 +13,7 @@ val releaseKeyAlias = providers.gradleProperty("VENTOID_RELEASE_KEY_ALIAS")
 val releaseKeyPassword = providers.gradleProperty("VENTOID_RELEASE_KEY_PASSWORD")
     .orElse(providers.environmentVariable("VENTOID_RELEASE_KEY_PASSWORD"))
 val qemuImagePath = providers.gradleProperty("ventoidQemuImage")
+val qemuImageGptPath = providers.gradleProperty("ventoidQemuImageGpt")
 
 android {
     namespace = "com.ventoid.app"
@@ -69,6 +70,9 @@ android {
             it.useJUnitPlatform()
             if (qemuImagePath.isPresent) {
                 it.systemProperty("ventoid.qemu.image", qemuImagePath.get())
+            }
+            if (qemuImageGptPath.isPresent) {
+                it.systemProperty("ventoid.qemu.image.gpt", qemuImageGptPath.get())
             }
         }
     }

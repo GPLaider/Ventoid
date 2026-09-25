@@ -6,6 +6,9 @@ output_dir="${1:-$repo_root/build/qemu}"
 image_path="$output_dir/ventoid-smoke.img"
 screenshot_path="$output_dir/ventoid-smoke.ppm"
 log_path="$output_dir/qemu.log"
+gpt_image_path="$output_dir/ventoid-smoke-gpt.img"
+gpt_screenshot_path="$output_dir/ventoid-smoke-gpt.ppm"
+gpt_log_path="$output_dir/qemu-gpt.log"
 
 mkdir -p "$output_dir"
 
@@ -46,15 +49,18 @@ cd "$repo_root"
 if [[ "$is_wsl" == true ]]; then
     gradle_cmd=(cmd.exe /d /c gradlew.bat)
     gradle_image_arg="$(to_windows_path "$image_path")"
+    gradle_gpt_image_arg="$(to_windows_path "$gpt_image_path")"
 else
     case "$kernel_name" in
         MINGW*|MSYS*|CYGWIN*)
             gradle_cmd=(./gradlew.bat)
             gradle_image_arg="$(to_windows_path "$image_path")"
+            gradle_gpt_image_arg="$(to_windows_path "$gpt_image_path")"
             ;;
         *)
             gradle_cmd=(./gradlew)
             gradle_image_arg="$image_path"
+            gradle_gpt_image_arg="$gpt_image_path"
             ;;
     esac
 fi
@@ -62,9 +68,13 @@ fi
 if [[ "$qemu_uses_windows_paths" == true ]]; then
     qemu_image_arg="$(to_windows_path "$image_path")"
     qemu_screenshot_arg="$(to_windows_path "$screenshot_path")"
+    qemu_gpt_image_arg="$(to_windows_path "$gpt_image_path")"
+    qemu_gpt_screenshot_arg="$(to_windows_path "$gpt_screenshot_path")"
 else
     qemu_image_arg="$image_path"
     qemu_screenshot_arg="$screenshot_path"
+    qemu_gpt_image_arg="$gpt_image_path"
+    qemu_gpt_screenshot_arg="$gpt_screenshot_path"
 fi
 
 qemu_accel=("-accel" "tcg,thread=multi")
@@ -76,6 +86,7 @@ fi
     :app:testDebugUnitTest \
     --tests com.ventoid.app.installer.QemuDiskImageTest \
     -PventoidQemuImage="$gradle_image_arg" \
+    -PventoidQemuImageGpt="$gradle_gpt_image_arg" \
     --rerun-tasks
 
 {
@@ -100,3 +111,27 @@ test -s "$image_path"
 test -s "$screenshot_path"
 printf 'QEMU boot evidence:\n  image: %s\n  screenshot: %s\n  log: %s\n' \
     "$image_path" "$screenshot_path" "$log_path"
+
+# GPT layout: same BIOS smoke against the protective-MBR + GPT image.
+{
+    {
+        sleep 12
+        printf 'screendump %s\n' "$qemu_gpt_screenshot_arg"
+        printf 'quit\n'
+    } | "$qemu_bin" \
+        -machine pc \
+        "${qemu_accel[@]}" \
+        -m 256M \
+        -drive "file=$qemu_gpt_image_arg,format=raw,if=ide" \
+        -boot c \
+        -snapshot \
+        -display none \
+        -monitor stdio \
+        -no-reboot \
+        -no-shutdown
+} >"$gpt_log_path" 2>&1
+
+test -s "$gpt_image_path"
+test -s "$gpt_screenshot_path"
+printf 'QEMU GPT boot evidence:\n  image: %s\n  screenshot: %s\n  log: %s\n' \
+    "$gpt_image_path" "$gpt_screenshot_path" "$gpt_log_path"
