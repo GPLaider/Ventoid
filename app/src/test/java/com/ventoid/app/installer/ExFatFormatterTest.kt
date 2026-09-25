@@ -3,6 +3,7 @@ package com.ventoid.app.installer
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -52,6 +53,39 @@ class ExFatFormatterTest {
             0xFFFFFFFF.toInt(),
             le.getInt((layout.bitmapFirstCluster + layout.bitmapClusterCount - 1) * 4),
         )
+    }
+
+    @Test
+    fun `fat written in sector chunks matches a single-shot fat`() {
+        val volumeSectors = 248_110_903_296L / 512L
+        val sectorsPerCluster = ExFatFormatter.sectorsPerCluster(volumeSectors)
+        val layout = ExFatFormatter.computeVolumeLayout(volumeSectors, sectorsPerCluster)
+
+        val full = ExFatFormatter.buildFat(layout.fatLengthSectors, layout)
+        val chunked = ByteArray(full.size)
+        var sector = 0
+        while (sector < layout.fatLengthSectors) {
+            val count = minOf(7, layout.fatLengthSectors - sector)
+            val chunk = ExFatFormatter.buildFatRange(layout, sector, count)
+            System.arraycopy(chunk, 0, chunked, sector * 512, chunk.size)
+            sector += count
+        }
+
+        assertTrue(full.contentEquals(chunked))
+    }
+
+    @Test
+    fun `fat range past the end of the fat is rejected`() {
+        val volumeSectors = 248_110_903_296L / 512L
+        val sectorsPerCluster = ExFatFormatter.sectorsPerCluster(volumeSectors)
+        val layout = ExFatFormatter.computeVolumeLayout(volumeSectors, sectorsPerCluster)
+
+        assertThrows<IllegalArgumentException> {
+            ExFatFormatter.buildFatRange(layout, layout.fatLengthSectors, 1)
+        }
+        assertThrows<IllegalArgumentException> {
+            ExFatFormatter.buildFatRange(layout, -1, 1)
+        }
     }
 
     @Test

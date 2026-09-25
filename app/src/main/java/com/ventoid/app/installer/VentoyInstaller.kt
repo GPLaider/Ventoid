@@ -385,8 +385,16 @@ class VentoyInstaller(
         VentoidFileLogger.log("exFAT boot sector verification OK")
         val backupBoot = ExFatFormatter.buildBackupBootRegion(mainBoot)
         writeSectors(part1Start + 12, backupBoot)
-        val fat = ExFatFormatter.buildFat(volumeLayout.fatLengthSectors, volumeLayout)
-        writeSectors(part1Start + 24, fat)
+        // Stream the FAT in 1 MiB chunks: multi-TB data partitions need hundreds of
+        // MiB of FAT, which must not be allocated as a single buffer on a phone.
+        val fatChunkSectors = 2048
+        var fatSector = 0
+        while (fatSector < volumeLayout.fatLengthSectors) {
+            val count = minOf(fatChunkSectors, volumeLayout.fatLengthSectors - fatSector)
+            val fatChunk = ExFatFormatter.buildFatRange(volumeLayout, fatSector, count)
+            writeSectors(part1Start + 24 + fatSector, fatChunk)
+            fatSector += count
+        }
         val bitmapOffset = volumeLayout.clusterHeapOffsetSectors +
             (volumeLayout.bitmapFirstCluster - 2L) * spc
         val upcaseOffset = volumeLayout.clusterHeapOffsetSectors +

@@ -403,6 +403,31 @@ class VentoyInstallerTest {
         assertEquals(data.toList(), readBack.toList())
     }
 
+    @Test
+    fun `install on a drive over 2TB places GPT and EFI partition past the 32-bit boundary`() {
+        // Just over 2TB at 512 bytes per sector: the EFI partition cannot be
+        // addressed with 32-bit LBAs and the exFAT FAT is tens of MiB.
+        val diskSectors = 0x1_0001_8000L
+        val driver = SparseBlockDeviceDriver(diskSectors, VentoyConstants.SECTOR_SIZE)
+        val installer = VentoyInstaller(driver)
+        val bootImg = ByteArray(512) { it.toByte() }
+        val coreImg = ByteArray(2047 * 512) { 0x42 }
+        val ventoyImg = ByteArray(VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) { 0x57 }
+
+        installer.install(bootImg, coreImg, ventoyImg, useGpt = true)
+
+        val layout = installer.calculateLayout(diskSectors, useGpt = true)
+        assertTrue(layout.part2StartSector > 0xFFFF_FFFFL)
+        assertEquals(
+            0x57.toByte(),
+            driver.readSector(layout.part2StartSector)[0],
+        )
+        assertEquals(
+            "EFI PART",
+            String(driver.readSector(diskSectors - 1).copyOfRange(0, 8)),
+        )
+    }
+
     private fun readUnsignedLeInt(bytes: ByteArray, offset: Int): Long {
         return (bytes[offset].toLong() and 0xFF) or
             ((bytes[offset + 1].toLong() and 0xFF) shl 8) or
@@ -443,6 +468,42 @@ class VentoyInstallerTest {
         override fun write(deviceOffset: Long, buffer: ByteBuffer) {
             timeline += "write:$deviceOffset"
             delegate.write(deviceOffset, buffer)
+        }
+    }
+
+    /** Sparse in-memory disk that keeps only written sectors, for multi-TB layouts. */
+    private class SparseBlockDeviceDriver(
+        override val blocks: Long,
+        override val blockSize: Int,
+    ) : BlockDeviceDriver {
+        private val sectors = HashMap<Long, ByteArray>()
+
+        override fun init() = Unit
+
+        override fun read(deviceOffset: Long, buffer: ByteBuffer) {
+            var offset = deviceOffset
+            while (buffer.hasRemaining()) {
+                val sector = sectors[offset] ?: ByteArray(blockSize)
+                val count = minOf(blockSize, buffer.remaining())
+                buffer.put(sector, 0, count)
+                offset++
+            }
+        }
+
+        override fun write(deviceOffset: Long, buffer: ByteBuffer) {
+            var offset = deviceOffset
+            while (buffer.hasRemaining()) {
+                val sector = sectors.getOrPut(offset) { ByteArray(blockSize) }
+                val count = minOf(blockSize, buffer.remaining())
+                buffer.get(sector, 0, count)
+                offset++
+            }
+        }
+
+        fun readSector(blockOffset: Long): ByteArray {
+            val bytes = ByteArray(blockSize)
+            read(blockOffset, ByteBuffer.wrap(bytes))
+            return bytes
         }
     }
 }

@@ -32,7 +32,7 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 - 열린 GitHub 이슈 0건(API로 확인, 2026-09-21), 최근 이슈 #17/#18은 0.2.1~0.3.x에서 이미 수정됨
 - Ventoy 업스트림 최신 v1.1.17 == 번들 1.1.17 (`scripts/Check-VentoyUpdate.ps1`, updateAvailable=false)
 - AndroidManifest에 INTERNET 권한 없음(오프라인 명세와 일치)
-- SCSI READ CAPACITY(16) 미지원은 의도된 문서화된 제한이다. README 트러블슈팅에 명시돼 있고 `LibaumsScsiBlockDeviceAdapter.kt`가 >2TB 드라이브를 파괴적 쓰기 대신 명시적 오류로 거부한다. 제품 범위를 바꾸는 추가 개발은 합의 없이 하지 않았다
+- SCSI READ CAPACITY(16) 미지원은 의도된 문서화된 제한이다. README 트러블슈팅에 명시돼 있고 `LibaumsScsiBlockDeviceAdapter.kt`가 >2TB 드라이브를 파괴적 쓰기 대신 명시적 오류로 거부한다. 제품 범위를 바꾸는 추가 개발은 합의 없이 하지 않았다 (2026-09-25 사용자 직접 지시로 해소됨 — 8절 참조)
 
 ### 환경/도구 복구 (프로젝트 전용 경로만)
 
@@ -100,3 +100,37 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 | `scripts/Check-VentoyUpdate.ps1` | local 1.1.17 == latest 1.1.17, updateAvailable=false |
 | `scripts/Test-FdroidPreflight.ps1 -UpdateMetadata` | "F-Droid preflight passed for Ventoid 0.3.3 (15) at ef64a72c668a19168d9102394226514e0f4d9294", 종료 코드 0. lintRelease/testDebugUnitTest/assembleRelease/bundleRelease BUILD SUCCESSFUL |
 | 메타데이터 파일 | 스크립트가 작업본을 LF로 정규화했으나 `git diff --quiet` 종료 코드 0으로 내용 동일 확인 후 `git restore`로 정리. 추적 변경 없음 (CRLF는 core.autocrlf=true 체크아웃 아티팩트였음) |
+
+## 8. 기능 추가: 2TB 초과 드라이브 지원 (2026-09-25, 사용자 직접 지시)
+
+복구 범위가 확정된 뒤 사용자가 "기능추가"를 직접 지시했다. 문서상 유일하게 남아 있던 미완성 제한 — 2TB 초과 드라이브의 명시적 거부(2절, README 트러블슈팅) — 를 해소했다. 물리 USB/폰 쓰기는 수행하지 않았고 단위 테스트와 기존 QEMU BIOS 스모크 범위 안에서만 검증했다. 이 코드는 Git 기록에 없던 신규 구현(재구현)이다.
+
+### 구현
+
+- `app/src/main/java/com/ventoid/app/usb/ScsiLargeCapacityCommands.kt` (신규): SCSI READ CAPACITY(16)(opcode 0x9E, service action 0x10), READ(16)(0x88), WRITE(16)(0x8A) CDB와 응답 파서, 32비트 LBA 경계 판정 `requires16ByteCommand`
+- `VentoidScsiBlockDevice.kt`: READ CAPACITY(10)이 0xFFFFFFFF 센티널을 반환하면 READ CAPACITY(16)으로 실제 마지막 LBA를 해결하고, 아니면 부호 없는 32비트로 언마스크한다. 읽기/쓰기는 대상 LBA 범위에 따라 10바이트 또는 16바이트 명령을 선택한다. 단위 테스트(mockable android.jar)에서 Log 호출이 던지지 않도록 runCatching으로 감쌌다(VentoyInstaller와 동일 패턴)
+- `LibaumsScsiBlockDeviceAdapter.kt`: 드라이버가 RC16/언마스크를 해결하므로 어댑터는 양수 마지막 LBA +1 변환과 음수 거부만 남겼다
+- `ExFatFormatter.kt`: `buildFat`을 `buildFatRange(volumeLayout, startSector, sectorCount)`로 분해해 FAT의 임의 섹터 범위를 독립 생성할 수 있다
+- `VentoyInstaller.kt`: exFAT FAT을 1 MiB(2048섹터) 청크로 스트리밍 기록한다. 멀티TB 데이터 파티션의 FAT은 수백 MiB라 단일 버퍼로 할당할 수 없다
+- `README.md`: "매우 큰 드라이브 거부" 트러블슈팅을 지원 안내로 교체(2TB 초과 지원, 32비트 LBA 한계로 GPT 권장)
+
+### 테스트
+
+- `ScsiLargeCapacityCommandsTest` 14개 신규: RC16/READ16/WRITE16 CDB 바이트 직렬화, 응답 파싱, 경계 판정, FakeBotCommunication(USB bulk-only transport 페이크)으로 init 시 RC16 발행, RC10 센티널/비센티널/부호 없는 상위 32비트 LBA 처리, 32비트 경계 전후의 10/16바이트 명령 선택
+- `LibaumsScsiBlockDeviceAdapterTest` 갱신: 새 계약(양수 통과 +1, 다중TB 값, 음수 거부)
+- `ExFatFormatterTest` +2: 청크 FAT과 단일 FAT의 바이트 동등성, 범위 초과 거부
+- `VentoyInstallerTest` +1: SparseBlockDeviceDriver(약 2TB 희소 디스크)에 GPT 설치 후 EFI 파티션 시작과 백업 GPT 헤더가 32비트 경계 너머에 기록됨을 검증
+
+### 검증 결과
+
+| 검사 | 결과 |
+|------|------|
+| `:app:testDebugUnitTest` | BUILD SUCCESSFUL. 74 total / 73 passed / 1 skipped, 0 failures, 0 errors (10개 클래스). skipped 1개는 `QemuDiskImageTest`로 이미지 경로 미지정 시 설계된 스킵 |
+| `:app:lintRelease` | BUILD SUCCESSFUL. `app/build/reports/lint-results-release.html` |
+| `:app:assembleRelease` | BUILD SUCCESSFUL. `app-release-unsigned.apk` 21,525,800 bytes |
+
+검증 로그: `D:/AgentWork/temp/Ventoid/hq-20260921/unit-tests.log`, `lint-release.log`
+
+### 남은 한계
+
+- 이 기능의 검증은 단위 테스트까지다. QEMU BIOS 스모크는 기존 결과를 유지하며 재실행하지 않았다. 실제 >2TB 물리 드라이브에서의 준비/부팅, UEFI/Secure Boot는 검증하지 않았다(위임 범위 밖, 물리 쓰기 금지)

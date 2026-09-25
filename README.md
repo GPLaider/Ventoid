@@ -70,9 +70,9 @@ Ventoid does not enable hardware or operating-system write protection. Check for
 
 This indicates that the expected Ventoy payload is missing from the prepared VTOYEFI partition. Prepare the drive again with the latest Ventoid release without disconnecting it during the write. If the error repeats, include the exact message, phone, OTG adapter or hub, drive model, capacity, and Ventoid log in a [bug report](https://github.com/GPLaider/Ventoid/issues/new?template=bug_report.yml).
 
-### A very large drive is rejected
+### A very large drive fails to prepare
 
-Some USB bridges and very large drives require SCSI READ CAPACITY(16), which the currently released storage library does not support. Report the exact drive size, bridge or enclosure model, and error text rather than retrying destructive writes.
+Drives larger than 2TB are supported: Ventoid resolves their capacity with SCSI READ CAPACITY(16) and uses 16-byte read/write commands for sectors past the 32-bit boundary. Choose the GPT layout for these drives, since MBR partition tables cannot describe LBAs beyond 32 bits. If preparation still fails, report the exact drive size, bridge or enclosure model, and error text rather than retrying destructive writes.
 
 Successful and failed hardware combinations can be submitted with the [device compatibility form](https://github.com/GPLaider/Ventoid/issues/new?template=device_compatibility.yml).
 
