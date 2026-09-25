@@ -87,3 +87,16 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 
 - `RECOVERY-HANDOFF.md` (신규, 이 파일)
 - 그 외 추적 파일 변경 없음. `local.properties`는 gitignore된 환경 파일
+
+## 7. 후속 재검증 (2026-09-25)
+
+배포 조건의 현재성을 다시 확인했다. 모두 읽기 전용 조회와 문서화된 로컬 검증만 사용했다.
+
+| 항목 | 결과 |
+|------|------|
+| `git fetch origin --tags` | 신규 커밋/태그 없음 (origin/master = b7c64fa 유지) |
+| Maven Central `me.jahnen.libaums:core` | 최신 0.10.0 = 핀 버전. 업스트림 수정이 담긴 신규 릴리스가 없어 `VentoidScsiBlockDevice` 백포트 유지가 타당 |
+| Maven Central `me.jahnen.libaums:libusbcommunication` | 최신 0.3.0 = 핀 버전 |
+| `scripts/Check-VentoyUpdate.ps1` | local 1.1.17 == latest 1.1.17, updateAvailable=false |
+| `scripts/Test-FdroidPreflight.ps1 -UpdateMetadata` | "F-Droid preflight passed for Ventoid 0.3.3 (15) at ef64a72c668a19168d9102394226514e0f4d9294", 종료 코드 0. lintRelease/testDebugUnitTest/assembleRelease/bundleRelease BUILD SUCCESSFUL |
+| 메타데이터 파일 | 스크립트가 작업본을 LF로 정규화했으나 `git diff --quiet` 종료 코드 0으로 내용 동일 확인 후 `git restore`로 정리. 추적 변경 없음 (CRLF는 core.autocrlf=true 체크아웃 아티팩트였음) |
