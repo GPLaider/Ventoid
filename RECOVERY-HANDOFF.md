@@ -197,3 +197,48 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 
 - 분석은 논리 검사만 한다. 물리 OTG 기기에서의 UI 동작은 미검증이다. 위임 범위상 물리 장치 쓰기/플래시가 금지돼 있고 물리 USB가 없는 환경이라 단위 테스트로 대체했다.
 - 비파괴 업데이트(디스크를 지우지 않고 VTOYEFI만 교체)는 아직 미구현이다. 이번 분석기의 레이아웃/버전 판독이 그 기반이 된다.
+
+## 11. 비파괴 Ventoy 업데이트 + 도구 탭 UI (2026-09-26, 사용자 "ㄱㄱ" 및 탭 배치 지시)
+
+### 배경
+
+분석기(섹션 10) 다음 단계로, 디스크를 지우지 않고 Ventoy만 최신으로 올리는 비파괴 업데이트를 구현했다. 사용자가 "쓰기 버튼 밑에 탭 형태" UI를 제안해 [분석 | 업데이트] 탭으로 배치했다. 언오피셜 Ventoy APK의 레이아웃은 확인할 수 없어 독자 설계로 했고, 탭 위/아래 이동이 쉽도록 패널 단위로 분리했다.
+
+### 구현 (전부 신규 — 업스트림 VentoyWorker.sh "-u" 모드를 Kotlin으로 이식)
+
+- `installer/VentoyUpdater.kt`: 업스트림 업데이트 경로(VentoyWorker.sh 540-639행) 충실 이식.
+  - 분석기로 기존 Ventoy 탐지(없으면 중단하고 준비 안내).
+  - boot.img 첫 440바이트만 기록(파티션 테이블/디스크 시그니처 보존), 384-399 디스크 UUID 백업·복원.
+  - GPT: kernel_sector(0x5C)→34, diskboot blocklist(0x1F4)→35 복구. GPT BIOS 부팅 회귀 디스크도 업데이트로 수리된다.
+  - MBR: part1 활성/part2 비활성 플래그 교정.
+  - core.img 기록 후 2040-2047(8섹터, reserved tail) 백업·복원 — 업스트림과 동일.
+  - VTOYEFI 전체를 번들 이미지로 교체(256섹터 청크). 데이터 파티션(part1)은 한 섹터도 쓰지 않는다.
+  - 완료 후 재분석으로 버전 일치 검증, 불일치 시 IOException.
+- `install/VentoyInstallCoordinator.update()`: 자산 검증·세션·진행률 배선, InstallMessage.UpdateStarting/UpdateSuccess 추가.
+- UI: 쓰기 버튼+진행줄 아래 새 패널에 커스텀 탭 [분석 | 업데이트](Material 의존성 추가 없이 tab_selected/tab_unselected 드로어블). 분석 결과는 다이얼로그 대신 탭 안 인라인 카드로 상주한다. 분석에서 Ventoy 감지 시 업데이트 탭에 "설치됨/내장" 버전 표시 + 업데이트 버튼 활성화. 기기 선택 변경 시 분석 상태 리셋.
+- 진행 버튼 라벨: 업데이트 중에는 "Updating · %" 표시(activeFlow).
+- `VentoyInstaller.patchGrubCoreBlockList`를 internal로 승격해 업데이터가 공유.
+
+### 검증 (전부 비파괴)
+
+- `:app:testDebugUnitTest` BUILD SUCCESSFUL: 95 total / 91 passed / 4 skipped(QEMU 이미지 생성 4개: 속성 미지정 시 가정 스킵) / 0 failures.
+  - `VentoyUpdaterTest` 4/4: 구버전 MBR/GPT 디스크 업데이트 시 버전 갱신 + 데이터 마커/파티션 테이블/디스크 UUID/reserved tail 보존, GPT GRUB 포인터 복구, 비Ventoy 디스크 거부(쓰기 없음), 최신 디스크 재설치.
+- QEMU BIOS 스모크(업데이트 경로로 만든 디스크, `-snapshot`):
+  - MBR 업데이트 이미지: 그래픽 Ventoy 1.1.17 BIOS 메뉴 도달 (`qemu-run.4IoPWMSq`)
+  - GPT 업데이트 이미지(사전에 kernel_sector/blocklist를 1로 파괴해 둔 것): 업데이트가 복구해 동일 메뉴 도달 (`qemu-run.79DMx5oH`)
+  - Verify-QemuScreenshot.py PASS 2건 + PNG 육안 확인 2건 (하단 버전 표시 1.1.17 확인)
+  - 스코프 한계는 섹션 9와 동일: BIOS 메뉴 스모크이며 ISO 게스트 부팅/UEFI/Secure Boot/물리 USB는 미검증.
+- `:app:lintRelease :app:assembleRelease` BUILD SUCCESSFUL.
+- `scripts/Test-AutomationScripts.ps1` PASS (F-Droid preflight 포함).
+- `QemuDiskImageTest`에 업데이트 이미지 생성 2종 추가(`-PventoidQemuImageUpdated`, `-PventoidQemuImageUpdatedGpt`).
+
+### 산출물
+
+- `app/build/qemu/ventoid-updated-mbr.img`, `app/build/qemu/ventoid-updated-gpt.img` (64 MiB, gitignored)
+- QEMU 증거: `D:/AgentWork/temp/Ventoid/hq-20260921/qemu-run.4IoPWMSq/`, `qemu-run.79DMx5oH/`
+
+### 남은 한계
+
+- 물리 OTG 기기에서의 업데이트/탭 UI 동작은 미검증이다(위임 범위: 물리 장치 쓰기 금지). 논리 검증은 메모리 드라이버 단위 테스트와 QEMU 이미지 부팅으로 대체했다.
+- 업스트림의 `vtoycli partresize -s`(VTOYEFI보다 큰 파티션의 FAT 확장)와 `vtoycli gpt -f`(GPT 속성 복구)는 표준 32 MiB 레이아웃에서는 no-op이라 이식하지 않았다.
+- 탭 배치(버튼 아래)는 사용자 선호를 따른 것이며, 위로 옮기는 것은 레이아웃 블록 이동만으로 가능하다.

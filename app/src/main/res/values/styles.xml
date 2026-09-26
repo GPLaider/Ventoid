@@ -70,6 +70,14 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="VentoidText.TabLabel" parent="VentoidText">
+        <item name="android:layout_height">@dimen/ventoid_control_height</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/ventoid_text_secondary</item>
+        <item name="android:textSize">@dimen/ventoid_text_body_compact</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <style name="VentoidButton" parent="Widget.AppCompat.Button">
         <item name="android:layout_height">@dimen/ventoid_control_height</item>
         <item name="android:minHeight">@dimen/ventoid_control_height</item>

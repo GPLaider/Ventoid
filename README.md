@@ -84,6 +84,8 @@ Successful and failed hardware combinations can be submitted with the [device co
 - Write directly to USB mass-storage devices over Android OTG
 - Inspect a connected drive read-only: detect an existing Ventoy layout, read its
   installed version, and see whether the bundled Ventoy is newer
+- Update Ventoy on a prepared drive without erasing it: rewrite only the boot
+  files and VTOYEFI payload while the data partition keeps every ISO
 - Choose MBR or GPT Ventoy-compatible disk layouts
 - Write the Ventoy core image and EFI partition image
 - Format the data partition as exFAT for large ISO files

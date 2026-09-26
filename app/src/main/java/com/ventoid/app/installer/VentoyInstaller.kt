@@ -559,7 +559,7 @@ class VentoyInstaller(
      * layout (diskboot at LBA 1, data at LBA 2); with GPT diskboot sits at LBA 34,
      * so its data begins at LBA 35.
      */
-    private fun patchGrubCoreBlockList(coreImg: ByteArray, coreOffset: Long): ByteArray {
+    internal fun patchGrubCoreBlockList(coreImg: ByteArray, coreOffset: Long): ByteArray {
         val patched = coreImg.copyOf()
         writeLeLong(patched, VentoyConstants.CORE_IMG_BLOCKLIST_OFFSET, coreOffset + 1)
         return patched

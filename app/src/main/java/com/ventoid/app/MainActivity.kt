@@ -14,7 +14,6 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -55,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     private enum class PendingUsbAction {
         INSTALL,
         INSPECT,
+        UPDATE,
     }
 
     private lateinit var spinnerUsb: Spinner
@@ -63,6 +63,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var buttonRefresh: Button
     private lateinit var buttonInstall: Button
     private lateinit var buttonInspect: Button
+    private lateinit var buttonUpdate: Button
+    private lateinit var tabInspect: TextView
+    private lateinit var tabUpdate: TextView
+    private lateinit var panelInspect: View
+    private lateinit var panelUpdate: View
+    private lateinit var textInspectResult: TextView
+    private lateinit var textUpdateStatus: TextView
     private lateinit var textStageTitle: TextView
     private lateinit var textSecureBootStatus: TextView
     private lateinit var installStageLabels: List<TextView>
@@ -72,6 +79,9 @@ class MainActivity : AppCompatActivity() {
     private var permissionReceiver: BroadcastReceiver? = null
     private var installJob: Job? = null
     private var pendingUsbAction: PendingUsbAction? = null
+    private var activeFlow: PendingUsbAction? = null
+    private var lastReport: DriveReport? = null
+    private var lastSelectedDeviceName: String? = null
     private var deviceList: List<UsbDeviceItem> = emptyList()
     private var installProgressPresentation = InstallProgressPresenter.idle()
 
@@ -88,6 +98,13 @@ class MainActivity : AppCompatActivity() {
         buttonRefresh = findViewById(R.id.button_refresh)
         buttonInstall = findViewById(R.id.button_install)
         buttonInspect = findViewById(R.id.button_inspect)
+        buttonUpdate = findViewById(R.id.button_update)
+        tabInspect = findViewById(R.id.tab_inspect)
+        tabUpdate = findViewById(R.id.tab_update)
+        panelInspect = findViewById(R.id.panel_inspect)
+        panelUpdate = findViewById(R.id.panel_update)
+        textInspectResult = findViewById(R.id.text_inspect_result)
+        textUpdateStatus = findViewById(R.id.text_update_status)
         textStageTitle = findViewById(R.id.text_stage_title)
         textSecureBootStatus = findViewById(R.id.text_secure_boot_status)
         installStageLabels = listOf(
@@ -112,8 +129,62 @@ class MainActivity : AppCompatActivity() {
         buttonRefresh.setOnClickListener { refreshDeviceList() }
         buttonInstall.setOnClickListener { onInstallClicked() }
         buttonInspect.setOnClickListener { onInspectClicked() }
+        buttonUpdate.setOnClickListener { onUpdateClicked() }
+        tabInspect.setOnClickListener { selectTab(inspect = true) }
+        tabUpdate.setOnClickListener { selectTab(inspect = false) }
+        selectTab(inspect = true)
+
+        spinnerUsb.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val name = deviceList.getOrNull(position)?.displayName
+                if (name != lastSelectedDeviceName) {
+                    lastSelectedDeviceName = name
+                    resetAnalysisState()
+                }
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+        }
 
         refreshDeviceList()
+    }
+
+    private fun selectTab(inspect: Boolean) {
+        tabInspect.setBackgroundResource(
+            if (inspect) R.drawable.tab_selected else R.drawable.tab_unselected
+        )
+        tabUpdate.setBackgroundResource(
+            if (inspect) R.drawable.tab_unselected else R.drawable.tab_selected
+        )
+        tabInspect.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (inspect) R.color.ventoid_primary else R.color.ventoid_text_secondary,
+            )
+        )
+        tabUpdate.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (inspect) R.color.ventoid_text_secondary else R.color.ventoid_primary,
+            )
+        )
+        panelInspect.visibility = if (inspect) View.VISIBLE else View.GONE
+        panelUpdate.visibility = if (inspect) View.GONE else View.VISIBLE
+    }
+
+    private fun resetAnalysisState() {
+        lastReport = null
+        if (::textInspectResult.isInitialized) {
+            textInspectResult.text = getString(R.string.inspect_result_placeholder)
+            textUpdateStatus.text = getString(R.string.update_status_none)
+            buttonUpdate.isEnabled = false
+        }
+    }
+
+    private fun setActionButtonsEnabled(enabled: Boolean) {
+        buttonInstall.isEnabled = enabled
+        buttonInspect.isEnabled = enabled
+        buttonUpdate.isEnabled = enabled && lastReport?.ventoyDetected == true
     }
 
     @Suppress("DEPRECATION")
@@ -200,8 +271,7 @@ class MainActivity : AppCompatActivity() {
             .ifEmpty { listOf(getString(R.string.usb_device_placeholder)) }
         spinnerUsb.adapter = createSpinnerAdapter(displayNames)
         spinnerUsb.isEnabled = deviceList.isNotEmpty()
-        buttonInstall.isEnabled = deviceList.isNotEmpty()
-        buttonInspect.isEnabled = deviceList.isNotEmpty()
+        setActionButtonsEnabled(deviceList.isNotEmpty())
         if (deviceList.isEmpty()) {
             textStageTitle.text = getString(R.string.usb_device_none)
         } else if (installJob?.isActive != true) {
@@ -238,6 +308,19 @@ class MainActivity : AppCompatActivity() {
         requestUsbPermission(usbManager, item, PendingUsbAction.INSPECT)
     }
 
+    private fun onUpdateClicked() {
+        if (installJob?.isActive == true) return
+        val item = selectedUsbDevice() ?: return
+        val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+
+        if (usbManager.hasPermission(item.usbDevice)) {
+            startUpdate(item)
+            return
+        }
+
+        requestUsbPermission(usbManager, item, PendingUsbAction.UPDATE)
+    }
+
     private fun selectedUsbDevice(): UsbDeviceItem? {
         val index = spinnerUsb.selectedItemPosition
         if (deviceList.isEmpty() || index !in deviceList.indices) {
@@ -266,6 +349,7 @@ class MainActivity : AppCompatActivity() {
                 if (usbManager.hasPermission(item.usbDevice)) {
                     when (pendingUsbAction) {
                         PendingUsbAction.INSPECT -> startInspect(item)
+                        PendingUsbAction.UPDATE -> startUpdate(item)
                         else -> startInstall(item)
                     }
                 } else {
@@ -296,6 +380,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun startInstall(item: UsbDeviceItem) {
         installJob?.cancel()
+        activeFlow = PendingUsbAction.INSTALL
         renderInstallProgress(InstallProgressPresenter.idle())
         textStageTitle.text = getString(R.string.progress_idle)
         val partitionScheme = selectedPartitionScheme()
@@ -326,6 +411,7 @@ class MainActivity : AppCompatActivity() {
                 VentoidFileLogger.log(e)
                 showError(getString(R.string.unexpected_error_with_reason, e.message ?: e.javaClass.simpleName))
             } finally {
+                activeFlow = null
                 if (!isDestroyed) {
                     refreshDeviceList()
                     buttonInstall.isEnabled = deviceList.isNotEmpty()
@@ -339,9 +425,9 @@ class MainActivity : AppCompatActivity() {
      * reads its version, and shows the report. Never writes to the device.
      */
     private fun startInspect(item: UsbDeviceItem) {
+        activeFlow = PendingUsbAction.INSPECT
         installJob = scope.launch {
-            buttonInstall.isEnabled = false
-            buttonInspect.isEnabled = false
+            setActionButtonsEnabled(false)
             safeLog(getString(R.string.inspect_progress))
             try {
                 val report = withContext(Dispatchers.IO) {
@@ -354,7 +440,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 VentoidFileLogger.log(buildInspectLogLine(report))
-                showInspectReport(report)
+                renderInspectReport(report)
             } catch (e: SecurityException) {
                 VentoidFileLogger.log(e)
                 safeLog(getString(R.string.permission_denied))
@@ -366,24 +452,87 @@ class MainActivity : AppCompatActivity() {
                 VentoidFileLogger.log(e)
                 showError(getString(R.string.inspect_failed_with_reason, e.message ?: e.javaClass.simpleName))
             } finally {
+                activeFlow = null
                 if (!isDestroyed) {
-                    buttonInstall.isEnabled = deviceList.isNotEmpty()
-                    buttonInspect.isEnabled = deviceList.isNotEmpty()
+                    setActionButtonsEnabled(deviceList.isNotEmpty())
                 }
             }
         }
     }
 
-    private fun showInspectReport(report: DriveReport) {
+    private fun renderInspectReport(report: DriveReport) {
+        lastReport = report
         val message = buildInspectReportText(report)
         runOnUiThread {
             if (isDestroyed) return@runOnUiThread
             textStageTitle.text = getString(R.string.inspect_done)
-            AlertDialog.Builder(this)
-                .setTitle(R.string.inspect_report_title)
-                .setMessage(message)
-                .setPositiveButton(android.R.string.ok, null)
-                .show()
+            textInspectResult.text = message
+            if (report.ventoyDetected) {
+                textUpdateStatus.text = getString(
+                    R.string.update_status_detected,
+                    report.ventoyVersion ?: getString(R.string.inspect_version_unknown),
+                    report.bundledVersion ?: getString(R.string.inspect_version_unknown),
+                )
+                buttonUpdate.isEnabled = installJob?.isActive != true
+            } else {
+                textUpdateStatus.text = getString(R.string.update_status_none)
+                buttonUpdate.isEnabled = false
+            }
+        }
+    }
+
+    /**
+     * Non-destructive update flow: rewrites only the Ventoy boot files and VTOYEFI
+     * payload. The data partition with the user's ISO files stays untouched.
+     */
+    private fun startUpdate(item: UsbDeviceItem) {
+        installJob?.cancel()
+        activeFlow = PendingUsbAction.UPDATE
+        renderInstallProgress(InstallProgressPresenter.idle())
+        textStageTitle.text = getString(R.string.update_starting)
+        installJob = scope.launch {
+            setActionButtonsEnabled(false)
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    VentoyInstallCoordinator(applicationContext).update(
+                        device = item,
+                        onProgress = ::handleInstallProgress,
+                    )
+                }
+                if (result.wasAlreadyCurrent) {
+                    safeLog(getString(R.string.update_already_current))
+                } else {
+                    safeLog(
+                        getString(
+                            R.string.update_result_versions,
+                            result.previousVersion ?: getString(R.string.inspect_version_unknown),
+                            result.installedVersion ?: getString(R.string.inspect_version_unknown),
+                        )
+                    )
+                }
+                textUpdateStatus.text = getString(
+                    R.string.update_status_detected,
+                    result.installedVersion ?: getString(R.string.inspect_version_unknown),
+                    result.installedVersion ?: getString(R.string.inspect_version_unknown),
+                )
+                safeToast(getString(R.string.update_success_log))
+            } catch (e: SecurityException) {
+                VentoidFileLogger.log(e)
+                safeLog(getString(R.string.permission_denied))
+                safeToast(getString(R.string.permission_denied))
+            } catch (e: IOException) {
+                VentoidFileLogger.log(e)
+                showError(getString(R.string.update_failed_with_reason, e.message ?: e.javaClass.simpleName))
+            } catch (e: Exception) {
+                VentoidFileLogger.log(e)
+                showError(getString(R.string.update_failed_with_reason, e.message ?: e.javaClass.simpleName))
+            } finally {
+                activeFlow = null
+                if (!isDestroyed) {
+                    refreshDeviceList()
+                    setActionButtonsEnabled(deviceList.isNotEmpty())
+                }
+            }
         }
     }
 
@@ -451,11 +600,15 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     if (!isDestroyed) {
                         when (progress.message) {
-                            InstallMessage.Starting -> {
+                            InstallMessage.Starting,
+                            InstallMessage.UpdateStarting,
+                            -> {
                                 textStageTitle.text = message
                                 renderInstallProgress(InstallProgressPresenter.idle())
                             }
-                            InstallMessage.Success -> {
+                            InstallMessage.Success,
+                            InstallMessage.UpdateSuccess,
+                            -> {
                                 textStageTitle.text = message
                                 renderInstallProgress(InstallProgressPresenter.success())
                             }
@@ -495,7 +648,9 @@ class MainActivity : AppCompatActivity() {
     private fun InstallMessage.toDisplayText(): String {
         return when (this) {
             InstallMessage.Starting -> getString(R.string.install_started)
+            InstallMessage.UpdateStarting -> getString(R.string.update_starting)
             InstallMessage.Success -> getString(R.string.install_success)
+            InstallMessage.UpdateSuccess -> getString(R.string.update_success_log)
             InstallMessage.WriteProtectTip -> getString(R.string.write_protect_tip)
             InstallMessage.SecureBootVerified -> getString(R.string.secure_boot_log)
             InstallMessage.SecureBootUnavailable -> getString(R.string.secure_boot_limited_log)
@@ -545,10 +700,13 @@ class MainActivity : AppCompatActivity() {
                 buttonInstall.setBackgroundResource(R.drawable.button_install_progress)
                 buttonInstall.background.level = presentation.overallPercent * 100
                 buttonInstall.text = getString(
-                    if (presentation.actionState == InstallActionState.VERIFYING) {
-                        R.string.install_verifying_progress
-                    } else {
-                        R.string.install_flashing_progress
+                    when {
+                        presentation.actionState == InstallActionState.VERIFYING ->
+                            R.string.install_verifying_progress
+                        activeFlow == PendingUsbAction.UPDATE ->
+                            R.string.update_progress
+                        else ->
+                            R.string.install_flashing_progress
                     },
                     presentation.overallPercent,
                 )
