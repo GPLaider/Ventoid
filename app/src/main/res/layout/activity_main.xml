@@ -102,6 +102,13 @@
                     android:text="@string/refresh" />
             </LinearLayout>
 
+            <Button
+                android:id="@+id/button_inspect"
+                style="@style/VentoidButton.Secondary"
+                android:layout_width="match_parent"
+                android:layout_marginTop="@dimen/ventoid_space_compact"
+                android:text="@string/inspect_drive" />
+
             <TextView
                 style="@style/VentoidText.FieldLabel"
                 android:layout_width="match_parent"

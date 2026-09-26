@@ -14,6 +14,7 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -28,6 +29,10 @@ import com.ventoid.app.install.InstallerAssets
 import com.ventoid.app.install.PartitionScheme
 import com.ventoid.app.install.VentoyInstallCoordinator
 import com.ventoid.app.installer.VentoyConstants
+import com.ventoid.app.inspect.DriveInspector
+import com.ventoid.app.inspect.DriveNote
+import com.ventoid.app.inspect.DriveReport
+import com.ventoid.app.inspect.PartitionStyle
 import com.ventoid.app.util.VentoidFileLogger
 import com.ventoid.app.usb.UsbDeviceItem
 import com.ventoid.app.usb.UsbMassStorageHelper
@@ -39,6 +44,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -46,11 +52,17 @@ class MainActivity : AppCompatActivity() {
         private const val ACTION_USB_PERMISSION = "android.hardware.usb.action.USB_PERMISSION"
     }
 
+    private enum class PendingUsbAction {
+        INSTALL,
+        INSPECT,
+    }
+
     private lateinit var spinnerUsb: Spinner
     private lateinit var spinnerPartitionScheme: Spinner
     private lateinit var editReservedSpace: EditText
     private lateinit var buttonRefresh: Button
     private lateinit var buttonInstall: Button
+    private lateinit var buttonInspect: Button
     private lateinit var textStageTitle: TextView
     private lateinit var textSecureBootStatus: TextView
     private lateinit var installStageLabels: List<TextView>
@@ -59,6 +71,7 @@ class MainActivity : AppCompatActivity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var permissionReceiver: BroadcastReceiver? = null
     private var installJob: Job? = null
+    private var pendingUsbAction: PendingUsbAction? = null
     private var deviceList: List<UsbDeviceItem> = emptyList()
     private var installProgressPresentation = InstallProgressPresenter.idle()
 
@@ -74,6 +87,7 @@ class MainActivity : AppCompatActivity() {
         editReservedSpace = findViewById(R.id.edit_reserved_space)
         buttonRefresh = findViewById(R.id.button_refresh)
         buttonInstall = findViewById(R.id.button_install)
+        buttonInspect = findViewById(R.id.button_inspect)
         textStageTitle = findViewById(R.id.text_stage_title)
         textSecureBootStatus = findViewById(R.id.text_secure_boot_status)
         installStageLabels = listOf(
@@ -97,6 +111,7 @@ class MainActivity : AppCompatActivity() {
 
         buttonRefresh.setOnClickListener { refreshDeviceList() }
         buttonInstall.setOnClickListener { onInstallClicked() }
+        buttonInspect.setOnClickListener { onInspectClicked() }
 
         refreshDeviceList()
     }
@@ -186,6 +201,7 @@ class MainActivity : AppCompatActivity() {
         spinnerUsb.adapter = createSpinnerAdapter(displayNames)
         spinnerUsb.isEnabled = deviceList.isNotEmpty()
         buttonInstall.isEnabled = deviceList.isNotEmpty()
+        buttonInspect.isEnabled = deviceList.isNotEmpty()
         if (deviceList.isEmpty()) {
             textStageTitle.text = getString(R.string.usb_device_none)
         } else if (installJob?.isActive != true) {
@@ -206,7 +222,20 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        requestUsbPermission(usbManager, item)
+        requestUsbPermission(usbManager, item, PendingUsbAction.INSTALL)
+    }
+
+    private fun onInspectClicked() {
+        if (installJob?.isActive == true) return
+        val item = selectedUsbDevice() ?: return
+        val usbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+
+        if (usbManager.hasPermission(item.usbDevice)) {
+            startInspect(item)
+            return
+        }
+
+        requestUsbPermission(usbManager, item, PendingUsbAction.INSPECT)
     }
 
     private fun selectedUsbDevice(): UsbDeviceItem? {
@@ -218,8 +247,13 @@ class MainActivity : AppCompatActivity() {
         return deviceList[index]
     }
 
-    private fun requestUsbPermission(usbManager: UsbManager, item: UsbDeviceItem) {
+    private fun requestUsbPermission(
+        usbManager: UsbManager,
+        item: UsbDeviceItem,
+        action: PendingUsbAction,
+    ) {
         unregisterPermissionReceiver()
+        pendingUsbAction = action
 
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -230,7 +264,10 @@ class MainActivity : AppCompatActivity() {
                 unregisterPermissionReceiver()
 
                 if (usbManager.hasPermission(item.usbDevice)) {
-                    startInstall(item)
+                    when (pendingUsbAction) {
+                        PendingUsbAction.INSPECT -> startInspect(item)
+                        else -> startInstall(item)
+                    }
                 } else {
                     safeLog(getString(R.string.permission_denied))
                     toast(R.string.permission_denied)
@@ -294,6 +331,115 @@ class MainActivity : AppCompatActivity() {
                     buttonInstall.isEnabled = deviceList.isNotEmpty()
                 }
             }
+        }
+    }
+
+    /**
+     * Read-only drive analysis: opens the device, detects an existing Ventoy layout,
+     * reads its version, and shows the report. Never writes to the device.
+     */
+    private fun startInspect(item: UsbDeviceItem) {
+        installJob = scope.launch {
+            buttonInstall.isEnabled = false
+            buttonInspect.isEnabled = false
+            safeLog(getString(R.string.inspect_progress))
+            try {
+                val report = withContext(Dispatchers.IO) {
+                    val assets = InstallerAssets.load(applicationContext.assets)
+                    val session = UsbMassStorageHelper.openBlockDevice(applicationContext, item)
+                    try {
+                        DriveInspector(session.blockDevice).inspect(assets.ventoyDiskImg)
+                    } finally {
+                        session.close()
+                    }
+                }
+                VentoidFileLogger.log(buildInspectLogLine(report))
+                showInspectReport(report)
+            } catch (e: SecurityException) {
+                VentoidFileLogger.log(e)
+                safeLog(getString(R.string.permission_denied))
+                safeToast(getString(R.string.permission_denied))
+            } catch (e: IOException) {
+                VentoidFileLogger.log(e)
+                showError(getString(R.string.inspect_failed_with_reason, e.message ?: e.javaClass.simpleName))
+            } catch (e: Exception) {
+                VentoidFileLogger.log(e)
+                showError(getString(R.string.inspect_failed_with_reason, e.message ?: e.javaClass.simpleName))
+            } finally {
+                if (!isDestroyed) {
+                    buttonInstall.isEnabled = deviceList.isNotEmpty()
+                    buttonInspect.isEnabled = deviceList.isNotEmpty()
+                }
+            }
+        }
+    }
+
+    private fun showInspectReport(report: DriveReport) {
+        val message = buildInspectReportText(report)
+        runOnUiThread {
+            if (isDestroyed) return@runOnUiThread
+            textStageTitle.text = getString(R.string.inspect_done)
+            AlertDialog.Builder(this)
+                .setTitle(R.string.inspect_report_title)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
+    }
+
+    private fun buildInspectReportText(report: DriveReport): String {
+        val lines = mutableListOf<String>()
+        lines += getString(R.string.inspect_line_capacity, formatCapacity(report.capacityBytes))
+        lines += getString(
+            R.string.inspect_line_style,
+            when (report.partitionStyle) {
+                PartitionStyle.MBR -> getString(R.string.partition_scheme_mbr_short)
+                PartitionStyle.GPT -> getString(R.string.partition_scheme_gpt_short)
+                PartitionStyle.NONE -> getString(R.string.inspect_style_none)
+            },
+        )
+        if (report.ventoyDetected) {
+            lines += getString(
+                R.string.inspect_line_ventoy_present,
+                report.ventoyVersion ?: getString(R.string.inspect_version_unknown),
+            )
+            lines += getString(
+                R.string.inspect_line_bundled,
+                report.bundledVersion ?: getString(R.string.inspect_version_unknown),
+            )
+        } else {
+            lines += getString(R.string.inspect_line_ventoy_absent)
+        }
+        report.notes.forEach { note ->
+            lines += getString(
+                when (note) {
+                    DriveNote.DISK_EMPTY -> R.string.inspect_note_empty
+                    DriveNote.NOT_VENTOY -> R.string.inspect_note_not_ventoy
+                    DriveNote.VERSION_UNREADABLE -> R.string.inspect_note_version_unreadable
+                    DriveNote.GPT_RECOMMENDED_OVER_2TB -> R.string.inspect_note_gpt_recommended
+                    DriveNote.UPDATE_AVAILABLE -> R.string.inspect_note_update_available
+                    DriveNote.UP_TO_DATE -> R.string.inspect_note_up_to_date
+                },
+            )
+        }
+        return lines.joinToString("\n")
+    }
+
+    private fun buildInspectLogLine(report: DriveReport): String {
+        return "inspect: style=" + report.partitionStyle +
+            " detected=" + report.ventoyDetected +
+            " version=" + (report.ventoyVersion ?: "none") +
+            " bundled=" + (report.bundledVersion ?: "none") +
+            " update=" + report.updateAvailable +
+            " notes=" + report.notes.joinToString(",")
+    }
+
+    private fun formatCapacity(bytes: Long): String {
+        val gib = bytes.toDouble() / (1024.0 * 1024.0 * 1024.0)
+        return if (gib >= 1024.0) {
+            String.format(Locale.US, "%.2f TiB", gib / 1024.0)
+        } else {
+            String.format(Locale.US, "%.1f GiB", gib)
         }
     }
 

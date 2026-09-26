@@ -171,3 +171,29 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 
 - 여전히 BIOS 메뉴 스모크 범위다. ISO 게스트 부팅, UEFI, Secure Boot, 물리 USB는 미검증
 - 업스트림은 설치 시 디스크 UUID(0x180, 16바이트)와 MBR 디스크 시그니처(0x1B8, 4바이트)를 난수로 기록한다. 부팅과 무관해 이번 범위에서는 구현하지 않았다
+
+## 10. 비파괴 드라이브 분석(Inspect drive) 기능 추가 (2026-09-26, 사용자 "창의적 기능" 지시)
+
+### 배경
+
+사용자가 "이 앱에 필요할 기능을 창의적으로" 요청했다. 기존 명세 범위(오프라인 OTG Ventoy 준비, 광고/분석 없음)를 벗어나지 않으면서 설치 전후에 유용하고 물리 쓰기 위험이 없는 읽기 전용 분석 기능을 새로 구현했다. Git 기록에서 복구한 부분이 아니라 전부 신규 구현이다.
+
+### 구현 (신규 — 기존 Git 기록에 없던 코드)
+
+- `inspect/Fat16Volume.kt`: 읽기 전용 FAT16 파서. BPB/루트 디렉터리/FAT 체인을 따라가 파일 내용을 읽고, FAT12/FAT32는 거부한다. `SectorSource` 추상화로 블록 장치와 인메모리 이미지를 같은 코드로 처리한다.
+- `inspect/DriveInspector.kt`: MBR(0xEF 타입 32 MiB VTOYEFI 파티션)과 GPT(이름 VTOYEFI, 데이터 파티션 "Ventoy") 레이아웃을 감지하고, VTOYEFI FAT16의 `grub/grub.cfg`에서 `set VENTOY_VERSION="x.y.z"`를 추출한다. 이는 업스트림 `vtoycli fat`이 `/grub/grub.cfg`를 읽는 방식과 동일하며, 바이너리 문자열과 `ventoy_lib.sh`의 `get_disk_ventoy_version`으로 확인했다. 번들 `ventoy.disk.img`에도 같은 파서를 적용해 내장 버전과 비교하고 업데이트 필요 여부를 점 구분 숫자 비교로 판정한다. 용량/섹터 크기와 2 TiB 초과 시 GPT 권장 노트도 보고한다. 어떤 경로로도 장치에 쓰지 않는다.
+- `MainActivity`: 기기 행 아래에 "Inspect drive" 보조 버튼 추가. USB 권한 흐름을 `PendingUsbAction`으로 일반화해 설치/분석이 공유한다. 결과는 다이얼로그(용량, 파티션 방식, 감지된 Ventoy 버전, 내장 버전, 노트)로 표시하고 파일 로그에도 기록한다.
+- 영어/중국어(zh-rCN) 문자열 추가, README Features에 명시.
+
+### 검증 (전부 비파괴)
+
+- `:app:testDebugUnitTest` BUILD SUCCESSFUL. 89 total / 87 passed / 2 skipped (QemuDiskImageTest 2개: 이미지 경로 미지정 시 가정 스킵), 0 failures/errors. 신규 `DriveInspectorTest` 8/8: 설치기가 쓴 MBR/GPT 디스크에서 Ventoy 감지와 버전 일치, 빈 디스크 → DISK_EMPTY, 일반 MBR → NOT_VENTOY, 구버전 패치 시 UPDATE_AVAILABLE, GPT 권장 경계값(0xFFFFFFFF x 512 B), 버전 비교, 번들 버전 추출.
+- 디버깅 중 발견해 수정: `ByteBuffer.wrap(array, offset, length)`의 절대 인덱스 읽기는 arrayOffset이 0이라 GPT 엔트리 LBA를 엉뚱하게 읽던 문제를 배열 직접 리틀엔디언 읽기로 교체했다.
+- `:app:lintRelease :app:assembleRelease` BUILD SUCCESSFUL.
+- `scripts/Test-AutomationScripts.ps1` PASS (F-Droid preflight 포함, exit 0).
+- QEMU 재실행 없음: 설치 경로 코드는 변경하지 않았고 분석기는 읽기 전용이라 기존 부팅 검증 결과에 영향이 없다.
+
+### 남은 한계
+
+- 분석은 논리 검사만 한다. 물리 OTG 기기에서의 UI 동작은 미검증이다. 위임 범위상 물리 장치 쓰기/플래시가 금지돼 있고 물리 USB가 없는 환경이라 단위 테스트로 대체했다.
+- 비파괴 업데이트(디스크를 지우지 않고 VTOYEFI만 교체)는 아직 미구현이다. 이번 분석기의 레이아웃/버전 판독이 그 기반이 된다.
