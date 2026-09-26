@@ -242,3 +242,31 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 - 물리 OTG 기기에서의 업데이트/탭 UI 동작은 미검증이다(위임 범위: 물리 장치 쓰기 금지). 논리 검증은 메모리 드라이버 단위 테스트와 QEMU 이미지 부팅으로 대체했다.
 - 업스트림의 `vtoycli partresize -s`(VTOYEFI보다 큰 파티션의 FAT 확장)와 `vtoycli gpt -f`(GPT 속성 복구)는 표준 32 MiB 레이아웃에서는 no-op이라 이식하지 않았다.
 - 탭 배치(버튼 아래)는 사용자 선호를 따른 것이며, 위로 옮기는 것은 레이아웃 블록 이동만으로 가능하다.
+
+## 12. 데이터 파티션 ISO 목록·여유 공간 + 쓰기 후 샘플링 검증 (2026-09-26)
+
+사용자 승인("ㅇㅇ해봐")에 따라 창의적 기능 후보 중 ③(ISO 목록/여유 공간 읽기)과 ②(쓰기 후 샘플링 검증)를 구현했다. 둘 다 기존 명세와 충돌하지 않는 신규 코드다(기록 복구 없음, 전부 신규 구현).
+
+### 구현 (전부 신규)
+
+- `inspect/ExFatVolume.kt`: 읽기 전용 exFAT 파서. 부트 섹터 검증("EXFAT   "+55AA, 512바이트 섹터), FAT 체인을 따라 루트/하위 디렉터리 재귀(깊이 8, 4096엔트리 상한), 0x85/0xC0/0xC1 엔트리 세트 조립, 삭제 엔트리(type&0x80==0) 스킵, 0x81 할당 비트맵 캡처. 여유 공간 = 비트맵 0비트 클러스터 수 × 클러스터 크기. 디스크에 한 바이트도 쓰지 않는다.
+- `DriveInspector`: `DataPartitionInfo(totalBytes, freeBytes, fileCount, bootableCount, bootableNames, truncated)` — Ventoy 감지 시 데이터 파티션 요약을 리포트에 첨부. 부팅 가능 확장자는 Ventoy 지원 목록(iso/img/vhd/vhdx/vdi/wim/efi), 이름은 5개까지만 보고한다.
+- UI: 분석 리포트에 파일 수/부팅 가능 이미지 수, 이미지 이름 미리보기, 여유 공간 줄 추가(EN + zh-rCN 문자열).
+- `installer/SampledVerifier.kt`: 쓰기 후 읽기 전용 샘플 검증. 균등 stride(i*total/count, 중복 제거) + 마지막 섹터 포함, 기본 64샘플. 불일치 시 IOException("Post-write verification failed at sector N")으로 작업을 실패시킨다.
+- `VentoyInstaller.install`: core.img(16샘플)와 ventoy.disk.img 65536섹터(64샘플) 기록 직후 검증.
+- `VentoyUpdater.update`: core 범위 검증(2040-2047 reserved tail은 복원 단계에서 의도적으로 core.img와 달라지므로 제외, 16샘플) + VTOYEFI 전체(64샘플) 검증.
+
+### 검증 (전부 비파괴)
+
+- `:app:testDebugUnitTest` BUILD SUCCESSFUL: 102 total / 98 passed / 4 skipped(QEMU 이미지 생성: 속성 미지정 시 가정 스킵) / 0 failures.
+  - `SampledVerifierTest` 4/4: 샘플 인덱스 성질(정렬·중복 없음·끝 포함), 직접 통과/손상 실패, 설치 중 core 샘플 섹터 손상 시 IOException, GPT 업데이트 중 샘플 섹터 손상 시 IOException(읽기 손상 주입 드라이버 사용).
+  - `DriveInspectorDataPartitionTest` 3/3: 새 설치 후 빈 데이터 파티션(파일 0, 여유 공간 > 0), 수작업 exFAT 엔트리(ubuntu.iso / ISOs 디렉터리 / 그 안의 win11.vhdx / notes.txt) 목록·부팅 가능 분류·여유 공간 감소(클러스터 1개 = 32768바이트) 일치, 부팅 가능 확장자 분류.
+- `:app:lintRelease :app:assembleRelease` BUILD SUCCESSFUL.
+- `scripts/Test-AutomationScripts.ps1` PASS (F-Droid preflight 포함).
+- QEMU 재부팅은 하지 않았다: 이번 변경은 기록 바이트를 바꾸지 않고 쓰기 후 읽기 검증만 추가한다. 새 검증 코드가 끼어든 설치/업데이트 경로는 모든 메모리 드라이버 단위 테스트가 같은 경로로 통과하며 확인됐다.
+
+### 남은 한계
+
+- 샘플링 검증은 확률적 발견이다(기본 64/65536 섹터). 샘플 사이의 좁은 손상 구간은 지나칠 수 있지만, 조용한 쓰기 실패의 대표 패턴(전면 실패, 청크 경계 오류, 접촉 불량)은 잡는다.
+- exFAT 파서는 목록/여유 공간 전용 읽기다. part1이 NTFS 등 다른 파일시스템으로 재포맷된 경우 조용히 건너뛴다(`dataPartition = null`).
+- 물리 OTG 기기에서의 표시 동작은 미검증이다(위임 범위: 물리 장치 쓰기 금지 유지).

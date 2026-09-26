@@ -108,6 +108,16 @@ class VentoyUpdater(
         }
         writeSectors(coreOffset, patchedCore, 0, coreBytes)
         writeSectors(RESERVED_TAIL_SECTOR, reservedTail)
+        // The reserved tail (2040-2047) intentionally differs from core.img after
+        // the restore, so the sampled check stops short of it.
+        SampledVerifier.verifyRegion(
+            blockDevice,
+            coreOffset,
+            patchedCore,
+            0,
+            RESERVED_TAIL_SECTOR - coreOffset,
+            16,
+        )
         progress?.invoke("core", coreSectors.toLong(), coreSectors.toLong())
 
         // The data partition is intentionally untouched; the row completes instantly.
@@ -129,6 +139,13 @@ class VentoyUpdater(
             written += chunk
             progress?.invoke("ventoy", written, ventoyTotalSectors)
         }
+        SampledVerifier.verifyRegion(
+            blockDevice,
+            layout.efiStartSector,
+            ventoyDiskImg,
+            0,
+            ventoyTotalSectors,
+        )
 
         val verification = inspector.inspect(ventoyDiskImg)
         if (!verification.ventoyDetected ||

@@ -51,6 +51,15 @@ internal fun leUint(bytes: ByteArray, offset: Int): Long {
         ((bytes[offset + 3].toLong() and 0xFF) shl 24)
 }
 
+/** Reads a little-endian int64. */
+internal fun leLong(bytes: ByteArray, offset: Int): Long {
+    var value = 0L
+    for (index in 0 until 8) {
+        value = value or ((bytes[offset + index].toLong() and 0xFF) shl (index * 8))
+    }
+    return value
+}
+
 /** Normalizes a file name to the 11-byte FAT 8.3 form (space padded, upper case). */
 internal fun toShortName(name: String): String {
     val upper = name.uppercase(Locale.US)

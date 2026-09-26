@@ -32,6 +32,16 @@ enum class DriveNote {
     UP_TO_DATE,
 }
 
+/** Read-only summary of the Ventoy data partition (exFAT part1). */
+data class DataPartitionInfo(
+    val totalBytes: Long,
+    val freeBytes: Long,
+    val fileCount: Int,
+    val bootableCount: Int,
+    val bootableNames: List<String>,
+    val truncated: Boolean,
+)
+
 data class DriveReport(
     val capacityBytes: Long,
     val blockSize: Int,
@@ -43,6 +53,7 @@ data class DriveReport(
     val updateAvailable: Boolean,
     val gptRecommended: Boolean,
     val notes: List<DriveNote>,
+    val dataPartition: DataPartitionInfo? = null,
 )
 
 /**
@@ -122,6 +133,8 @@ class DriveInspector(
             notes += DriveNote.UP_TO_DATE
         }
 
+        val dataPartition = readDataPartitionInfo(layout)
+
         return DriveReport(
             capacityBytes = capacityBytes,
             blockSize = blockSize,
@@ -133,7 +146,28 @@ class DriveInspector(
             updateAvailable = updateAvailable,
             gptRecommended = gptRecommended,
             notes = notes.toList(),
+            dataPartition = dataPartition,
         )
+    }
+
+    /** Lists the ISO files and free space of the exFAT data partition, if present. */
+    private fun readDataPartitionInfo(layout: VentoyLayoutInfo): DataPartitionInfo? {
+        val dataStart = layout.dataStartSector ?: return null
+        return runCatching {
+            val volume = ExFatVolume.open(BlockDeviceSectorSource(blockDevice, dataStart))
+                ?: return@runCatching null
+            val entries = volume.listEntries()
+            val files = entries.filter { !it.isDirectory }
+            val bootable = files.filter { isBootableImageName(it.name) }
+            DataPartitionInfo(
+                totalBytes = (layout.dataSectorCount ?: 0L) * SectorSource.SECTOR_SIZE,
+                freeBytes = runCatching { volume.freeSpaceBytes() }.getOrNull() ?: -1L,
+                fileCount = files.size,
+                bootableCount = bootable.size,
+                bootableNames = bootable.take(MAX_REPORT_NAMES).map { it.name },
+                truncated = entries.size >= MAX_SCAN_ENTRIES,
+            )
+        }.getOrNull()
     }
 
     private fun hasMbrSignature(sector0: ByteArray): Boolean {
@@ -256,14 +290,6 @@ class DriveInspector(
         return name.toString()
     }
 
-    private fun leLong(bytes: ByteArray, offset: Int): Long {
-        var value = 0L
-        for (index in 0 until 8) {
-            value = value or ((bytes[offset + index].toLong() and 0xFF) shl (index * 8))
-        }
-        return value
-    }
-
     companion object {
         private const val EFI_NAME = "VTOYEFI"
         private const val DATA_GPT_NAME = "Ventoy"
@@ -271,7 +297,10 @@ class DriveInspector(
         private const val MBR_TYPE_FAT32_CHS = 0x0B
         private const val MBR_TYPE_FAT32_LBA = 0x0C
         private const val MAX_GPT_ENTRIES_BYTES = 16 * 1024 * 1024
+        private const val MAX_REPORT_NAMES = 5
+        private const val MAX_SCAN_ENTRIES = 4096
         private val GRUB_CFG_PATH = listOf("GRUB", "GRUB.CFG")
+        private val BOOTABLE_EXTENSIONS = setOf("iso", "img", "vhd", "vhdx", "vdi", "wim", "efi")
         private val versionPattern = Regex("""set\s+VENTOY_VERSION\s*=\s*"([^"]+)""")
 
         /** Largest byte capacity an MBR table can describe (0xFFFFFFFF 512-byte sectors). */
@@ -280,6 +309,13 @@ class DriveInspector(
         /** Drives beyond the MBR limit need GPT to keep the whole capacity usable. */
         fun isGptRecommended(capacityBytes: Long): Boolean {
             return capacityBytes > MBR_MAX_ADDRESSABLE_BYTES
+        }
+
+        /** Ventoy-bootable image extensions, matched case-insensitively. */
+        fun isBootableImageName(name: String): Boolean {
+            val dot = name.lastIndexOf('.')
+            if (dot < 0 || dot == name.length - 1) return false
+            return name.substring(dot + 1).lowercase() in BOOTABLE_EXTENSIONS
         }
 
         internal fun extractVentoyVersion(grubCfg: String): String? {

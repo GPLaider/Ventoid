@@ -337,6 +337,7 @@ class VentoyInstaller(
             coreImg
         }
         writeSectors(coreOffset, patchedCoreImg, 0, coreBytes)
+        SampledVerifier.verifyRegion(blockDevice, coreOffset, patchedCoreImg, 0, coreSectors.toLong(), 16)
         progress?.invoke("core", coreSectors.toLong(), coreSectors.toLong())
         progress?.invoke("part1", 0, 1)
         VentoidFileLogger.log("install: formatting part1 exFAT label=${ExFatFormatter.VOLUME_LABEL}")
@@ -361,6 +362,13 @@ class VentoyInstaller(
             ventoyWritten += chunk
             progress?.invoke("ventoy", ventoyWritten, ventoyTotalSectors)
         }
+        SampledVerifier.verifyRegion(
+            blockDevice,
+            layout.part2StartSector,
+            ventoyDiskImg,
+            0,
+            ventoyTotalSectors,
+        )
         VentoidFileLogger.log("install: done")
         try { Log.d(tag, "install: done") } catch (_: Exception) { }
     }

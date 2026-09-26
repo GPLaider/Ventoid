@@ -35,6 +35,9 @@
     <string name="inspect_note_update_available">有可用更新——重新准备驱动器即可写入内置 Ventoy 版本。</string>
     <string name="inspect_note_up_to_date">已安装的 Ventoy 与内置版本一致。</string>
     <string name="inspect_failed_with_reason">驱动器分析失败：%1$s</string>
+    <string name="inspect_line_files">数据分区：%1$d 个文件，其中 %2$d 个可启动镜像</string>
+    <string name="inspect_line_iso_names">镜像：%1$s</string>
+    <string name="inspect_line_free">可用空间：%1$s</string>
     <string name="tab_inspect">分析</string>
     <string name="tab_update">更新</string>
     <string name="inspect_tab_desc">只读分析：检测驱动器上是否已有 Ventoy 及其版本，不写入任何数据。</string>

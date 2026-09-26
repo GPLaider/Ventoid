@@ -559,6 +559,19 @@ class MainActivity : AppCompatActivity() {
         } else {
             lines += getString(R.string.inspect_line_ventoy_absent)
         }
+        report.dataPartition?.let { info ->
+            lines += getString(R.string.inspect_line_files, info.fileCount, info.bootableCount)
+            if (info.bootableNames.isNotEmpty()) {
+                var preview = info.bootableNames.joinToString(", ")
+                if (info.truncated || info.bootableCount > info.bootableNames.size) {
+                    preview += " ..."
+                }
+                lines += getString(R.string.inspect_line_iso_names, preview)
+            }
+            if (info.freeBytes >= 0) {
+                lines += getString(R.string.inspect_line_free, formatCapacity(info.freeBytes))
+            }
+        }
         report.notes.forEach { note ->
             lines += getString(
                 when (note) {
