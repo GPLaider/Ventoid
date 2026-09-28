@@ -168,7 +168,7 @@ class DriveInspector(
                 freeBytes = runCatching { volume.freeSpaceBytes() }.getOrNull() ?: -1L,
                 fileCount = files.size,
                 bootableCount = bootable.size,
-                bootableNames = bootable.take(MAX_REPORT_NAMES).map { it.name },
+                bootableNames = bootable.take(MAX_LIST_NAMES).map { it.name },
                 truncated = entries.size >= MAX_SCAN_ENTRIES,
                 zeroByteBootableCount = zeroByteBootable.size,
                 zeroByteBootableNames = zeroByteBootable.take(MAX_REPORT_NAMES).map { it.name },
@@ -304,6 +304,7 @@ class DriveInspector(
         private const val MBR_TYPE_FAT32_LBA = 0x0C
         private const val MAX_GPT_ENTRIES_BYTES = 16 * 1024 * 1024
         private const val MAX_REPORT_NAMES = 5
+        private const val MAX_LIST_NAMES = 100
         private const val MAX_SCAN_ENTRIES = 4096
         private val GRUB_CFG_PATH = listOf("GRUB", "GRUB.CFG")
         private val BOOTABLE_EXTENSIONS = setOf("iso", "img", "vhd", "vhdx", "vdi", "wim", "efi")

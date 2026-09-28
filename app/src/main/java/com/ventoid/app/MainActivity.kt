@@ -1,5 +1,6 @@
 package com.ventoid.app
 
+import android.app.AlertDialog
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -51,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val ACTION_USB_PERMISSION = "android.hardware.usb.action.USB_PERMISSION"
+        private const val PREVIEW_IMAGE_COUNT = 5
     }
 
     private enum class PendingUsbAction {
@@ -135,6 +137,7 @@ class MainActivity : AppCompatActivity() {
         buttonUpdate.setOnClickListener { onUpdateClicked() }
         tabInspect.setOnClickListener { selectTab(inspect = true) }
         tabUpdate.setOnClickListener { selectTab(inspect = false) }
+        textInspectResult.setOnClickListener { showFullImageList() }
         selectTab(inspect = true)
 
         spinnerUsb.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
@@ -403,6 +406,21 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
                 safeToast(getString(R.string.install_success))
+                // Confirm what actually landed on the drive: re-run the read-only
+                // inspection so the report panel and the title show the new version.
+                try {
+                    val report = runDriveInspection(item)
+                    VentoidFileLogger.log(buildInspectLogLine(report))
+                    renderInspectReport(report)
+                    textStageTitle.text = getString(
+                        R.string.install_success_confirmed,
+                        report.ventoyVersion ?: getString(R.string.inspect_version_unknown),
+                    )
+                } catch (e: Exception) {
+                    VentoidFileLogger.log(
+                        "post-install inspect failed: " + (e.message ?: e.javaClass.simpleName),
+                    )
+                }
             } catch (e: SecurityException) {
                 VentoidFileLogger.log(e)
                 safeLog(getString(R.string.permission_denied))
@@ -423,6 +441,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** Opens the device, runs the read-only inspection, and closes the session. */
+    private suspend fun runDriveInspection(item: UsbDeviceItem): DriveReport {
+        return withContext(Dispatchers.IO) {
+            val assets = InstallerAssets.load(applicationContext.assets)
+            val session = UsbMassStorageHelper.openBlockDevice(applicationContext, item)
+            try {
+                DriveInspector(session.blockDevice).inspect(assets.ventoyDiskImg)
+            } finally {
+                session.close()
+            }
+        }
+    }
+
     /**
      * Read-only drive analysis: opens the device, detects an existing Ventoy layout,
      * reads its version, and shows the report. Never writes to the device.
@@ -433,15 +464,7 @@ class MainActivity : AppCompatActivity() {
             setActionButtonsEnabled(false)
             safeLog(getString(R.string.inspect_progress))
             try {
-                val report = withContext(Dispatchers.IO) {
-                    val assets = InstallerAssets.load(applicationContext.assets)
-                    val session = UsbMassStorageHelper.openBlockDevice(applicationContext, item)
-                    try {
-                        DriveInspector(session.blockDevice).inspect(assets.ventoyDiskImg)
-                    } finally {
-                        session.close()
-                    }
-                }
+                val report = runDriveInspection(item)
                 VentoidFileLogger.log(buildInspectLogLine(report))
                 renderInspectReport(report)
             } catch (e: SecurityException) {
@@ -565,11 +588,15 @@ class MainActivity : AppCompatActivity() {
         report.dataPartition?.let { info ->
             lines += getString(R.string.inspect_line_files, info.fileCount, info.bootableCount)
             if (info.bootableNames.isNotEmpty()) {
-                var preview = info.bootableNames.joinToString(", ")
-                if (info.truncated || info.bootableCount > info.bootableNames.size) {
+                val previewNames = info.bootableNames.take(PREVIEW_IMAGE_COUNT)
+                var preview = previewNames.joinToString(", ")
+                if (info.truncated || info.bootableCount > previewNames.size) {
                     preview += " ..."
                 }
                 lines += getString(R.string.inspect_line_iso_names, preview)
+                if (info.bootableCount > previewNames.size) {
+                    lines += getString(R.string.inspect_line_iso_more, info.bootableCount)
+                }
             }
             if (info.zeroByteBootableCount > 0) {
                 var names = info.zeroByteBootableNames.joinToString(", ")
@@ -599,6 +626,21 @@ class MainActivity : AppCompatActivity() {
             )
         }
         return lines.joinToString("\n")
+    }
+
+    /** Shows the full bootable image list when the inline preview is capped. */
+    private fun showFullImageList() {
+        val info = lastReport?.dataPartition ?: return
+        if (info.bootableNames.size <= PREVIEW_IMAGE_COUNT) return
+        val names = info.bootableNames.toMutableList()
+        if (info.bootableCount > names.size) {
+            names += getString(R.string.inspect_images_dialog_more, info.bootableCount - names.size)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.inspect_images_dialog_title)
+            .setMessage(names.joinToString("\n"))
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     private fun buildInspectLogLine(report: DriveReport): String {

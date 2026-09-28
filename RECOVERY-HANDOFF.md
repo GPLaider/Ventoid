@@ -294,3 +294,29 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 
 - 속도·잔여 시간은 VENTOY 단계에만 표시한다(core/exFAT 포맷은 순식간이라 의미가 없다). ETA는 EMA 특성상 초반에 다소 흔들릴 수 있다.
 - 0바이트 경고는 exFAT 데이터 파티션을 읽을 수 있을 때만 나온다. 0바이트가 아닌 부분 손상(중간에 끊긴 ISO)은 크기만으로 판별할 수 없어 다루지 않는다.
+
+## 14. 예약 공간 사전 검사 + 설치 후 자동 재분석 + ISO 전체 목록 (2026-09-29)
+
+사용자 지시("그건 넣으면 되고~ 신규기능들도 넣어")로 F-Droid 메타데이터 변경(AuthorName/AuthorWebSite, `970caa8` 별도 커밋)을 반영하고, 제안했던 신규 기능 3종을 구현했다. 전부 신규 구현이며 기록 복구분은 없다.
+
+### 구현 (전부 신규)
+
+- 예약 공간 사전 검사: `VentoyInstaller`의 레이아웃 수학을 companion `computeLayout`으로 승격(인스턴스 `calculateLayout`은 위임만 한다). `maxReservableSectors`는 computeLayout 성공 여부의 단조성을 이용한 이진 탐색으로 정확한 상한을 구하고, `validateLayoutFits`는 쓰기 전에 숫자가 든 IOException("Reserved space does not fit: X GiB requested, but at most Y GiB…" / "Disk too small for Ventoy: …")을 던진다. `install()` 첫 문장에서 호출해 한 바이트도 쓰기 전에 실패한다(기존에는 bare require IllegalArgumentException이 "unexpected error"로 표시됐다).
+- 설치 후 자동 재분석: 설치 성공 직후 읽기 전용 분석을 다시 돌려 분석 패널을 채우고 단계 제목을 "Install complete — Ventoy X.Y.Z verified on the drive."로 마무리한다. 검사 실패는 로그만 남기고 설치 성공을 덮지 않는다. 분석 IO는 `runDriveInspection`으로 추출해 분석 버튼 경로와 공유한다.
+- ISO 전체 목록: `DriveInspector`의 bootableNames 상한을 5→100으로 올리고, 인라인 미리보기는 UI에서 5개로 자른다. 5개 초과 시 리포트에 "Tap this report to list all N images." 줄이 나오고, 리포트를 탭하면 AlertDialog로 전체 목록(100개 초과분은 "… and N more")을 보여준다.
+- 문자열 EN + zh-rCN 4건 추가.
+
+### 검증 (전부 비파괴)
+
+- `:app:testDebugUnitTest` BUILD SUCCESSFUL: 115 total / 111 passed / 4 skipped(QEMU 이미지 생성: 속성 미지정 시 가정 스킵) / 0 failures.
+  - `LayoutValidationTest` 6/6: 최대 예약 경계(max는 성공, max+1은 실패), GPT 백업 오버헤드 반영(34±8섹터), 숫자 메시지, 소형 디스크 거부, **예약 초과 설치가 한 바이트도 쓰지 않고 IOException으로 실패**(백킹 버퍼 전부 0 확인), 인스턴스↔companion 레이아웃 위임 일치.
+  - `DriveInspectorDataPartitionTest` 5/5: 기존 4건 + ISO 7개 제작 시 목록이 미리보기 상한(5)을 넘어 전부 수집됨 확인.
+- `:app:lintRelease :app:assembleRelease` BUILD SUCCESSFUL.
+- `scripts/Test-AutomationScripts.ps1` PASS (F-Droid preflight 포함, AuthorName/AuthorWebSite 추가분 포함).
+- QEMU/물리기기 재검증 불필요: 정상 경로의 디스크 기록 바이트는 변하지 않았다(사전 검사는 실패 경로만 추가).
+
+### 남은 한계
+
+- 예약 공간 사전 검사는 기기를 연 직후(쓰기 전)에 동작한다. UI 단에서 기기를 두 번 여는 것을 피하려고 스피너 단계의 사전 표시는 하지 않았다.
+- 자동 재분석은 설치 직후 세션을 다시 여는데, 극히 드문 OTG 재협상 지연으로 실패하면 로그만 남고 제목은 설치 성공 문구를 유지한다.
+- ISO 전체 목록 다이얼로그는 이름만 보여준다(크기/경로 열은 미구현).

@@ -7,6 +7,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 import java.util.UUID
 import java.util.zip.CRC32
 
@@ -24,6 +25,115 @@ class VentoyInstaller(
         val backupHeader: ByteArray,
         val backupEntries: ByteArray,
     )
+
+    companion object {
+        /**
+         * Pure layout math shared by [calculateLayout] and the pre-flight checks.
+         * Throws IllegalArgumentException when the layout cannot fit.
+         */
+        internal fun computeLayout(
+            diskSectors: Long,
+            useGpt: Boolean,
+            reserveSectors: Long,
+        ): VentoyLayout {
+            require(reserveSectors >= 0L) {
+                "Reserved space cannot be negative"
+            }
+            val part1Start = VentoyConstants.PART1_START_SECTOR
+            val efiSectors = VentoyConstants.VENTOY_SECTOR_NUM.toLong()
+            val gptOverhead = if (useGpt) 34L else 0L
+            require(diskSectors > part1Start + efiSectors + gptOverhead) {
+                "Disk too small for Ventoy layout"
+            }
+
+            val usableEndExclusive = diskSectors - reserveSectors - gptOverhead
+            require(usableEndExclusive > part1Start + efiSectors) {
+                "Reserved space leaves insufficient room for Ventoy"
+            }
+
+            var part1End = usableEndExclusive - efiSectors - 1
+            var part2Start = part1End + 1
+            val mod = (part2Start % VentoyConstants.ALIGNMENT_SECTORS).toInt()
+            if (mod != 0) {
+                part1End -= mod
+                part2Start = part1End + 1
+            }
+            require(part1End >= part1Start) {
+                "Reserved space leaves insufficient room for the Ventoy data partition"
+            }
+
+            val part2End = part2Start + efiSectors - 1
+            val part1Count = part1End - part1Start + 1
+            ExFatFormatter.computeVolumeLayout(part1Count, ExFatFormatter.sectorsPerCluster(part1Count))
+            return VentoyLayout(
+                part1StartSector = part1Start,
+                part1EndSector = part1End,
+                part2StartSector = part2Start,
+                part2EndSector = part2End,
+                part1SectorCount = part1Count,
+                part2SectorCount = efiSectors,
+            )
+        }
+
+        /** Largest end-of-disk reserve (sectors) that still leaves a formattable layout. */
+        fun maxReservableSectors(diskSectors: Long, useGpt: Boolean): Long {
+            var low = 0L
+            var high = diskSectors.coerceAtLeast(0L)
+            while (low < high) {
+                val mid = (low + high + 1) / 2
+                if (runCatching { computeLayout(diskSectors, useGpt, mid) }.isSuccess) {
+                    low = mid
+                } else {
+                    high = mid - 1
+                }
+            }
+            return low
+        }
+
+        /**
+         * Pre-flight check run before any byte is written. Throws IOException with a
+         * numeric, user-readable message instead of a bare layout require failure.
+         */
+        @Throws(IOException::class)
+        fun validateLayoutFits(diskSectors: Long, useGpt: Boolean, reserveSectors: Long) {
+            if (reserveSectors < 0L) {
+                throw IOException("Reserved space cannot be negative")
+            }
+            if (runCatching { computeLayout(diskSectors, useGpt, reserveSectors) }.isSuccess) {
+                return
+            }
+            if (reserveSectors > 0L) {
+                val maxReserve = maxReservableSectors(diskSectors, useGpt)
+                if (maxReserve > 0L) {
+                    throw IOException(
+                        String.format(
+                            Locale.US,
+                            "Reserved space does not fit: %.1f GiB requested, " +
+                                "but at most %.1f GiB can be reserved on this drive.",
+                            sectorsToGiB(reserveSectors),
+                            sectorsToGiB(maxReserve),
+                        ),
+                    )
+                }
+                throw IOException(
+                    "Reserved space does not fit: this drive only has room for " +
+                        "the Ventoy partitions themselves.",
+                )
+            }
+            throw IOException(
+                String.format(
+                    Locale.US,
+                    "Disk too small for Ventoy: %.1f GiB leaves no room for the " +
+                        "Ventoy partitions plus a minimal data partition.",
+                    sectorsToGiB(diskSectors),
+                ),
+            )
+        }
+
+        private fun sectorsToGiB(sectors: Long): Double {
+            return sectors * VentoyConstants.SECTOR_SIZE.toDouble() / (1024.0 * 1024.0 * 1024.0)
+        }
+    }
 
     private val blockSize: Int get() = blockDevice.blockSize
     private val totalBlocks: Long get() = blockDevice.blocks
@@ -47,45 +157,7 @@ class VentoyInstaller(
         diskSectors: Long,
         useGpt: Boolean = false,
         reserveSectors: Long = 0L,
-    ): VentoyLayout {
-        require(reserveSectors >= 0L) {
-            "Reserved space cannot be negative"
-        }
-        val part1Start = VentoyConstants.PART1_START_SECTOR
-        val efiSectors = VentoyConstants.VENTOY_SECTOR_NUM.toLong()
-        val gptOverhead = if (useGpt) 34L else 0L
-        require(diskSectors > part1Start + efiSectors + gptOverhead) {
-            "Disk too small for Ventoy layout"
-        }
-
-        val usableEndExclusive = diskSectors - reserveSectors - gptOverhead
-        require(usableEndExclusive > part1Start + efiSectors) {
-            "Reserved space leaves insufficient room for Ventoy"
-        }
-
-        var part1End = usableEndExclusive - efiSectors - 1
-        var part2Start = part1End + 1
-        val mod = (part2Start % VentoyConstants.ALIGNMENT_SECTORS).toInt()
-        if (mod != 0) {
-            part1End -= mod
-            part2Start = part1End + 1
-        }
-        require(part1End >= part1Start) {
-            "Reserved space leaves insufficient room for the Ventoy data partition"
-        }
-
-        val part2End = part2Start + efiSectors - 1
-        val part1Count = part1End - part1Start + 1
-        ExFatFormatter.computeVolumeLayout(part1Count, ExFatFormatter.sectorsPerCluster(part1Count))
-        return VentoyLayout(
-            part1StartSector = part1Start,
-            part1EndSector = part1End,
-            part2StartSector = part2Start,
-            part2EndSector = part2End,
-            part1SectorCount = part1Count,
-            part2SectorCount = efiSectors,
-        )
-    }
+    ): VentoyLayout = computeLayout(diskSectors, useGpt, reserveSectors)
 
     /**
      * Build 512-byte MBR with boot code (first 446 bytes) and two partition entries.
@@ -282,6 +354,8 @@ class VentoyInstaller(
         require(ventoyDiskImg.size >= VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) {
             "ventoy.disk.img must be at least ${VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES} bytes"
         }
+        // Pre-flight: fail with a numeric message before a single byte is written.
+        validateLayoutFits(totalBlocks, useGpt, reserveSectors)
         val layout = calculateLayout(
             diskSectors = totalBlocks,
             useGpt = useGpt,

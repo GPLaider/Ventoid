@@ -132,6 +132,32 @@ class DriveInspectorDataPartitionTest {
         assertEquals(listOf("broken.iso"), info.zeroByteBootableNames)
     }
 
+    @Test
+    fun `bootable list keeps more names than the inline preview shows`() {
+        val driver = installToMemoryDisk()
+        val layout = VentoyInstaller(driver).calculateLayout(DISK_SECTORS, useGpt = false)
+        val spc = ExFatFormatter.sectorsPerCluster(layout.part1SectorCount)
+        val volumeLayout = ExFatFormatter.computeVolumeLayout(layout.part1SectorCount, spc)
+        val part1ByteOffset = layout.part1StartSector * VentoyConstants.SECTOR_SIZE
+        val rootOffset = part1ByteOffset +
+            (volumeLayout.clusterHeapOffsetSectors +
+                (volumeLayout.rootDirFirstCluster - 2L) * spc) * VentoyConstants.SECTOR_SIZE
+
+        val names = (1..7).map { "distro$it.iso" }
+        var slot = firstFreeEntryOffset(driver.backingBuffer, rootOffset)
+        for (name in names) {
+            val entry = entrySet(name, isDirectory = false, firstCluster = 0, sizeBytes = 1_000_000L)
+            System.arraycopy(entry, 0, driver.backingBuffer, slot, entry.size)
+            slot += entry.size
+        }
+
+        val info = DriveInspector(driver).inspect(bundledImage).dataPartition
+
+        assertNotNull(info)
+        assertEquals(7, info!!.bootableCount)
+        assertEquals(names, info.bootableNames)
+    }
+
     private fun installToMemoryDisk(): MemoryBlockDeviceDriver {
         val driver = MemoryBlockDeviceDriver(DISK_BYTES, VentoyConstants.SECTOR_SIZE)
         VentoyInstaller(driver).install(

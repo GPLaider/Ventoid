@@ -39,6 +39,10 @@
     <string name="inspect_line_iso_names">Images: %1$s</string>
     <string name="inspect_line_free">Free space: %1$s</string>
     <string name="inspect_line_zero_byte_images">Warning: %1$d zero-byte image(s) cannot boot: %2$s</string>
+    <string name="inspect_line_iso_more">Tap this report to list all %1$d images.</string>
+    <string name="inspect_images_dialog_title">Bootable images</string>
+    <string name="inspect_images_dialog_more">… and %1$d more</string>
+    <string name="install_success_confirmed">Install complete — Ventoy %1$s verified on the drive.</string>
     <string name="transfer_eta_seconds">~%1$d s left</string>
     <string name="transfer_eta_minutes">~%1$d min left</string>
     <string name="tab_inspect">Inspect</string>

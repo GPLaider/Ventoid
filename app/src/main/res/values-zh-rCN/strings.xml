@@ -39,6 +39,10 @@
     <string name="inspect_line_iso_names">镜像：%1$s</string>
     <string name="inspect_line_free">可用空间：%1$s</string>
     <string name="inspect_line_zero_byte_images">警告：%1$d 个 0 字节镜像无法启动：%2$s</string>
+    <string name="inspect_line_iso_more">点按此报告可列出全部 %1$d 个镜像。</string>
+    <string name="inspect_images_dialog_title">可启动镜像</string>
+    <string name="inspect_images_dialog_more">……另有 %1$d 个</string>
+    <string name="install_success_confirmed">安装完成——已确认驱动器中的 Ventoy %1$s。</string>
     <string name="transfer_eta_seconds">剩余约 %1$d 秒</string>
     <string name="transfer_eta_minutes">剩余约 %1$d 分钟</string>
     <string name="tab_inspect">分析</string>
