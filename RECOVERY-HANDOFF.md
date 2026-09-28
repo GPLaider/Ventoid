@@ -270,3 +270,27 @@ Git 저장소 내용은 손상되지 않았다. 근거:
 - 샘플링 검증은 확률적 발견이다(기본 64/65536 섹터). 샘플 사이의 좁은 손상 구간은 지나칠 수 있지만, 조용한 쓰기 실패의 대표 패턴(전면 실패, 청크 경계 오류, 접촉 불량)은 잡는다.
 - exFAT 파서는 목록/여유 공간 전용 읽기다. part1이 NTFS 등 다른 파일시스템으로 재포맷된 경우 조용히 건너뛴다(`dataPartition = null`).
 - 물리 OTG 기기에서의 표시 동작은 미검증이다(위임 범위: 물리 장치 쓰기 금지 유지).
+
+## 13. 쓰기 속도·남은 시간 표시 + 0바이트 이미지 경고 (2026-09-29)
+
+사용자 지시("더해봐 좋은 기능")에 따라 실용성 높은 다음 두 기능을 추가했다. 둘 다 신규 구현이며 기록 복구분은 없다.
+
+### 구현 (전부 신규)
+
+- `install/TransferMeter.kt`: 진행 콜백 델타의 지수이동평균(EMA, α=0.4)으로 바이트 처리율을 재는 순수 로직 클래스. 시계를 주입해 단위 테스트에서 결정적으로 검증한다. 최소 관측 창(0.2초) 전에는 추정을 내지 않고, 진행이 멈춘 콜백(바이트 증가 0)은 이전 속도를 유지한다.
+- MainActivity: 설치/업데이트의 VENTOY 단계(32 MiB 기록, 가장 오래 걸리는 구간)에서 단계 제목에 `8.4 MB/s · ~12 s left` 형태의 속도·예상 잔여 시간을 덧붙인다. Starting/UpdateStarting에서 미터 리셋. 90초 미만은 초, 이상은 분 표시(EN + zh-rCN).
+- `DriveInspector`: `DataPartitionInfo`에 `zeroByteBootableCount/zeroByteBootableNames` 추가. 0바이트 부팅 이미지(복사 중단 흔적)는 절대 부팅되지 않으므로 분석 리포트에 "Warning: N zero-byte image(s) cannot boot: 이름…" 경고 줄을 낸다(EN + zh-rCN).
+
+### 검증 (전부 비파괴)
+
+- `:app:testDebugUnitTest` BUILD SUCCESSFUL: 108 total / 104 passed / 4 skipped(QEMU 이미지 생성: 속성 미지정 시 가정 스킵) / 0 failures.
+  - `TransferMeterTest` 5/5: EMA 속도·잔여 시간 수치(4 MB/s → 5.6 MB/s 갱신, 잔여 7.5 s), 최소 관측 창 전 null, 정지 진행에서 이전 속도 유지, 완료 시 잔여 0, 리셋.
+  - `DriveInspectorDataPartitionTest` 4/4: 기존 3건 + 0바이트 broken.iso와 정상 good.iso를 심어 0바이트만 경고 대상이 됨을 확인.
+- `:app:lintRelease :app:assembleRelease` BUILD SUCCESSFUL.
+- `scripts/Test-AutomationScripts.ps1` PASS (F-Droid preflight 포함).
+- QEMU/물리기기 재검증 불필요: 디스크 기록 경로 변경이 없다(표시·읽기 전용).
+
+### 남은 한계
+
+- 속도·잔여 시간은 VENTOY 단계에만 표시한다(core/exFAT 포맷은 순식간이라 의미가 없다). ETA는 EMA 특성상 초반에 다소 흔들릴 수 있다.
+- 0바이트 경고는 exFAT 데이터 파티션을 읽을 수 있을 때만 나온다. 0바이트가 아닌 부분 손상(중간에 끊긴 ISO)은 크기만으로 판별할 수 없어 다루지 않는다.

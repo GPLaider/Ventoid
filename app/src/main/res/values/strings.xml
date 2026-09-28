@@ -38,6 +38,9 @@
     <string name="inspect_line_files">Data partition: %1$d file(s), %2$d bootable image(s)</string>
     <string name="inspect_line_iso_names">Images: %1$s</string>
     <string name="inspect_line_free">Free space: %1$s</string>
+    <string name="inspect_line_zero_byte_images">Warning: %1$d zero-byte image(s) cannot boot: %2$s</string>
+    <string name="transfer_eta_seconds">~%1$d s left</string>
+    <string name="transfer_eta_minutes">~%1$d min left</string>
     <string name="tab_inspect">Inspect</string>
     <string name="tab_update">Update</string>
     <string name="inspect_tab_desc">Read-only analysis: detects an existing Ventoy installation and its version. Nothing is written.</string>

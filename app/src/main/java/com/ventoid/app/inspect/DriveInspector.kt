@@ -40,6 +40,8 @@ data class DataPartitionInfo(
     val bootableCount: Int,
     val bootableNames: List<String>,
     val truncated: Boolean,
+    val zeroByteBootableCount: Int = 0,
+    val zeroByteBootableNames: List<String> = emptyList(),
 )
 
 data class DriveReport(
@@ -159,6 +161,8 @@ class DriveInspector(
             val entries = volume.listEntries()
             val files = entries.filter { !it.isDirectory }
             val bootable = files.filter { isBootableImageName(it.name) }
+            // A zero-byte image can never boot; it is usually an interrupted copy.
+            val zeroByteBootable = bootable.filter { it.sizeBytes == 0L }
             DataPartitionInfo(
                 totalBytes = (layout.dataSectorCount ?: 0L) * SectorSource.SECTOR_SIZE,
                 freeBytes = runCatching { volume.freeSpaceBytes() }.getOrNull() ?: -1L,
@@ -166,6 +170,8 @@ class DriveInspector(
                 bootableCount = bootable.size,
                 bootableNames = bootable.take(MAX_REPORT_NAMES).map { it.name },
                 truncated = entries.size >= MAX_SCAN_ENTRIES,
+                zeroByteBootableCount = zeroByteBootable.size,
+                zeroByteBootableNames = zeroByteBootable.take(MAX_REPORT_NAMES).map { it.name },
             )
         }.getOrNull()
     }

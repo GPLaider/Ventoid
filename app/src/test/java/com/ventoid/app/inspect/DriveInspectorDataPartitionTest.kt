@@ -105,6 +105,33 @@ class DriveInspectorDataPartitionTest {
         assertFalse(DriveInspector.isBootableImageName("trailingdot."))
     }
 
+    @Test
+    fun `zero byte bootable images are flagged as unbootable`() {
+        val driver = installToMemoryDisk()
+        val layout = VentoyInstaller(driver).calculateLayout(DISK_SECTORS, useGpt = false)
+        val spc = ExFatFormatter.sectorsPerCluster(layout.part1SectorCount)
+        val volumeLayout = ExFatFormatter.computeVolumeLayout(layout.part1SectorCount, spc)
+        val part1ByteOffset = layout.part1StartSector * VentoyConstants.SECTOR_SIZE
+        val rootOffset = part1ByteOffset +
+            (volumeLayout.clusterHeapOffsetSectors +
+                (volumeLayout.rootDirFirstCluster - 2L) * spc) * VentoyConstants.SECTOR_SIZE
+
+        var slot = firstFreeEntryOffset(driver.backingBuffer, rootOffset)
+        val broken = entrySet("broken.iso", isDirectory = false, firstCluster = 0, sizeBytes = 0)
+        System.arraycopy(broken, 0, driver.backingBuffer, slot, broken.size)
+        slot += broken.size
+        val good = entrySet("good.iso", isDirectory = false, firstCluster = 0, sizeBytes = 700_000_000L)
+        System.arraycopy(good, 0, driver.backingBuffer, slot, good.size)
+
+        val info = DriveInspector(driver).inspect(bundledImage).dataPartition
+
+        assertNotNull(info)
+        assertEquals(2, info!!.fileCount)
+        assertEquals(2, info.bootableCount)
+        assertEquals(1, info.zeroByteBootableCount)
+        assertEquals(listOf("broken.iso"), info.zeroByteBootableNames)
+    }
+
     private fun installToMemoryDisk(): MemoryBlockDeviceDriver {
         val driver = MemoryBlockDeviceDriver(DISK_BYTES, VentoyConstants.SECTOR_SIZE)
         VentoyInstaller(driver).install(

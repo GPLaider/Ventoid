@@ -26,6 +26,8 @@ import com.ventoid.app.install.InstallProgress
 import com.ventoid.app.install.InstallStage
 import com.ventoid.app.install.InstallerAssets
 import com.ventoid.app.install.PartitionScheme
+import com.ventoid.app.install.TransferEstimate
+import com.ventoid.app.install.TransferMeter
 import com.ventoid.app.install.VentoyInstallCoordinator
 import com.ventoid.app.installer.VentoyConstants
 import com.ventoid.app.inspect.DriveInspector
@@ -84,6 +86,7 @@ class MainActivity : AppCompatActivity() {
     private var lastSelectedDeviceName: String? = null
     private var deviceList: List<UsbDeviceItem> = emptyList()
     private var installProgressPresentation = InstallProgressPresenter.idle()
+    private val ventoyTransferMeter = TransferMeter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -568,6 +571,17 @@ class MainActivity : AppCompatActivity() {
                 }
                 lines += getString(R.string.inspect_line_iso_names, preview)
             }
+            if (info.zeroByteBootableCount > 0) {
+                var names = info.zeroByteBootableNames.joinToString(", ")
+                if (info.zeroByteBootableCount > info.zeroByteBootableNames.size) {
+                    names += " ..."
+                }
+                lines += getString(
+                    R.string.inspect_line_zero_byte_images,
+                    info.zeroByteBootableCount,
+                    names,
+                )
+            }
             if (info.freeBytes >= 0) {
                 lines += getString(R.string.inspect_line_free, formatCapacity(info.freeBytes))
             }
@@ -605,10 +619,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /** "8.4 MB/s · ~12 s left" style suffix appended to the stage title. */
+    private fun formatTransferStats(estimate: TransferEstimate): String {
+        val rateText = String.format(Locale.US, "%.1f MB/s", estimate.bytesPerSecond / 1_000_000.0)
+        val remaining = estimate.remainingSeconds
+        val etaText = if (remaining < 90.0) {
+            getString(R.string.transfer_eta_seconds, remaining.toLong().coerceAtLeast(1L))
+        } else {
+            getString(
+                R.string.transfer_eta_minutes,
+                (remaining / 60.0 + 0.5).toLong().coerceAtLeast(1L),
+            )
+        }
+        return rateText + " · " + etaText
+    }
+
     private fun handleInstallProgress(progress: InstallProgress) {
         when (progress) {
             is InstallProgress.Log -> {
                 val message = progress.message.toDisplayText()
+                if (progress.message == InstallMessage.Starting ||
+                    progress.message == InstallMessage.UpdateStarting
+                ) {
+                    ventoyTransferMeter.reset()
+                }
                 VentoidFileLogger.log(message)
                 runOnUiThread {
                     if (!isDestroyed) {
@@ -632,6 +666,14 @@ class MainActivity : AppCompatActivity() {
             }
             is InstallProgress.Step -> {
                 val percent = if (progress.total > 0) ((progress.current * 100) / progress.total).toInt() else 0
+                val transferEstimate = if (progress.stage == InstallStage.VENTOY && progress.total > 0) {
+                    ventoyTransferMeter.onProgress(
+                        progress.current * VentoyConstants.SECTOR_SIZE,
+                        progress.total * VentoyConstants.SECTOR_SIZE,
+                    )
+                } else {
+                    null
+                }
                 val presentation = if (progress.stage == InstallStage.UNKNOWN) {
                     null
                 } else {
@@ -639,8 +681,11 @@ class MainActivity : AppCompatActivity() {
                 }
                 runOnUiThread {
                     if (!isDestroyed) {
-                        textStageTitle.text =
-                            getString(R.string.progress_message, progress.stage.toDisplayLabel())
+                        var title = getString(R.string.progress_message, progress.stage.toDisplayLabel())
+                        if (transferEstimate != null) {
+                            title += " · " + formatTransferStats(transferEstimate)
+                        }
+                        textStageTitle.text = title
                         presentation?.let(::renderInstallProgress)
                     }
                 }
