@@ -19,8 +19,8 @@ from pathlib import Path
 EFI_HASHES = {
     "EFI/BOOT/BOOTX64.EFI": "1ff3f223c2fcf5b11615d042fcb5674c4651bbbc8505b5b2987d60da0cb65d1a",
     "EFI/BOOT/mmx64.efi": "1a3687f923d077080fe49feb470e3932c2b1d3fd4c6439123aa0226246a24522",
-    "EFI/BOOT/fbx64.efi": "c8fc4661f4b64b916e37e4fdd68042d3d64290a696add9199afb84c12ad896c8",
-    "EFI/BOOT/grubx64_real.efi": "907c99a8370e953eb4ec34df2c314cf979356bfca97733ccb1139ee3f5e98cce",
+    "EFI/BOOT/fbx64.efi": "fdf0cce80145af84cf79ac1e2c7b3249f10126a365e24f01a62cbe546239569f",
+    "EFI/BOOT/grubx64_real.efi": "5e4467ef7e81bd4c7bb3538af6e697f0dfd032e2d8d634aa890541e02cc364b8",
 }
 FORBIDDEN_IMAGE_PATHS = ("ventoy/7z", "ventoy/imdisk", "ventoy/memdisk")
 

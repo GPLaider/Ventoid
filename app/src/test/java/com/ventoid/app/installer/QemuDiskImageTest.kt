@@ -3,6 +3,8 @@ package com.ventoid.app.installer
 import com.ventoid.app.MemoryBlockDeviceDriver
 import com.ventoid.app.inspect.DriveInspector
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertArrayEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -84,12 +86,8 @@ class QemuDiskImageTest {
 
         val bundled = readAsset("ventoy/ventoy.disk.img")
         val driver = MemoryBlockDeviceDriver(64L * 1024 * 1024, VentoyConstants.SECTOR_SIZE)
-        VentoyInstaller(driver).install(
-            bootImg = readAsset("boot/boot.img"),
-            coreImg = readAsset("boot/core.img"),
-            ventoyDiskImg = patchedOlderImage(bundled),
-            useGpt = false,
-        )
+        val previousVersion = installPreviousVersion(driver, useGpt = false, bundled)
+        val marker = writeDataMarker(driver)
         val result = VentoyUpdater(driver).update(
             bootImg = readAsset("boot/boot.img"),
             coreImg = readAsset("boot/core.img"),
@@ -102,6 +100,8 @@ class QemuDiskImageTest {
 
         assertEquals(64L * 1024 * 1024, output.length())
         assertEquals(DriveInspector.readBundledVentoyVersion(bundled), result.installedVersion)
+        assertEquals(previousVersion, result.previousVersion)
+        assertArrayEquals(marker, driver.backingBuffer.copyOfRange(DATA_MARKER_OFFSET, DATA_MARKER_OFFSET + marker.size))
         assertEquals(VentoyConstants.MBR_SIGNATURE_55, driver.backingBuffer[510])
         assertEquals(VentoyConstants.MBR_SIGNATURE_AA, driver.backingBuffer[511])
         assertEquals(0x80.toByte(), driver.backingBuffer[446])
@@ -114,12 +114,8 @@ class QemuDiskImageTest {
 
         val bundled = readAsset("ventoy/ventoy.disk.img")
         val driver = MemoryBlockDeviceDriver(64L * 1024 * 1024, VentoyConstants.SECTOR_SIZE)
-        VentoyInstaller(driver).install(
-            bootImg = readAsset("boot/boot.img"),
-            coreImg = readAsset("boot/core.img"),
-            ventoyDiskImg = patchedOlderImage(bundled),
-            useGpt = true,
-        )
+        val previousVersion = installPreviousVersion(driver, useGpt = true, bundled)
+        val marker = writeDataMarker(driver)
         // Simulate a disk written before the GPT legacy-BIOS boot fix.
         driver.backingBuffer[VentoyConstants.BOOT_IMG_KERNEL_SECTOR_OFFSET] = 1
         driver.backingBuffer[34 * 512 + VentoyConstants.CORE_IMG_BLOCKLIST_OFFSET] = 1
@@ -136,6 +132,8 @@ class QemuDiskImageTest {
 
         assertEquals(64L * 1024 * 1024, output.length())
         assertEquals(DriveInspector.readBundledVentoyVersion(bundled), result.installedVersion)
+        assertEquals(previousVersion, result.previousVersion)
+        assertArrayEquals(marker, driver.backingBuffer.copyOfRange(DATA_MARKER_OFFSET, DATA_MARKER_OFFSET + marker.size))
         assertEquals(
             VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT,
             driver.backingBuffer[VentoyConstants.BOOT_IMG_KERNEL_SECTOR_OFFSET].toLong() and 0xFF,
@@ -144,6 +142,38 @@ class QemuDiskImageTest {
             VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT + 1,
             driver.backingBuffer[34 * 512 + VentoyConstants.CORE_IMG_BLOCKLIST_OFFSET].toLong() and 0xFF,
         )
+    }
+
+    private fun installPreviousVersion(
+        driver: MemoryBlockDeviceDriver,
+        useGpt: Boolean,
+        bundled: ByteArray,
+    ): String {
+        val previousAssets = System.getProperty("ventoid.qemu.previous.assets", "").orEmpty()
+        val previousImage = if (previousAssets.isBlank()) {
+            patchedOlderImage(bundled)
+        } else {
+            File(previousAssets, "ventoy.disk.img").readBytes()
+        }
+        val previousVersion = DriveInspector.readBundledVentoyVersion(previousImage)
+            ?: error("previous Ventoy version unreadable")
+        val targetVersion = DriveInspector.readBundledVentoyVersion(bundled)
+            ?: error("bundled version unreadable")
+        assertTrue(DriveInspector.compareVersions(previousVersion, targetVersion) < 0)
+        VentoyInstaller(driver).install(
+            bootImg = if (previousAssets.isBlank()) readAsset("boot/boot.img") else File(previousAssets, "boot.img").readBytes(),
+            coreImg = if (previousAssets.isBlank()) readAsset("boot/core.img") else File(previousAssets, "core.img").readBytes(),
+            ventoyDiskImg = previousImage,
+            useGpt = useGpt,
+        )
+        assertEquals(previousVersion, DriveInspector(driver).inspect(bundled).ventoyVersion)
+        return previousVersion
+    }
+
+    private fun writeDataMarker(driver: MemoryBlockDeviceDriver): ByteArray {
+        val marker = ByteArray(2048) { (it % 251).toByte() }
+        marker.copyInto(driver.backingBuffer, DATA_MARKER_OFFSET)
+        return marker
     }
 
     private fun patchedOlderImage(bundled: ByteArray): ByteArray {
@@ -175,5 +205,9 @@ class QemuDiskImageTest {
             if (matched) return index
         }
         return -1
+    }
+
+    private companion object {
+        const val DATA_MARKER_OFFSET = 8192 * VentoyConstants.SECTOR_SIZE
     }
 }

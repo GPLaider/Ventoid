@@ -4,7 +4,15 @@ Tagged releases and the entries below distinguish published behavior from change
 available only in a source checkout. GitHub and F-Droid builds use separate
 signing identities.
 
-## Unreleased
+## Unreleased — 0.4.0 candidate
+
+### Bundled Ventoy
+
+- Update from Ventoy 1.1.17 to 1.1.18 using the checksum-verified official Linux
+  release. Refresh boot/core images, the VTOYEFI image, runtime asset digests,
+  signed EFI pins, source provenance, and the F-Droid source-rebuild recipe.
+- Keep the Rocky-signed shim, MOK Manager, and enrollment certificate unchanged;
+  refresh Ventoy's signed fallback and GRUB payload from the new release.
 
 ### Added
 
@@ -38,9 +46,8 @@ signing identities.
 - Add the F-Droid author name and website, a development roadmap, and explicit
   release-readiness and verification boundaries.
 
-The bundled Ventoy version is **1.1.17**. Ventoy **1.1.18** is an upstream update
-candidate, not part of these changes. No new app version or release tag has been
-published for this development work.
+The bundled Ventoy version is **1.1.18** and the app candidate is **0.4.0**,
+versionCode **16**. No release tag has been published for this development work.
 
 ## 0.3.3 — 2026-09-02
 

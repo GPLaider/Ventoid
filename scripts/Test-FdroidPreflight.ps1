@@ -90,7 +90,7 @@ function New-FdroidBuildBlock {
     gradle:
       - yes
     srclibs:
-      - Ventoy@v1.1.17
+      - Ventoy@v1.1.18
     build:
       - rm -f $$Ventoy$$/INSTALL/EFI/BOOT/BOOTX64.EFI $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi
         $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi
@@ -103,9 +103,9 @@ function New-FdroidBuildBlock {
         | sha256sum -c -
       - echo "1a3687f923d077080fe49feb470e3932c2b1d3fd4c6439123aa0226246a24522  $$Ventoy$$/INSTALL/EFI/BOOT/mmx64.efi"
         | sha256sum -c -
-      - echo "c8fc4661f4b64b916e37e4fdd68042d3d64290a696add9199afb84c12ad896c8  $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi"
+      - echo "fdf0cce80145af84cf79ac1e2c7b3249f10126a365e24f01a62cbe546239569f  $$Ventoy$$/INSTALL/EFI/BOOT/fbx64.efi"
         | sha256sum -c -
-      - echo "907c99a8370e953eb4ec34df2c314cf979356bfca97733ccb1139ee3f5e98cce  $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi"
+      - echo "5e4467ef7e81bd4c7bb3538af6e697f0dfd032e2d8d634aa890541e02cc364b8  $$Ventoy$$/INSTALL/EFI/BOOT/grubx64_real.efi"
         | sha256sum -c -
       - mv $$Ventoy$$ ..
       - cd ..

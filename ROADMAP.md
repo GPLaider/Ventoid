@@ -9,10 +9,10 @@ See [CHANGELOG.md](CHANGELOG.md) for implemented changes and
 | Item | State |
 | --- | --- |
 | Latest published Ventoid release | 0.3.3, versionCode 15 |
-| App version in this checkout | 0.3.3, versionCode 15; development changes are unreleased |
-| Bundled Ventoy | 1.1.17 |
-| Latest upstream candidate checked | [Ventoy 1.1.18](https://github.com/ventoy/Ventoy/releases/tag/v1.1.18), published 2026-10-09 |
-| Proposed next app version | 0.4.0, versionCode 16; assign during release preparation |
+| App version in this checkout | 0.4.0 candidate, versionCode 16; unreleased |
+| Bundled Ventoy | 1.1.18 |
+| Latest upstream release checked | [Ventoy 1.1.18](https://github.com/ventoy/Ventoy/releases/tag/v1.1.18), published 2026-10-09 |
+| Next app release target | 0.4.0, versionCode 16 |
 
 Implemented development changes include drive inspection, non-destructive
 updates, ISO listing and free-space analysis, large-drive support, sampled
@@ -25,17 +25,18 @@ BIOS boot repair. Updates now reject newer installed versions before writing.
 - [x] Preserve the published F-Droid build history and release signing identities.
 - [x] Guard against downgrading a newer Ventoy installation and identify
   same-version repair in the UI.
-- [ ] Validate and package Ventoy 1.1.18. Update asset hashes, source provenance,
-  signed EFI pins where needed, and the F-Droid source-rebuild configuration
-  together; do not replace only the disk image.
-- [ ] Repeat the Android checks and image boot checks after any bundled-asset or
-  disk-writing change.
+- [x] Validate and package Ventoy 1.1.18. Refresh asset hashes, source provenance,
+  the Ventoy-signed fallback/GRUB pins, and the F-Droid source-rebuild template
+  together. The Rocky shim/MOK Manager and enrollment certificate are unchanged.
+- [x] Repeat the Android checks and image boot checks after the bundled-asset
+  update: all 118 tests passed and eight BIOS/UEFI menu checks passed.
 - [ ] Exercise installation and update on a physical Android OTG setup, including
   data preservation and the analysis/update UI.
 - [ ] Verify a supported ISO guest boot under BIOS and UEFI. Record Secure Boot
   results separately, including whether MOK enrollment was required.
-- [ ] Assign the new app version and versionCode, write its store changelog, and
-  append the F-Droid build stanza for the chosen immutable release commit.
+- [x] Assign app version 0.4.0/versionCode 16, write its store changelog, and
+  prepare the append-only F-Droid recipe. The final stanza is appended in a
+  separate metadata commit after committing the release sources.
 
 Ventoy 1.1.18 upstream changes include Windows/WinPE Secure Boot version checking,
 Ubuntu persistence and Fedora boot fixes, and experimental SteamOS recovery-image
@@ -61,20 +62,37 @@ filesystem-writing addition needs explicit disk-boundary and interruption tests.
 
 ## Evidence boundaries
 
-The 2026-10-12 maintenance checks passed Android lint, unit tests, APK/AAB builds,
-automation checks, and F-Droid preflight. The reports contain 118 unit tests:
-114 passed, four skipped, and no failures or errors. Lint reports no errors and
-28 warnings, including SDK/dependency update suggestions and UI/resource debt.
-The new regression tests cover rejection of newer MBR/GPT installations without
-changing disk bytes and the corresponding analysis result. See
-[maintenance PR #20](https://github.com/GPLaider/Ventoid/pull/20) for CI status.
+The 2026-10-12 Ventoy 1.1.18 update checks passed Android release lint, unit tests,
+and APK/AAB builds. All 118 unit tests passed, with no skips, failures, or errors.
+QEMU image generation used the actual previous 1.1.17 boot/core/EFI assets;
+MBR/GPT upgrades reported the previous and target versions and preserved a
+2 KiB data-partition marker. Other regression tests reject newer installations
+before writing. Lint reports no errors and 28 warnings, including SDK/dependency
+update suggestions and UI/resource debt.
+
+QEMU 5.2 with SeaBIOS and OVMF reached the visible Ventoy **1.1.18** menu for all
+eight combinations: fresh installation and 1.1.17 upgrade, MBR and GPT, BIOS and
+UEFI. The images contain no ISO. OVMF was used without Secure Boot enforcement.
+Screenshots were checked for nonblank pixels and then visually inspected for
+the version, firmware mode, and menu. See
+[update PR #20](https://github.com/GPLaider/Ventoid/pull/20) for CI status.
+
+Automation checks passed, including append-only/idempotent F-Droid metadata
+generation, EFI pins, asset validation, and the upstream updater dry run. A
+FAT16 image was also packaged from the pinned 1.1.18 `INSTALL` source tree with
+the four verified official EFI files; its SHA-256 was
+`728cb2eb9bd0ece50549f4bc045a088ff0163af415dda7a31d68e6b8c127cd5d`.
+The rebuilt image passed the asset contract and forbidden-payload checks.
+Local cleanup was deferred to the host cleanup harness, with the same payload
+exclusions applied during copying. This was a source-packaging check, not a full
+fdroidserver build or a boot check of the rebuilt image.
 
 The 2026-09-29 local reports contain 115 unit tests: 111 passed, four skipped
 because QEMU image output paths were not supplied. Historical QEMU runs reached
 the Ventoy BIOS menu for MBR/GPT installation and update images.
 
-Those results do not establish an ISO guest boot, UEFI/Secure Boot success, or
+Those results do not establish an ISO guest boot, Secure Boot success, or
 physical OTG behavior. ISO counts use supported filename extensions, not a
 guarantee that each image boots. exFAT analysis is bounded and does not currently
-list files from NTFS data partitions. The maintenance checks did not repeat
-QEMU boot tests or write to a physical USB drive.
+list files from NTFS data partitions. No physical USB drive was written during
+these checks.

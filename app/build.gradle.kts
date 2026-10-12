@@ -16,6 +16,7 @@ val qemuImagePath = providers.gradleProperty("ventoidQemuImage")
 val qemuImageGptPath = providers.gradleProperty("ventoidQemuImageGpt")
 val qemuImageUpdatedPath = providers.gradleProperty("ventoidQemuImageUpdated")
 val qemuImageUpdatedGptPath = providers.gradleProperty("ventoidQemuImageUpdatedGpt")
+val qemuPreviousAssetsPath = providers.gradleProperty("ventoidPreviousAssets")
 
 android {
     namespace = "com.ventoid.app"
@@ -25,8 +26,8 @@ android {
         applicationId = "com.ventoid.app"
         minSdk = 21
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.3.3"
+        versionCode = 16
+        versionName = "0.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -81,6 +82,9 @@ android {
             }
             if (qemuImageUpdatedGptPath.isPresent) {
                 it.systemProperty("ventoid.qemu.image.updated.gpt", qemuImageUpdatedGptPath.get())
+            }
+            if (qemuPreviousAssetsPath.isPresent) {
+                it.systemProperty("ventoid.qemu.previous.assets", qemuPreviousAssetsPath.get())
             }
         }
     }
