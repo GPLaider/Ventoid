@@ -32,8 +32,9 @@
     <string name="inspect_note_not_ventoy">驱动器已有分区，但不是 Ventoy 布局。</string>
     <string name="inspect_note_version_unreadable">找到了 Ventoy 分区，但无法读取其版本。</string>
     <string name="inspect_note_gpt_recommended">容量超过 2 TiB——准备此驱动器时请选择 GPT 分区方案。</string>
-    <string name="inspect_note_update_available">有可用更新——重新准备驱动器即可写入内置 Ventoy 版本。</string>
+    <string name="inspect_note_update_available">有可用更新——请使用“更新”标签页以保留 ISO 文件。</string>
     <string name="inspect_note_up_to_date">已安装的 Ventoy 与内置版本一致。</string>
+    <string name="inspect_note_newer_than_bundled">已安装的 Ventoy 比内置版本更新。请先更新 Ventoid；已阻止对此驱动器降级。</string>
     <string name="inspect_failed_with_reason">驱动器分析失败：%1$s</string>
     <string name="inspect_line_files">数据分区：%1$d 个文件，其中 %2$d 个可启动镜像</string>
     <string name="inspect_line_iso_names">镜像：%1$s</string>
@@ -53,6 +54,7 @@
     <string name="update_status_none">请先运行分析以检测已安装的 Ventoy 版本。</string>
     <string name="update_status_detected">已安装：%1$s · 内置：%2$s</string>
     <string name="update_run">更新 Ventoy</string>
+    <string name="update_repair">修复 Ventoy</string>
     <string name="update_progress">正在更新 · %1$d%%</string>
     <string name="update_starting">正在开始 Ventoy 更新...</string>
     <string name="update_success_log">Ventoy 已更新，数据分区保持不变。</string>

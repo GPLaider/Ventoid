@@ -56,6 +56,16 @@ class VentoyUpdater(
         if (!report.ventoyDetected || layout == null) {
             throw IOException("No Ventoy installation detected. Prepare the drive instead.")
         }
+        val installedVersion = report.ventoyVersion
+        val bundledVersion = report.bundledVersion
+        if (installedVersion != null && bundledVersion != null &&
+            DriveInspector.compareVersions(installedVersion, bundledVersion) > 0
+        ) {
+            throw IOException(
+                "Installed Ventoy $installedVersion is newer than bundled $bundledVersion. " +
+                    "Update Ventoid before updating this drive; downgrades are not allowed.",
+            )
+        }
         val useGpt = report.partitionStyle == PartitionStyle.GPT
         val coreSectors = if (useGpt) {
             VentoyConstants.CORE_IMG_SECTORS_GPT

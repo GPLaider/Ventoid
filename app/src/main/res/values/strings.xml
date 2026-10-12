@@ -32,8 +32,9 @@
     <string name="inspect_note_not_ventoy">The drive has partitions but no Ventoy layout.</string>
     <string name="inspect_note_version_unreadable">Ventoy partition found, but its version could not be read.</string>
     <string name="inspect_note_gpt_recommended">Larger than 2 TiB — pick the GPT partition scheme when preparing this drive.</string>
-    <string name="inspect_note_update_available">Update available — prepare the drive again to install the bundled Ventoy.</string>
+    <string name="inspect_note_update_available">Update available — use the Update tab to keep your ISO files.</string>
     <string name="inspect_note_up_to_date">Installed Ventoy matches the bundled version.</string>
+    <string name="inspect_note_newer_than_bundled">Installed Ventoy is newer than the bundled version. Update Ventoid first; downgrading this drive is blocked.</string>
     <string name="inspect_failed_with_reason">Drive analysis failed: %1$s</string>
     <string name="inspect_line_files">Data partition: %1$d file(s), %2$d bootable image(s)</string>
     <string name="inspect_line_iso_names">Images: %1$s</string>
@@ -53,6 +54,7 @@
     <string name="update_status_none">Run an analysis first to detect the installed Ventoy version.</string>
     <string name="update_status_detected">Installed: %1$s · Bundled: %2$s</string>
     <string name="update_run">Update Ventoy</string>
+    <string name="update_repair">Repair Ventoy</string>
     <string name="update_progress">Updating · %1$d%%</string>
     <string name="update_starting">Starting Ventoy update...</string>
     <string name="update_success_log">Ventoy updated. The data partition was left unchanged.</string>

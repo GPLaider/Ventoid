@@ -30,6 +30,7 @@ enum class DriveNote {
     GPT_RECOMMENDED_OVER_2TB,
     UPDATE_AVAILABLE,
     UP_TO_DATE,
+    NEWER_THAN_BUNDLED,
 }
 
 /** Read-only summary of the Ventoy data partition (exFAT part1). */
@@ -127,12 +128,18 @@ class DriveInspector(
         val ventoyVersion = grubCfg?.let(::extractVentoyVersion)
         if (ventoyVersion == null) notes += DriveNote.VERSION_UNREADABLE
 
-        val updateAvailable = ventoyVersion != null && bundledVersion != null &&
-            compareVersions(ventoyVersion, bundledVersion) < 0
-        if (updateAvailable) {
-            notes += DriveNote.UPDATE_AVAILABLE
-        } else if (ventoyVersion != null && bundledVersion != null) {
-            notes += DriveNote.UP_TO_DATE
+        val versionComparison = if (ventoyVersion != null && bundledVersion != null) {
+            compareVersions(ventoyVersion, bundledVersion)
+        } else {
+            null
+        }
+        val updateAvailable = versionComparison != null && versionComparison < 0
+        if (versionComparison != null) {
+            notes += when {
+                versionComparison < 0 -> DriveNote.UPDATE_AVAILABLE
+                versionComparison > 0 -> DriveNote.NEWER_THAN_BUNDLED
+                else -> DriveNote.UP_TO_DATE
+            }
         }
 
         val dataPartition = readDataPartitionInfo(layout)

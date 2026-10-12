@@ -121,6 +121,37 @@ class VentoyUpdaterTest {
         assertArrayEquals(marker, driver.backingBuffer.copyOfRange(MARKER_OFFSET, MARKER_OFFSET + marker.size))
     }
 
+    @Test
+    fun `update rejects newer MBR install without writing`() {
+        assertNewerVersionRejected(useGpt = false)
+    }
+
+    @Test
+    fun `update rejects newer GPT install without writing`() {
+        assertNewerVersionRejected(useGpt = true)
+    }
+
+    private fun assertNewerVersionRejected(useGpt: Boolean) {
+        val newerVersion = bundledVersion.map { ch -> if (ch == '.') '.' else '9' }.joinToString("")
+        assertTrue(DriveInspector.compareVersions(newerVersion, bundledVersion) > 0)
+        val driver = installToMemoryDisk(useGpt, newerVersion)
+        writeMarker(driver, MARKER_SECTOR)
+        val before = driver.backingBuffer.copyOf()
+
+        val error = assertThrows<IOException> {
+            VentoyUpdater(driver).update(
+                readAsset("boot/boot.img"),
+                readAsset("boot/core.img"),
+                bundledImage,
+            )
+        }
+
+        assertTrue(error.message!!.contains("newer than bundled"))
+        assertTrue(error.message!!.contains(newerVersion))
+        assertTrue(error.message!!.contains(bundledVersion))
+        assertArrayEquals(before, driver.backingBuffer)
+    }
+
     private fun installToMemoryDisk(useGpt: Boolean, version: String?): MemoryBlockDeviceDriver {
         val driver = MemoryBlockDeviceDriver(DISK_BYTES, VentoyConstants.SECTOR_SIZE)
         val image = if (version == null) bundledImage else patchedBundledImage(version)

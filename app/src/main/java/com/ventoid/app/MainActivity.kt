@@ -184,13 +184,16 @@ class MainActivity : AppCompatActivity() {
             textInspectResult.text = getString(R.string.inspect_result_placeholder)
             textUpdateStatus.text = getString(R.string.update_status_none)
             buttonUpdate.isEnabled = false
+            buttonUpdate.setText(R.string.update_run)
         }
     }
 
     private fun setActionButtonsEnabled(enabled: Boolean) {
         buttonInstall.isEnabled = enabled
         buttonInspect.isEnabled = enabled
-        buttonUpdate.isEnabled = enabled && lastReport?.ventoyDetected == true
+        buttonUpdate.isEnabled = enabled && lastReport?.let {
+            it.ventoyDetected && DriveNote.NEWER_THAN_BUNDLED !in it.notes
+        } == true
     }
 
     @Suppress("DEPRECATION")
@@ -499,10 +502,18 @@ class MainActivity : AppCompatActivity() {
                     report.ventoyVersion ?: getString(R.string.inspect_version_unknown),
                     report.bundledVersion ?: getString(R.string.inspect_version_unknown),
                 )
-                buttonUpdate.isEnabled = installJob?.isActive != true
+                buttonUpdate.setText(
+                    if (DriveNote.UP_TO_DATE in report.notes) R.string.update_repair else R.string.update_run,
+                )
+                buttonUpdate.isEnabled = installJob?.isActive != true &&
+                    DriveNote.NEWER_THAN_BUNDLED !in report.notes
+                if (DriveNote.NEWER_THAN_BUNDLED in report.notes) {
+                    textUpdateStatus.append("\n" + getString(R.string.inspect_note_newer_than_bundled))
+                }
             } else {
                 textUpdateStatus.text = getString(R.string.update_status_none)
                 buttonUpdate.isEnabled = false
+                buttonUpdate.setText(R.string.update_run)
             }
         }
     }
@@ -622,6 +633,7 @@ class MainActivity : AppCompatActivity() {
                     DriveNote.GPT_RECOMMENDED_OVER_2TB -> R.string.inspect_note_gpt_recommended
                     DriveNote.UPDATE_AVAILABLE -> R.string.inspect_note_update_available
                     DriveNote.UP_TO_DATE -> R.string.inspect_note_up_to_date
+                    DriveNote.NEWER_THAN_BUNDLED -> R.string.inspect_note_newer_than_bundled
                 },
             )
         }

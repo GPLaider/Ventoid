@@ -98,6 +98,23 @@ class DriveInspectorTest {
     }
 
     @Test
+    fun `newer on-disk version is distinguished from matching bundled version`() {
+        val driver = installToMemoryDisk(useGpt = false)
+        val bundledVersion = DriveInspector.readBundledVentoyVersion(bundledImage)!!
+        val newerVersion = bundledVersion.map { ch -> if (ch == '.') '.' else '9' }.joinToString("")
+        assertTrue(DriveInspector.compareVersions(newerVersion, bundledVersion) > 0)
+        patchOnDiskVersion(driver, bundledVersion, newerVersion)
+
+        val report = DriveInspector(driver).inspect(bundledImage)
+
+        assertEquals(newerVersion, report.ventoyVersion)
+        assertFalse(report.updateAvailable)
+        assertTrue(report.notes.contains(DriveNote.NEWER_THAN_BUNDLED))
+        assertFalse(report.notes.contains(DriveNote.UP_TO_DATE))
+        assertFalse(report.notes.contains(DriveNote.UPDATE_AVAILABLE))
+    }
+
+    @Test
     fun `gpt recommended beyond MBR addressable capacity`() {
         assertFalse(DriveInspector.isGptRecommended(0L))
         assertFalse(DriveInspector.isGptRecommended(DriveInspector.MBR_MAX_ADDRESSABLE_BYTES))
