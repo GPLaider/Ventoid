@@ -29,10 +29,14 @@ Use the GitHub APK only when you specifically need a direct APK. For normal inst
    all published entries and their original source commits.
 5. Run the Android checks and automation checks, verify the intended release tag
    with `scripts/Test-ReleaseVersion.ps1`, and prepare the release notes.
-6. After release readiness is confirmed, tag and publish the chosen release.
-   A `v*` tag triggers signed GitHub artifacts and the F-Droid update workflow.
+6. After release readiness is confirmed, tag the release-source commit used by
+   the new F-Droid stanza, then publish that release. Do not tag the later
+   metadata-only commit instead. A `v*` tag triggers signed GitHub artifacts and
+   the F-Droid update workflow.
 
-Unreleased work must not reuse a published versionCode or move an existing tag.
+A new published release must not reuse an existing versionCode or move an
+existing tag. A development checkout can retain the current version until the
+next release is prepared.
 For a signed test artifact, manually run the GitHub Release APK workflow with
 `publish` disabled and leave `tag` empty.
 

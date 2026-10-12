@@ -53,12 +53,21 @@ verified.
 | P2 | Optional full readback and ISO checksums | Verify the actual written regions and compare a streamed ISO SHA-256 against a supplied reference; handle cancellation and progress. |
 | P2 | Boot-region backup and recovery | Save the relevant boot regions before updating and restore only after matching the drive identity and partition layout. |
 | P2 | In-app ISO copying | Start with USB volumes exposed through Android's document provider; check space, handle interrupted copies, and verify completion. |
+| P2 | Android toolchain maintenance | Review target SDK and dependency updates in focused changes, retain dependency verification pins, and retest older Android/OTG devices. |
 | P3 | Ventoy configuration editor | Validate and preview `ventoy.json` for menu aliases, default selection, and timeout before saving. |
 
 Normal use must remain offline, root-free, ad-free, and free of analytics. Any
 filesystem-writing addition needs explicit disk-boundary and interruption tests.
 
 ## Evidence boundaries
+
+The 2026-10-12 maintenance checks passed Android lint, unit tests, APK/AAB builds,
+automation checks, and F-Droid preflight. The reports contain 118 unit tests:
+114 passed, four skipped, and no failures or errors. Lint reports no errors and
+28 warnings, including SDK/dependency update suggestions and UI/resource debt.
+The new regression tests cover rejection of newer MBR/GPT installations without
+changing disk bytes and the corresponding analysis result. See
+[maintenance PR #20](https://github.com/GPLaider/Ventoid/pull/20) for CI status.
 
 The 2026-09-29 local reports contain 115 unit tests: 111 passed, four skipped
 because QEMU image output paths were not supplied. Historical QEMU runs reached
@@ -67,6 +76,5 @@ the Ventoy BIOS menu for MBR/GPT installation and update images.
 Those results do not establish an ISO guest boot, UEFI/Secure Boot success, or
 physical OTG behavior. ISO counts use supported filename extensions, not a
 guarantee that each image boots. exFAT analysis is bounded and does not currently
-list files from NTFS data partitions. New maintenance verification is recorded
-in the pull request and local reports rather than being attributed to the
-historical runs.
+list files from NTFS data partitions. The maintenance checks did not repeat
+QEMU boot tests or write to a physical USB drive.
