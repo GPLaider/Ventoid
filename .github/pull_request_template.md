@@ -5,6 +5,14 @@
 ## Testing
 
 - 
+- Disk-writing changes: identify memory-driver tests, QEMU boot mode, and any
+  physical OTG or ISO guest boot evidence separately.
+
+## Release Records
+
+- [ ] Implemented changes are recorded under Unreleased in CHANGELOG.md
+- [ ] Remaining work or verification is recorded in ROADMAP.md
+- [ ] Published tags, versionCodes, and F-Droid source commits remain immutable
 
 ## F-Droid / Source Build Impact
 

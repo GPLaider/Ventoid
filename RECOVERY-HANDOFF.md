@@ -1,5 +1,9 @@
 # Ventoid 복구 인계 문서 (RECOVERY-HANDOFF)
 
+> 현재 개발 상태와 후속 계획은 [ROADMAP.md](ROADMAP.md), 미배포 변경은
+> [CHANGELOG.md](CHANGELOG.md)를 참고한다. 이 문서는 날짜별 조사·검증 기록이므로
+> 앞 절의 미구현·제한 사항이 뒤 절에서 해소된 경우가 있다.
+
 - 작성일: 2026-09-21
 - 브랜치: refs/heads/swe2-restore-20260921
 - 시작 HEAD: b7c64fa043cf2be7c4445d2501aae3dbbe18c995 (= origin/master, v0.3.3 릴리스 + F-Droid 메타데이터 동기화 직후)

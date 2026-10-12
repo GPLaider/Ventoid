@@ -14,6 +14,28 @@ GitHub APKs are provided for testers and users who need direct downloads from ta
 
 Use the GitHub APK only when you specifically need a direct APK. For normal installation and updates, use F-Droid.
 
+## Prepare a Development Release
+
+1. Review the Unreleased entries in [CHANGELOG.md](CHANGELOG.md) and the outstanding
+   checks in [ROADMAP.md](ROADMAP.md). Record hardware and firmware limitations.
+2. If bundled Ventoy assets change, update their provenance, hash checks, signed
+   EFI pins, and F-Droid source rebuild together. Verify MBR/GPT installation and
+   update images after changing disk-writing behavior or assets.
+3. Choose a new app version and a strictly increasing versionCode in
+   `app/build.gradle.kts`, and add the corresponding Fastlane changelog.
+4. Commit the release sources, then run
+   `scripts/Test-FdroidPreflight.ps1 -UpdateMetadata -Commit <release-source-sha>`
+   to append the new F-Droid build entry. Commit that metadata separately; retain
+   all published entries and their original source commits.
+5. Run the Android checks and automation checks, verify the intended release tag
+   with `scripts/Test-ReleaseVersion.ps1`, and prepare the release notes.
+6. After release readiness is confirmed, tag and publish the chosen release.
+   A `v*` tag triggers signed GitHub artifacts and the F-Droid update workflow.
+
+Unreleased work must not reuse a published versionCode or move an existing tag.
+For a signed test artifact, manually run the GitHub Release APK workflow with
+`publish` disabled and leave `tag` empty.
+
 ## Signing Keys
 
 F-Droid APKs and GitHub APKs are signed with different keys. Android treats those builds as different signing identities.
