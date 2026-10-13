@@ -5,11 +5,11 @@ These bundled boot assets are treated as release-critical inputs and are verifie
 ## Source baseline
 
 - Upstream project: `ventoy/Ventoy`
-- Upstream version: `1.1.17`
-- Upstream tag commit: `7cbdc5cf69935bcf1f085ae67f40e70ea7e74bae`
+- Upstream version: `1.1.18`
+- Upstream tag commit: `6116894ab8abdf3ef8d43411a6732d34ee19214e`
 - Packaging note:
   - `boot.img` and `core.img` are documented in `app/src/main/assets/boot/README.txt`
-  - `ventoy.disk.img` is the Ventoy 1.1.17 official VTOYEFI partition image (from `ventoy-1.1.17-linux.tar.gz` → `ventoy/ventoy.disk.img.xz`), with non-Secure-Boot prebuilt blobs removed (`imdisk`, `memdisk`, `7z`). The x86_64 Secure Boot chain is retained.
+  - `ventoy.disk.img` is the Ventoy 1.1.18 official VTOYEFI partition image (from `ventoy-1.1.18-linux.tar.gz` → `ventoy/ventoy.disk.img.xz`), with non-Secure-Boot prebuilt blobs removed (`imdisk`, `memdisk`, `7z`). The x86_64 Secure Boot chain is retained.
 
 ## Packaging `ventoy.disk.img`
 
@@ -17,7 +17,7 @@ The shipped 32 MiB Ventoy EFI partition image is packaged from the verified
 official release image without root privileges:
 
 ```sh
-export VENTOY_RELEASE_DIR=/path/to/ventoy-1.1.17
+export VENTOY_RELEASE_DIR=/path/to/ventoy-1.1.18
 bash scripts/package-official-ventoy-disk-img.sh
 ```
 
@@ -31,8 +31,8 @@ Upstream refreshes are intentionally manual. Before running the updater, review
 the selected Ventoy release notes and archive layout, then pass the exact version:
 
 ```powershell
-pwsh -NoProfile -File scripts/Update-VentoyAssets.ps1 -Version 1.1.17 -DryRun
-pwsh -NoProfile -File scripts/Update-VentoyAssets.ps1 -Version 1.1.17
+pwsh -NoProfile -File scripts/Update-VentoyAssets.ps1 -Version 1.1.18 -DryRun
+pwsh -NoProfile -File scripts/Update-VentoyAssets.ps1 -Version 1.1.18
 ```
 
 The updater verifies the published archive digest and rejects a release that
@@ -63,7 +63,7 @@ timestamps remain reproducible even when the build service injects a different
 
 `BOOTIA32` Super-UEFIinSecureBoot chain files may remain present for ia32 targets; they are not required for the app's x86_64 Secure Boot marker contract.
 
-## x86_64 Secure Boot chain pins (Ventoy 1.1.17)
+## x86_64 Secure Boot chain pins (Ventoy 1.1.18)
 
 App runtime markers (`InstallerAssets.detectSecureBootSupport`):
 
@@ -106,8 +106,8 @@ Upstream Ventoy documents these as taken from Rocky Linux 9.8 x86_64 (`BLOB_List
 
 | File on VTOYEFI | Size (bytes) | SHA-256 | Origin |
 | --- | ---: | --- | --- |
-| `EFI/BOOT/fbx64.efi` | 76208 | `c8fc4661f4b64b916e37e4fdd68042d3d64290a696add9199afb84c12ad896c8` | Ventoy-signed shim fallback (`ventoy-shim` SBAT component) |
-| `EFI/BOOT/grubx64_real.efi` | 1927600 | `907c99a8370e953eb4ec34df2c314cf979356bfca97733ccb1139ee3f5e98cce` | Ventoy GRUB build / signed during `ventoy_pack.sh` |
+| `EFI/BOOT/fbx64.efi` | 76208 | `fdf0cce80145af84cf79ac1e2c7b3249f10126a365e24f01a62cbe546239569f` | Ventoy-signed shim fallback (`ventoy-shim` SBAT component) |
+| `EFI/BOOT/grubx64_real.efi` | 1931696 | `5e4467ef7e81bd4c7bb3538af6e697f0dfd032e2d8d634aa890541e02cc364b8` | Ventoy GRUB build / signed during `ventoy_pack.sh` |
 | `ENROLL_THIS_KEY_IN_MOKMANAGER.cer` | 1420 | `8072e285ed57ffd63421beb52d5c27cb5ad70a8d7377b67b358f816f97012e27` | Ventoy MOK enrollment certificate |
 
 First boot on a Secure Boot PC may require enrolling the Ventoy key via MOK Manager (one-time). See upstream: https://www.ventoy.net/
@@ -116,10 +116,10 @@ First boot on a Secure Boot PC may require enrolling the Ventoy key via MOK Mana
 
 | Field | Value |
 | --- | --- |
-| Upstream asset | `ventoy-1.1.17-linux.tar.gz` |
-| Upstream archive SHA-256 | `7fb4ed08cef6a6b4d39dd19260d8c80291a78dfdf9af7d461571e23cbbc43805` |
+| Upstream asset | `ventoy-1.1.18-linux.tar.gz` |
+| Upstream archive SHA-256 | `d86ff9de63d94c8b8f1f6b14d23c55af4b88e8207bf2893890892a6a97b1ad54` |
 | Embedded image | `ventoy/ventoy.disk.img.xz` → `ventoy.disk.img` |
-| Pre-deblob image SHA-256 | `871f313d60d865a8ee307bc97c961e6cb619143288b4faf811efe9844ca1a003` |
+| Pre-deblob image SHA-256 | `f56c3cabafc7560dbe164d5c67fe39181a302776d037a210a86239482d14ce88` |
 | Shipped image (imdisk/memdisk/7z removed) SHA-256 | see Verified hashes below |
 
 The F-Droid recipe must not ignore the complete image. It extracts and hash-verifies the four required EFI files before replacing the checked-in image with a source-built image.
@@ -128,15 +128,15 @@ The F-Droid recipe must not ignore the complete image. It extracts and hash-veri
 
 ### `app/src/main/assets/boot/boot.img`
 
-- SHA-256: `F37CBEA83596AEF9812F4D984D344B5103913505DFEE40DC0025742EA54A6113`
+- SHA-256: `85B4B080765738CA96620C32D8182EDDDBAF6A36149162946D12AA1F9802BC44`
 
 ### `app/src/main/assets/boot/core.img`
 
-- SHA-256: `B6581090947E7CACBD3CEE23DFE2216AEE9AB368C6508C2C5F3490621E969B84`
+- SHA-256: `183F3D54BE2D87FF1E149EF3DE63CC71701D4129C134CABAC3D9A76F1C5293DA`
 
 ### `app/src/main/assets/ventoy/ventoy.disk.img`
 
-- SHA-256: `71CD7379E0847711F8915306872B5788176DAF9E3E33012981101F33E041B23B`
+- SHA-256: `FE6C3552D94F536DF1FFFCFA7173F4B140FB525E09CDA7DE22BD223CC9B3D44B`
 
 ## Maintenance rule
 

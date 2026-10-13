@@ -30,6 +30,23 @@ Good pull requests are small, focused, and easy to test. Please include:
 
 Avoid adding network dependencies, telemetry, ads, closed-source binaries, or prebuilt native tools. If a feature needs a bundled tool or generated binary asset, explain how it is built from source and how reviewers can reproduce it.
 
+## Development and Release Records
+
+Create a focused branch from the current default branch and keep it available
+through a pull request while work or required verification remains. Describe
+implemented behavior in [CHANGELOG.md](CHANGELOG.md) under Unreleased and keep
+proposed features and outstanding checks in [ROADMAP.md](ROADMAP.md).
+
+Keep tagged versions and published F-Droid build stanzas immutable. Assign a new
+versionCode and append a build stanza when preparing a release; development
+commits must not repoint an already published build. Follow [RELEASE.md](RELEASE.md)
+for signing and release preparation.
+
+Disk-writing changes need tests for preserved data and rejection before writing,
+plus relevant boot checks. State separately whether verification used a memory
+driver, QEMU, or physical hardware, and distinguish a boot menu from an ISO guest
+boot and Secure Boot evidence.
+
 ## Local Checks
 
 Run the normal Android verification before sending a pull request:

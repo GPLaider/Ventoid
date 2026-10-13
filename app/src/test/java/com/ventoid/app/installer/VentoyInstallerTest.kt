@@ -269,6 +269,38 @@ class VentoyInstallerTest {
     }
 
     @Test
+    fun `buildProtectiveMbr points the GRUB kernel sector at the GPT core offset`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+        // Bundled boot.img ships kernel_sector = 1 (the MBR core offset).
+        val bootCode = ByteArray(512)
+        bootCode[VentoyConstants.BOOT_IMG_KERNEL_SECTOR_OFFSET] = 1
+
+        val mbr = installer.buildProtectiveMbr(driver.blocks, bootCode)
+
+        assertEquals(
+            VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT,
+            readLeLong(mbr, VentoyConstants.BOOT_IMG_KERNEL_SECTOR_OFFSET),
+        )
+    }
+
+    @Test
+    fun `buildMbr keeps the bundled GRUB kernel sector for the MBR core offset`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+        val layout = installer.calculateLayout(driver.blocks, useGpt = false)
+        val bootCode = ByteArray(512)
+        bootCode[VentoyConstants.BOOT_IMG_KERNEL_SECTOR_OFFSET] = 1
+
+        val mbr = installer.buildMbr(layout, bootCode)
+
+        assertEquals(
+            VentoyConstants.CORE_IMG_OFFSET_SECTOR_MBR,
+            readLeLong(mbr, VentoyConstants.BOOT_IMG_KERNEL_SECTOR_OFFSET),
+        )
+    }
+
+    @Test
     fun `buildGpt creates EFI PART headers`() {
         val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
         val installer = VentoyInstaller(driver)
@@ -279,6 +311,21 @@ class VentoyInstallerTest {
         assertEquals("EFI PART", String(gpt.primaryHeader.copyOfRange(0, 8)))
         assertEquals("EFI PART", String(gpt.backupHeader.copyOfRange(0, 8)))
         assertEquals(128 * 128, gpt.primaryEntries.size)
+    }
+
+    @Test
+    fun `buildGpt marks VTOYEFI as Microsoft Basic Data with no-automount like upstream`() {
+        val driver = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
+        val installer = VentoyInstaller(driver)
+        val layout = installer.calculateLayout(driver.blocks, useGpt = true)
+
+        val gpt = installer.buildGpt(layout, driver.blocks, ByteArray(512))
+        val le = java.nio.ByteBuffer.wrap(gpt.primaryEntries).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+
+        assertEquals("EBD0A0A2-B9E5-4433-87C0-68B6B72699C7", readGuidLe(le, 0))
+        assertEquals(0L, le.getLong(48))
+        assertEquals("EBD0A0A2-B9E5-4433-87C0-68B6B72699C7", readGuidLe(le, 128))
+        assertEquals(VentoyConstants.GPT_ATTR_NO_AUTOMOUNT, le.getLong(128 + 48))
     }
 
     @Test
@@ -352,6 +399,31 @@ class VentoyInstallerTest {
     }
 
     @Test
+    fun `install with GPT patches the GRUB boot pointers to the GPT core offset`() {
+        val sizeBytes = 256L * 1024 * 1024
+        val driver = MemoryBlockDeviceDriver(sizeBytes, 512)
+        val installer = VentoyInstaller(driver)
+        val bootImg = ByteArray(512) { it.toByte() }
+        val coreImg = ByteArray(2047 * 512) { 0x42 }
+        val ventoyImg = ByteArray(VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) { 0x57 }
+
+        installer.install(bootImg, coreImg, ventoyImg, useGpt = true)
+
+        assertEquals(
+            VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT,
+            readLeLong(driver.backingBuffer, VentoyConstants.BOOT_IMG_KERNEL_SECTOR_OFFSET),
+        )
+        assertEquals(
+            VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT + 1,
+            readLeLong(
+                driver.backingBuffer,
+                (VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT * 512).toInt() +
+                    VentoyConstants.CORE_IMG_BLOCKLIST_OFFSET,
+            ),
+        )
+    }
+
+    @Test
     fun `install reports each stage before its write starts`() {
         val delegate = MemoryBlockDeviceDriver(256L * 1024 * 1024, 512)
         val timeline = mutableListOf<String>()
@@ -403,11 +475,85 @@ class VentoyInstallerTest {
         assertEquals(data.toList(), readBack.toList())
     }
 
+    @Test
+    fun `install on a drive over 2TB places GPT and EFI partition past the 32-bit boundary`() {
+        // Just over 2TB at 512 bytes per sector: the EFI partition cannot be
+        // addressed with 32-bit LBAs and the exFAT FAT is tens of MiB.
+        val diskSectors = 0x1_0001_8000L
+        val driver = SparseBlockDeviceDriver(diskSectors, VentoyConstants.SECTOR_SIZE)
+        val installer = VentoyInstaller(driver)
+        val bootImg = ByteArray(512) { it.toByte() }
+        val coreImg = ByteArray(2047 * 512) { 0x42 }
+        val ventoyImg = ByteArray(VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) { 0x57 }
+
+        installer.install(bootImg, coreImg, ventoyImg, useGpt = true)
+
+        val layout = installer.calculateLayout(diskSectors, useGpt = true)
+        assertTrue(layout.part2StartSector > 0xFFFF_FFFFL)
+        assertEquals(
+            0x57.toByte(),
+            driver.readSector(layout.part2StartSector)[0],
+        )
+        assertEquals(
+            "EFI PART",
+            String(driver.readSector(diskSectors - 1).copyOfRange(0, 8)),
+        )
+    }
+
+    @Test
+    fun `install with MBR on a drive over 2TB fails before any write`() {
+        val driver = SparseBlockDeviceDriver(0x1_0001_8000L, VentoyConstants.SECTOR_SIZE)
+        val installer = VentoyInstaller(driver)
+
+        val error = assertThrows<IllegalArgumentException> {
+            installer.install(
+                bootImg = ByteArray(512),
+                coreImg = ByteArray(2047 * 512),
+                ventoyDiskImg = ByteArray(VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES),
+                useGpt = false,
+            )
+        }
+
+        assertTrue(error.message!!.contains("use GPT"), error.message)
+        assertEquals(0, driver.writtenSectorCount)
+    }
+
+    @Test
+    fun `a non 512-byte sector drive is rejected at construction`() {
+        val driver = SparseBlockDeviceDriver(1_000_000L, 4096)
+
+        val error = assertThrows<IllegalArgumentException> {
+            VentoyInstaller(driver)
+        }
+
+        assertTrue(error.message!!.contains("512-byte sector"), error.message)
+        assertEquals(0, driver.writtenSectorCount)
+    }
+
     private fun readUnsignedLeInt(bytes: ByteArray, offset: Int): Long {
         return (bytes[offset].toLong() and 0xFF) or
             ((bytes[offset + 1].toLong() and 0xFF) shl 8) or
             ((bytes[offset + 2].toLong() and 0xFF) shl 16) or
             ((bytes[offset + 3].toLong() and 0xFF) shl 24)
+    }
+
+    private fun readLeLong(bytes: ByteArray, offset: Int): Long {
+        var value = 0L
+        for (index in 7 downTo 0) {
+            value = (value shl 8) or (bytes[offset + index].toLong() and 0xFF)
+        }
+        return value
+    }
+
+    private fun readGuidLe(le: java.nio.ByteBuffer, offset: Int): String {
+        val msb = ((le.getInt(offset).toLong() and 0xFFFF_FFFFL) shl 32) or
+            ((le.getShort(offset + 4).toLong() and 0xFFFFL) shl 16) or
+            (le.getShort(offset + 6).toLong() and 0xFFFFL)
+        var lsb = 0L
+        for (index in 0 until 8) {
+            lsb = (lsb shl 8) or (le.get(offset + 8 + index).toLong() and 0xFF)
+        }
+        return java.util.UUID(msb, lsb).toString().uppercase()
     }
 
     private fun assertProgressBeforeWrite(
@@ -443,6 +589,45 @@ class VentoyInstallerTest {
         override fun write(deviceOffset: Long, buffer: ByteBuffer) {
             timeline += "write:$deviceOffset"
             delegate.write(deviceOffset, buffer)
+        }
+    }
+
+    /** Sparse in-memory disk that keeps only written sectors, for multi-TB layouts. */
+    private class SparseBlockDeviceDriver(
+        override val blocks: Long,
+        override val blockSize: Int,
+    ) : BlockDeviceDriver {
+        private val sectors = HashMap<Long, ByteArray>()
+
+        val writtenSectorCount: Int
+            get() = sectors.size
+
+        override fun init() = Unit
+
+        override fun read(deviceOffset: Long, buffer: ByteBuffer) {
+            var offset = deviceOffset
+            while (buffer.hasRemaining()) {
+                val sector = sectors[offset] ?: ByteArray(blockSize)
+                val count = minOf(blockSize, buffer.remaining())
+                buffer.put(sector, 0, count)
+                offset++
+            }
+        }
+
+        override fun write(deviceOffset: Long, buffer: ByteBuffer) {
+            var offset = deviceOffset
+            while (buffer.hasRemaining()) {
+                val sector = sectors.getOrPut(offset) { ByteArray(blockSize) }
+                val count = minOf(blockSize, buffer.remaining())
+                buffer.get(sector, 0, count)
+                offset++
+            }
+        }
+
+        fun readSector(blockOffset: Long): ByteArray {
+            val bytes = ByteArray(blockSize)
+            read(blockOffset, ByteBuffer.wrap(bytes))
+            return bytes
         }
     }
 }

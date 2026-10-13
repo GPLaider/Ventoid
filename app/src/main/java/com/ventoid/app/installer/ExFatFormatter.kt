@@ -205,28 +205,43 @@ object ExFatFormatter {
     fun buildBackupBootRegion(mainBootRegion: ByteArray): ByteArray = mainBootRegion.copyOf()
 
     fun buildFat(fatLengthSectors: Int, volumeLayout: VolumeLayout): ByteArray {
-        val fatBytes = fatLengthSectors * SECTOR_SIZE
-        val fat = ByteArray(fatBytes)
-        val le = ByteBuffer.wrap(fat).order(ByteOrder.LITTLE_ENDIAN)
-
-        le.putInt(0, 0xFFFFFFF8.toInt())
-        le.putInt(4, END_OF_CHAIN)
-        le.putInt(volumeLayout.rootDirFirstCluster * 4, END_OF_CHAIN)
-        linkClusterRun(le, volumeLayout.bitmapFirstCluster, volumeLayout.bitmapClusterCount)
-        linkClusterRun(le, volumeLayout.upcaseFirstCluster, volumeLayout.upcaseClusterCount)
-
-        return fat
+        return buildFatRange(volumeLayout, 0, fatLengthSectors)
     }
 
-    private fun linkClusterRun(le: ByteBuffer, firstCluster: Int, clusterCount: Int) {
-        if (clusterCount <= 0) {
-            return
+    /**
+     * Builds one sector range of the FAT so very large volumes can be written in
+     * chunks instead of allocating the whole FAT at once.
+     */
+    fun buildFatRange(volumeLayout: VolumeLayout, startSector: Int, sectorCount: Int): ByteArray {
+        require(startSector >= 0 && sectorCount > 0) { "Invalid FAT range" }
+        require(startSector + sectorCount <= volumeLayout.fatLengthSectors) { "FAT range past end" }
+        val bytes = ByteArray(sectorCount * SECTOR_SIZE)
+        val le = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
+        val firstIndex = startSector * (SECTOR_SIZE / 4)
+        val indexCount = sectorCount * (SECTOR_SIZE / 4)
+        for (offset in 0 until indexCount) {
+            val value = fatEntryValue(firstIndex + offset, volumeLayout)
+            if (value != 0) {
+                le.putInt(offset * 4, value)
+            }
         }
-        for (index in 0 until clusterCount - 1) {
-            val currentCluster = firstCluster + index
-            le.putInt(currentCluster * 4, currentCluster + 1)
+        return bytes
+    }
+
+    /** FAT entry value for a cluster index; 0 marks a free cluster. */
+    private fun fatEntryValue(clusterIndex: Int, volumeLayout: VolumeLayout): Int {
+        if (clusterIndex == 0) return 0xFFFFFFF8.toInt()
+        if (clusterIndex == 1) return END_OF_CHAIN
+        if (clusterIndex == volumeLayout.rootDirFirstCluster) return END_OF_CHAIN
+        val bitmapLast = volumeLayout.bitmapFirstCluster + volumeLayout.bitmapClusterCount - 1
+        if (clusterIndex in volumeLayout.bitmapFirstCluster..bitmapLast) {
+            return if (clusterIndex == bitmapLast) END_OF_CHAIN else clusterIndex + 1
         }
-        le.putInt((firstCluster + clusterCount - 1) * 4, END_OF_CHAIN)
+        val upcaseLast = volumeLayout.upcaseFirstCluster + volumeLayout.upcaseClusterCount - 1
+        if (clusterIndex in volumeLayout.upcaseFirstCluster..upcaseLast) {
+            return if (clusterIndex == upcaseLast) END_OF_CHAIN else clusterIndex + 1
+        }
+        return 0
     }
 
     private fun tableChecksum(table: ByteArray): Int {

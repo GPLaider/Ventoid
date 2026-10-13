@@ -7,6 +7,7 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 import java.util.UUID
 import java.util.zip.CRC32
 
@@ -24,6 +25,115 @@ class VentoyInstaller(
         val backupHeader: ByteArray,
         val backupEntries: ByteArray,
     )
+
+    companion object {
+        /**
+         * Pure layout math shared by [calculateLayout] and the pre-flight checks.
+         * Throws IllegalArgumentException when the layout cannot fit.
+         */
+        internal fun computeLayout(
+            diskSectors: Long,
+            useGpt: Boolean,
+            reserveSectors: Long,
+        ): VentoyLayout {
+            require(reserveSectors >= 0L) {
+                "Reserved space cannot be negative"
+            }
+            val part1Start = VentoyConstants.PART1_START_SECTOR
+            val efiSectors = VentoyConstants.VENTOY_SECTOR_NUM.toLong()
+            val gptOverhead = if (useGpt) 34L else 0L
+            require(diskSectors > part1Start + efiSectors + gptOverhead) {
+                "Disk too small for Ventoy layout"
+            }
+
+            val usableEndExclusive = diskSectors - reserveSectors - gptOverhead
+            require(usableEndExclusive > part1Start + efiSectors) {
+                "Reserved space leaves insufficient room for Ventoy"
+            }
+
+            var part1End = usableEndExclusive - efiSectors - 1
+            var part2Start = part1End + 1
+            val mod = (part2Start % VentoyConstants.ALIGNMENT_SECTORS).toInt()
+            if (mod != 0) {
+                part1End -= mod
+                part2Start = part1End + 1
+            }
+            require(part1End >= part1Start) {
+                "Reserved space leaves insufficient room for the Ventoy data partition"
+            }
+
+            val part2End = part2Start + efiSectors - 1
+            val part1Count = part1End - part1Start + 1
+            ExFatFormatter.computeVolumeLayout(part1Count, ExFatFormatter.sectorsPerCluster(part1Count))
+            return VentoyLayout(
+                part1StartSector = part1Start,
+                part1EndSector = part1End,
+                part2StartSector = part2Start,
+                part2EndSector = part2End,
+                part1SectorCount = part1Count,
+                part2SectorCount = efiSectors,
+            )
+        }
+
+        /** Largest end-of-disk reserve (sectors) that still leaves a formattable layout. */
+        fun maxReservableSectors(diskSectors: Long, useGpt: Boolean): Long {
+            var low = 0L
+            var high = diskSectors.coerceAtLeast(0L)
+            while (low < high) {
+                val mid = (low + high + 1) / 2
+                if (runCatching { computeLayout(diskSectors, useGpt, mid) }.isSuccess) {
+                    low = mid
+                } else {
+                    high = mid - 1
+                }
+            }
+            return low
+        }
+
+        /**
+         * Pre-flight check run before any byte is written. Throws IOException with a
+         * numeric, user-readable message instead of a bare layout require failure.
+         */
+        @Throws(IOException::class)
+        fun validateLayoutFits(diskSectors: Long, useGpt: Boolean, reserveSectors: Long) {
+            if (reserveSectors < 0L) {
+                throw IOException("Reserved space cannot be negative")
+            }
+            if (runCatching { computeLayout(diskSectors, useGpt, reserveSectors) }.isSuccess) {
+                return
+            }
+            if (reserveSectors > 0L) {
+                val maxReserve = maxReservableSectors(diskSectors, useGpt)
+                if (maxReserve > 0L) {
+                    throw IOException(
+                        String.format(
+                            Locale.US,
+                            "Reserved space does not fit: %.1f GiB requested, " +
+                                "but at most %.1f GiB can be reserved on this drive.",
+                            sectorsToGiB(reserveSectors),
+                            sectorsToGiB(maxReserve),
+                        ),
+                    )
+                }
+                throw IOException(
+                    "Reserved space does not fit: this drive only has room for " +
+                        "the Ventoy partitions themselves.",
+                )
+            }
+            throw IOException(
+                String.format(
+                    Locale.US,
+                    "Disk too small for Ventoy: %.1f GiB leaves no room for the " +
+                        "Ventoy partitions plus a minimal data partition.",
+                    sectorsToGiB(diskSectors),
+                ),
+            )
+        }
+
+        private fun sectorsToGiB(sectors: Long): Double {
+            return sectors * VentoyConstants.SECTOR_SIZE.toDouble() / (1024.0 * 1024.0 * 1024.0)
+        }
+    }
 
     private val blockSize: Int get() = blockDevice.blockSize
     private val totalBlocks: Long get() = blockDevice.blocks
@@ -47,45 +157,7 @@ class VentoyInstaller(
         diskSectors: Long,
         useGpt: Boolean = false,
         reserveSectors: Long = 0L,
-    ): VentoyLayout {
-        require(reserveSectors >= 0L) {
-            "Reserved space cannot be negative"
-        }
-        val part1Start = VentoyConstants.PART1_START_SECTOR
-        val efiSectors = VentoyConstants.VENTOY_SECTOR_NUM.toLong()
-        val gptOverhead = if (useGpt) 34L else 0L
-        require(diskSectors > part1Start + efiSectors + gptOverhead) {
-            "Disk too small for Ventoy layout"
-        }
-
-        val usableEndExclusive = diskSectors - reserveSectors - gptOverhead
-        require(usableEndExclusive > part1Start + efiSectors) {
-            "Reserved space leaves insufficient room for Ventoy"
-        }
-
-        var part1End = usableEndExclusive - efiSectors - 1
-        var part2Start = part1End + 1
-        val mod = (part2Start % VentoyConstants.ALIGNMENT_SECTORS).toInt()
-        if (mod != 0) {
-            part1End -= mod
-            part2Start = part1End + 1
-        }
-        require(part1End >= part1Start) {
-            "Reserved space leaves insufficient room for the Ventoy data partition"
-        }
-
-        val part2End = part2Start + efiSectors - 1
-        val part1Count = part1End - part1Start + 1
-        ExFatFormatter.computeVolumeLayout(part1Count, ExFatFormatter.sectorsPerCluster(part1Count))
-        return VentoyLayout(
-            part1StartSector = part1Start,
-            part1EndSector = part1End,
-            part2StartSector = part2Start,
-            part2EndSector = part2End,
-            part1SectorCount = part1Count,
-            part2SectorCount = efiSectors,
-        )
-    }
+    ): VentoyLayout = computeLayout(diskSectors, useGpt, reserveSectors)
 
     /**
      * Build 512-byte MBR with boot code (first 446 bytes) and two partition entries.
@@ -112,6 +184,14 @@ class VentoyInstaller(
         }
         val mbr = ByteArray(512)
         bootCode.copyInto(mbr, 0, 0, VentoyConstants.MBR_BOOT_CODE_SIZE)
+        // GRUB i386-pc boot.img finds core.img through the kernel_sector field at
+        // 0x5C. The bundled boot.img targets the MBR layout (core at LBA 1); with
+        // GPT the core image starts at LBA 34, behind the GPT header and entries.
+        writeLeLong(
+            mbr,
+            VentoyConstants.BOOT_IMG_KERNEL_SECTOR_OFFSET,
+            VentoyConstants.CORE_IMG_OFFSET_SECTOR_GPT,
+        )
         val partitionOffset = 446
         mbr[partitionOffset] = 0x00
         mbr[partitionOffset + 1] = 0x00
@@ -150,10 +230,11 @@ class VentoyInstaller(
         writeGptPartitionEntry(
             entries = entries,
             entryIndex = 1,
-            typeGuid = UUID.fromString("C12A7328-F81F-11D2-BA4B-00A0C93EC93B"),
+            typeGuid = UUID.fromString("EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"),
             uniqueGuid = part2Guid,
             firstLba = layout.part2StartSector,
             lastLba = layout.part2EndSector,
+            attributes = VentoyConstants.GPT_ATTR_NO_AUTOMOUNT,
             name = "VTOYEFI",
         )
 
@@ -273,6 +354,8 @@ class VentoyInstaller(
         require(ventoyDiskImg.size >= VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES) {
             "ventoy.disk.img must be at least ${VentoyConstants.VENTOY_EFI_PART_SIZE_BYTES} bytes"
         }
+        // Pre-flight: fail with a numeric message before a single byte is written.
+        validateLayoutFits(totalBlocks, useGpt, reserveSectors)
         val layout = calculateLayout(
             diskSectors = totalBlocks,
             useGpt = useGpt,
@@ -322,7 +405,13 @@ class VentoyInstaller(
         progress?.invoke("core", 0, coreSectors.toLong())
         VentoidFileLogger.log("install: writing core.img sectors=$coreSectors offset=$coreOffset")
         try { Log.d(tag, "install: writing core.img sectors=$coreSectors offset=$coreOffset") } catch (_: Exception) { }
-        writeSectors(coreOffset, coreImg, 0, coreBytes)
+        val patchedCoreImg = if (useGpt) {
+            patchGrubCoreBlockList(coreImg, coreOffset)
+        } else {
+            coreImg
+        }
+        writeSectors(coreOffset, patchedCoreImg, 0, coreBytes)
+        SampledVerifier.verifyRegion(blockDevice, coreOffset, patchedCoreImg, 0, coreSectors.toLong(), 16)
         progress?.invoke("core", coreSectors.toLong(), coreSectors.toLong())
         progress?.invoke("part1", 0, 1)
         VentoidFileLogger.log("install: formatting part1 exFAT label=${ExFatFormatter.VOLUME_LABEL}")
@@ -347,6 +436,13 @@ class VentoyInstaller(
             ventoyWritten += chunk
             progress?.invoke("ventoy", ventoyWritten, ventoyTotalSectors)
         }
+        SampledVerifier.verifyRegion(
+            blockDevice,
+            layout.part2StartSector,
+            ventoyDiskImg,
+            0,
+            ventoyTotalSectors,
+        )
         VentoidFileLogger.log("install: done")
         try { Log.d(tag, "install: done") } catch (_: Exception) { }
     }
@@ -385,8 +481,16 @@ class VentoyInstaller(
         VentoidFileLogger.log("exFAT boot sector verification OK")
         val backupBoot = ExFatFormatter.buildBackupBootRegion(mainBoot)
         writeSectors(part1Start + 12, backupBoot)
-        val fat = ExFatFormatter.buildFat(volumeLayout.fatLengthSectors, volumeLayout)
-        writeSectors(part1Start + 24, fat)
+        // Stream the FAT in 1 MiB chunks: multi-TB data partitions need hundreds of
+        // MiB of FAT, which must not be allocated as a single buffer on a phone.
+        val fatChunkSectors = 2048
+        var fatSector = 0
+        while (fatSector < volumeLayout.fatLengthSectors) {
+            val count = minOf(fatChunkSectors, volumeLayout.fatLengthSectors - fatSector)
+            val fatChunk = ExFatFormatter.buildFatRange(volumeLayout, fatSector, count)
+            writeSectors(part1Start + 24 + fatSector, fatChunk)
+            fatSector += count
+        }
         val bitmapOffset = volumeLayout.clusterHeapOffsetSectors +
             (volumeLayout.bitmapFirstCluster - 2L) * spc
         val upcaseOffset = volumeLayout.clusterHeapOffsetSectors +
@@ -488,6 +592,7 @@ class VentoyInstaller(
         uniqueGuid: UUID,
         firstLba: Long,
         lastLba: Long,
+        attributes: Long = 0L,
         name: String,
     ) {
         val offset = entryIndex * 128
@@ -496,7 +601,7 @@ class VentoyInstaller(
         putGuidLe(le, offset + 16, uniqueGuid)
         le.putLong(offset + 32, firstLba)
         le.putLong(offset + 40, lastLba)
-        le.putLong(offset + 48, 0L)
+        le.putLong(offset + 48, attributes)
         val nameBytes = name.toByteArray(StandardCharsets.UTF_16LE)
         nameBytes.copyInto(entries, offset + 56, 0, minOf(nameBytes.size, 72))
     }
@@ -522,6 +627,24 @@ class VentoyInstaller(
         target[offset + 1] = ((value ushr 8) and 0xFF).toByte()
         target[offset + 2] = ((value ushr 16) and 0xFF).toByte()
         target[offset + 3] = ((value ushr 24) and 0xFF).toByte()
+    }
+
+    private fun writeLeLong(target: ByteArray, offset: Int, value: Long) {
+        for (index in 0 until 8) {
+            target[offset + index] = ((value ushr (index * 8)) and 0xFF).toByte()
+        }
+    }
+
+    /**
+     * GRUB i386-pc diskboot.img locates the rest of core.img through the absolute
+     * LBA in the block-list entry at 0x1F4. The bundled core.img targets the MBR
+     * layout (diskboot at LBA 1, data at LBA 2); with GPT diskboot sits at LBA 34,
+     * so its data begins at LBA 35.
+     */
+    internal fun patchGrubCoreBlockList(coreImg: ByteArray, coreOffset: Long): ByteArray {
+        val patched = coreImg.copyOf()
+        writeLeLong(patched, VentoyConstants.CORE_IMG_BLOCKLIST_OFFSET, coreOffset + 1)
+        return patched
     }
 
     private fun deterministicGuid(seed: String): UUID {

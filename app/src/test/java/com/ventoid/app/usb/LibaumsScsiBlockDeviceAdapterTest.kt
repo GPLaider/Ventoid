@@ -7,10 +7,10 @@ import org.junit.jupiter.api.assertThrows
 class LibaumsScsiBlockDeviceAdapterTest {
 
     @Test
-    fun `normalizes signed READ CAPACITY 10 last LBA from 2TB SSD`() {
+    fun `converts a high unsigned 32-bit last LBA from a 2TB SSD to block count`() {
         assertEquals(
             4_000_797_360L,
-            normalizeLibaumsScsiBlockCount(-294_169_937L),
+            normalizeLibaumsScsiBlockCount(4_000_797_359L),
         )
     }
 
@@ -23,7 +23,15 @@ class LibaumsScsiBlockDeviceAdapterTest {
     }
 
     @Test
-    fun `rejects READ CAPACITY 16 sentinel`() {
+    fun `converts a multi-TB last LBA from READ CAPACITY 16 to block count`() {
+        assertEquals(
+            7_812_500_000L,
+            normalizeLibaumsScsiBlockCount(7_812_499_999L),
+        )
+    }
+
+    @Test
+    fun `rejects a negative last LBA`() {
         assertThrows<IllegalArgumentException> {
             normalizeLibaumsScsiBlockCount(-1L)
         }

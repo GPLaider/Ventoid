@@ -41,6 +41,10 @@ import java.util.Arrays
  *
  * REQUEST SENSE may fill its 18-byte buffer before reporting the total response size. The released
  * driver incorrectly adds that size to the buffer's current position, producing a 36-byte limit.
+ *
+ * Ventoid addition: drives whose capacity does not fit in READ CAPACITY(10)'s 32-bit last LBA
+ * (the 0xFFFFFFFF sentinel) are resolved with READ CAPACITY(16), and transfers touching LBAs
+ * beyond 32 bits use READ(16)/WRITE(16) instead of failing.
  */
 internal class VentoidScsiBlockDevice(
     private val usbCommunication: UsbCommunication,
@@ -51,16 +55,18 @@ internal class VentoidScsiBlockDevice(
     private val cswBuffer = ByteBuffer.allocate(CommandStatusWrapper.SIZE)
     private val writeCommand = ScsiWrite10(lun = lun)
     private val readCommand = ScsiRead10(lun = lun)
+    private val write16Command = ScsiWrite16(lun = lun)
+    private val read16Command = ScsiRead16(lun = lun)
     private val csw = CommandStatusWrapper()
 
     override var blockSize: Int = 0
         private set
 
-    private var lastBlockAddress: Int = 0
+    private var lastBlockAddress: Long = 0
     private var cbwTagCounter = 1
 
     override val blocks: Long
-        get() = lastBlockAddress.toLong()
+        get() = lastBlockAddress
 
     @Throws(IOException::class)
     override fun init() {
@@ -70,10 +76,10 @@ internal class VentoidScsiBlockDevice(
                 initAttempt()
                 return
             } catch (error: InitRequired) {
-                Log.i(TAG, error.message ?: "Reinitializing device")
+                logInfo(error.message ?: "Reinitializing device")
                 lastException = error
             } catch (error: NotReadyTryAgain) {
-                Log.i(TAG, error.message ?: "Reinitializing device")
+                logInfo(error.message ?: "Reinitializing device")
                 lastException = error
             }
             Thread.sleep(RECOVERY_DELAY_MS)
@@ -89,7 +95,7 @@ internal class VentoidScsiBlockDevice(
         transferCommand(ScsiInquiry(INQUIRY_LENGTH.toByte(), lun = lun), inBuffer)
         inBuffer.clear()
         val inquiryResponse = ScsiInquiryResponse.read(inBuffer)
-        Log.d(TAG, "inquiry response: $inquiryResponse")
+        logDebug("inquiry response: $inquiryResponse")
         if (inquiryResponse.peripheralQualifier.toInt() != 0 ||
             inquiryResponse.peripheralDeviceType.toInt() != 0
         ) {
@@ -101,10 +107,21 @@ internal class VentoidScsiBlockDevice(
         transferCommand(ScsiReadCapacity(lun = lun), inBuffer)
         inBuffer.clear()
         val capacity = ScsiReadCapacityResponse.read(inBuffer)
-        blockSize = capacity.blockLength
-        lastBlockAddress = capacity.logicalBlockAddress
-        Log.i(TAG, "Block size: $blockSize")
-        Log.i(TAG, "Last block address: $lastBlockAddress")
+        if (capacity.logicalBlockAddress == -1) {
+            // 0xFFFF_FFFF sentinel: the true last LBA does not fit in 32 bits.
+            logInfo("READ CAPACITY(10) sentinel, issuing READ CAPACITY(16)")
+            val capacity16Buffer = ByteBuffer.allocate(ScsiReadCapacity16.RESPONSE_LENGTH)
+            transferCommand(ScsiReadCapacity16(lun = lun), capacity16Buffer)
+            capacity16Buffer.clear()
+            val capacity16 = parseReadCapacity16Response(capacity16Buffer)
+            blockSize = capacity16.blockLength
+            lastBlockAddress = capacity16.lastBlockAddress
+        } else {
+            blockSize = capacity.blockLength
+            lastBlockAddress = Integer.toUnsignedLong(capacity.logicalBlockAddress)
+        }
+        logInfo("Block size: $blockSize")
+        logInfo("Last block address: $lastBlockAddress")
     }
 
     @Throws(IOException::class)
@@ -121,7 +138,7 @@ internal class VentoidScsiBlockDevice(
                     return
                 }
             } catch (error: SenseException) {
-                Log.w(TAG, error.message ?: "SenseException")
+                logWarn(error.message ?: "SenseException")
                 when (error) {
                     is InitRequired -> init()
                     is NotReadyTryAgain -> Unit
@@ -129,15 +146,15 @@ internal class VentoidScsiBlockDevice(
                 }
                 lastException = error
             } catch (error: PipeException) {
-                Log.w(TAG, (error.message ?: "PipeException") + ", resetting bulk storage")
+                logWarn((error.message ?: "PipeException") + ", resetting bulk storage")
                 bulkOnlyMassStorageReset()
                 lastException = error
             } catch (error: InvalidCommandStatusException) {
-                Log.w(TAG, (error.message ?: "Invalid command status") + ", resetting bulk storage")
+                logWarn((error.message ?: "Invalid command status") + ", resetting bulk storage")
                 bulkOnlyMassStorageReset()
                 lastException = error
             } catch (error: IOException) {
-                Log.w(TAG, (error.message ?: "IOException") + ", retrying")
+                logWarn((error.message ?: "IOException") + ", retrying")
                 lastException = error
             }
             Thread.sleep(RECOVERY_DELAY_MS)
@@ -269,8 +286,13 @@ internal class VentoidScsiBlockDevice(
         require(buffer.remaining() % blockSize == 0) {
             "buffer.remaining() must be a multiple of blockSize"
         }
-        readCommand.init(deviceOffset.toInt(), buffer.remaining(), blockSize)
-        transferCommand(readCommand, buffer)
+        if (requires16ByteCommand(deviceOffset, buffer.remaining() / blockSize)) {
+            read16Command.init(deviceOffset, buffer.remaining(), blockSize)
+            transferCommand(read16Command, buffer)
+        } else {
+            readCommand.init(deviceOffset.toInt(), buffer.remaining(), blockSize)
+            transferCommand(readCommand, buffer)
+        }
         buffer.position(buffer.limit())
     }
 
@@ -279,8 +301,13 @@ internal class VentoidScsiBlockDevice(
         require(buffer.remaining() % blockSize == 0) {
             "buffer.remaining() must be a multiple of blockSize"
         }
-        writeCommand.init(deviceOffset.toInt(), buffer.remaining(), blockSize)
-        transferCommand(writeCommand, buffer)
+        if (requires16ByteCommand(deviceOffset, buffer.remaining() / blockSize)) {
+            write16Command.init(deviceOffset, buffer.remaining(), blockSize)
+            transferCommand(write16Command, buffer)
+        } else {
+            writeCommand.init(deviceOffset.toInt(), buffer.remaining(), blockSize)
+            transferCommand(writeCommand, buffer)
+        }
         buffer.position(buffer.limit())
     }
 
@@ -292,6 +319,12 @@ internal class VentoidScsiBlockDevice(
         private const val REQUEST_SENSE_LENGTH = 18
         private const val REQUEST_TYPE_BULK_ONLY_RESET = 33
         private const val REQUEST_BULK_ONLY_RESET = 255
+
+        // android.util.Log throws in local unit tests (mockable android.jar), so
+        // logging must never fail the transfer path; mirrors VentoyInstaller.
+        private fun logDebug(message: String) = runCatching { Log.d(TAG, message) }
+        private fun logInfo(message: String) = runCatching { Log.i(TAG, message) }
+        private fun logWarn(message: String) = runCatching { Log.w(TAG, message) }
     }
 }
 

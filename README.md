@@ -11,6 +11,10 @@ Ventoid turns an Android phone into a practical Ventoy-style USB preparation too
 
 It is built for offline Android OTG workflows, released on F-Droid, licensed as `GPL-3.0-only`, and includes no ads, no analytics, and no network dependency for normal use.
 
+For the difference between tagged releases and development changes, see the
+[changelog](CHANGELOG.md). Upcoming work and remaining release checks are tracked
+in the [roadmap](ROADMAP.md).
+
 ![Ventoid screenshot](docs/assets/ventoid-screenshot.jpg)
 
 ## What Ventoid is for
@@ -70,9 +74,9 @@ Ventoid does not enable hardware or operating-system write protection. Check for
 
 This indicates that the expected Ventoy payload is missing from the prepared VTOYEFI partition. Prepare the drive again with the latest Ventoid release without disconnecting it during the write. If the error repeats, include the exact message, phone, OTG adapter or hub, drive model, capacity, and Ventoid log in a [bug report](https://github.com/GPLaider/Ventoid/issues/new?template=bug_report.yml).
 
-### A very large drive is rejected
+### A very large drive fails to prepare
 
-Some USB bridges and very large drives require SCSI READ CAPACITY(16), which the currently released storage library does not support. Report the exact drive size, bridge or enclosure model, and error text rather than retrying destructive writes.
+Drives larger than 2TB are supported: Ventoid resolves their capacity with SCSI READ CAPACITY(16) and uses 16-byte read/write commands for sectors past the 32-bit boundary. Choose the GPT layout for these drives, since MBR partition tables cannot describe LBAs beyond 32 bits. If preparation still fails, report the exact drive size, bridge or enclosure model, and error text rather than retrying destructive writes.
 
 Successful and failed hardware combinations can be submitted with the [device compatibility form](https://github.com/GPLaider/Ventoid/issues/new?template=device_compatibility.yml).
 
@@ -82,6 +86,14 @@ Successful and failed hardware combinations can be submitted with the [device co
 
 - Prepare bootable USB media without a PC
 - Write directly to USB mass-storage devices over Android OTG
+- Inspect a connected drive read-only: detect an existing Ventoy layout, read its
+  installed version, and see whether the bundled Ventoy is newer
+- Update Ventoy on a prepared drive without erasing it: rewrite only the boot
+  files and VTOYEFI payload while the data partition keeps every ISO
+- Repair a matching Ventoy version in place; block updates that would downgrade
+  a newer installed version
+- List image names and free space on exFAT data partitions, including warnings
+  for zero-byte images; the expanded list shows up to 100 names
 - Choose MBR or GPT Ventoy-compatible disk layouts
 - Write the Ventoy core image and EFI partition image
 - Format the data partition as exFAT for large ISO files
@@ -90,12 +102,20 @@ Successful and failed hardware combinations can be submitted with the [device co
 
 - Ship the Ventoy x86_64 Secure Boot chain (Rocky-signed shim + MOK manager) with pinned provenance
 - Verify bundled Secure Boot markers before writing
+- Validate reserved space before writing, sample written core/EFI sectors for
+  readback verification, and re-analyse the drive after installation
+- Show transfer speed and estimated remaining time while writing VTOYEFI
 - Keep five stable progress rows for the partition table, core image, exFAT data,
   Ventoy EFI, and final checks, with progress shown directly on the install action
 - No ads
 - No analytics
 - No network dependency
 - `GPL-3.0-only` source code
+
+Image listing identifies supported filename extensions; it does not prove that
+an image boots. Sampled readback can miss damage between samples. Current boot
+evidence reaches the BIOS menu in QEMU; ISO guest boots, UEFI/Secure Boot, and
+physical Android OTG workflows still need separate verification.
 
 ## Install
 

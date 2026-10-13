@@ -13,6 +13,10 @@ val releaseKeyAlias = providers.gradleProperty("VENTOID_RELEASE_KEY_ALIAS")
 val releaseKeyPassword = providers.gradleProperty("VENTOID_RELEASE_KEY_PASSWORD")
     .orElse(providers.environmentVariable("VENTOID_RELEASE_KEY_PASSWORD"))
 val qemuImagePath = providers.gradleProperty("ventoidQemuImage")
+val qemuImageGptPath = providers.gradleProperty("ventoidQemuImageGpt")
+val qemuImageUpdatedPath = providers.gradleProperty("ventoidQemuImageUpdated")
+val qemuImageUpdatedGptPath = providers.gradleProperty("ventoidQemuImageUpdatedGpt")
+val qemuPreviousAssetsPath = providers.gradleProperty("ventoidPreviousAssets")
 
 android {
     namespace = "com.ventoid.app"
@@ -22,8 +26,8 @@ android {
         applicationId = "com.ventoid.app"
         minSdk = 21
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.3.3"
+        versionCode = 16
+        versionName = "0.4.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -69,6 +73,18 @@ android {
             it.useJUnitPlatform()
             if (qemuImagePath.isPresent) {
                 it.systemProperty("ventoid.qemu.image", qemuImagePath.get())
+            }
+            if (qemuImageGptPath.isPresent) {
+                it.systemProperty("ventoid.qemu.image.gpt", qemuImageGptPath.get())
+            }
+            if (qemuImageUpdatedPath.isPresent) {
+                it.systemProperty("ventoid.qemu.image.updated", qemuImageUpdatedPath.get())
+            }
+            if (qemuImageUpdatedGptPath.isPresent) {
+                it.systemProperty("ventoid.qemu.image.updated.gpt", qemuImageUpdatedGptPath.get())
+            }
+            if (qemuPreviousAssetsPath.isPresent) {
+                it.systemProperty("ventoid.qemu.previous.assets", qemuPreviousAssetsPath.get())
             }
         }
     }

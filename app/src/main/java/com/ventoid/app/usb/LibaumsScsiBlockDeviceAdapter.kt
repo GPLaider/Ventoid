@@ -5,11 +5,10 @@ import java.io.IOException
 import java.nio.ByteBuffer
 
 /**
- * Corrects libaums 0.10.0's READ CAPACITY(10) interpretation.
+ * Converts the driver-reported last block address into a block count.
  *
- * ScsiBlockDevice exposes the last 32-bit LBA as a signed Long and calls it a
- * block count. Read/write commands still serialize the same four LBA bytes, so
- * only the reported capacity needs normalization.
+ * [VentoidScsiBlockDevice] already resolves READ CAPACITY(16) for large drives and
+ * reports the true unsigned last LBA as a Long, so no 32-bit unmasking is needed here.
  */
 internal class LibaumsScsiBlockDeviceAdapter(
     private val delegate: BlockDeviceDriver,
@@ -33,12 +32,8 @@ internal class LibaumsScsiBlockDeviceAdapter(
 }
 
 internal fun normalizeLibaumsScsiBlockCount(reportedLastBlockAddress: Long): Long {
-    require(reportedLastBlockAddress in Int.MIN_VALUE.toLong()..Int.MAX_VALUE.toLong()) {
-        "Unexpected libaums SCSI capacity value: $reportedLastBlockAddress"
+    require(reportedLastBlockAddress >= 0L) {
+        "Unexpected negative SCSI last block address: $reportedLastBlockAddress"
     }
-    val unsignedLastBlockAddress = reportedLastBlockAddress and 0xFFFF_FFFFL
-    require(unsignedLastBlockAddress != 0xFFFF_FFFFL) {
-        "USB disk requires SCSI READ CAPACITY(16), which libaums 0.10.0 does not support"
-    }
-    return unsignedLastBlockAddress + 1L
+    return reportedLastBlockAddress + 1L
 }

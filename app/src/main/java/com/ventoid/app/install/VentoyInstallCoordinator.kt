@@ -2,6 +2,8 @@ package com.ventoid.app.install
 
 import android.content.Context
 import com.ventoid.app.installer.VentoyInstaller
+import com.ventoid.app.installer.VentoyUpdateResult
+import com.ventoid.app.installer.VentoyUpdater
 import com.ventoid.app.usb.UsbDeviceItem
 import com.ventoid.app.usb.UsbMassStorageHelper
 import java.io.IOException
@@ -63,6 +65,62 @@ class VentoyInstallCoordinator(
             throw e
         }
     }
+
+    /**
+     * Non-destructive update: rewrites only the boot code, core image, and VTOYEFI
+     * payload. The data partition with the user's ISO files stays untouched.
+     */
+    suspend fun update(
+        device: UsbDeviceItem,
+        onProgress: (InstallProgress) -> Unit,
+    ): VentoyUpdateResult {
+        onProgress(InstallProgress.Log(InstallMessage.UpdateStarting))
+
+        try {
+            val assets = InstallerAssets.load(context.assets)
+            if (assets.secureBootSupport.supported) {
+                onProgress(InstallProgress.Log(InstallMessage.SecureBootVerified))
+            } else {
+                onProgress(InstallProgress.Log(InstallMessage.SecureBootUnavailable))
+            }
+            val session = UsbMassStorageHelper.openBlockDevice(context, device)
+            val result: VentoyUpdateResult
+            try {
+                try {
+                    result = VentoyUpdater(session.blockDevice).update(
+                        bootImg = assets.bootImg,
+                        coreImg = assets.coreImg,
+                        ventoyDiskImg = assets.ventoyDiskImg,
+                    ) { step, current, total ->
+                        onProgress(
+                            InstallProgress.Step(
+                                stage = InstallStage.fromInstallerStep(step),
+                                current = current,
+                                total = total,
+                            )
+                        )
+                    }
+                    onProgress(InstallProgress.Step(InstallStage.VERIFY, 0, 1))
+                } finally {
+                    session.syncBeforeClose()
+                }
+            } finally {
+                session.close()
+            }
+            onProgress(InstallProgress.Step(InstallStage.VERIFY, 1, 1))
+            onProgress(InstallProgress.Log(InstallMessage.UpdateSuccess))
+            return result
+        } catch (e: IOException) {
+            onProgress(InstallProgress.Failure(e))
+            throw e
+        } catch (e: SecurityException) {
+            onProgress(InstallProgress.Failure(e))
+            throw e
+        } catch (e: Exception) {
+            onProgress(InstallProgress.Failure(e))
+            throw e
+        }
+    }
 }
 
 sealed interface InstallProgress {
@@ -95,7 +153,9 @@ enum class InstallStage {
 
 enum class InstallMessage {
     Starting,
+    UpdateStarting,
     Success,
+    UpdateSuccess,
     WriteProtectTip,
     SecureBootVerified,
     SecureBootUnavailable,

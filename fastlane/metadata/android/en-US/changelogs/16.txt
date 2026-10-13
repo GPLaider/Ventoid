@@ -1,0 +1,8 @@
+Ventoid 0.4.0 — Ventoy 1.1.18 and USB management.
+
+- Bundle Ventoy 1.1.18 with refreshed boot assets and signed EFI hashes
+- Inspect USB drives and update Ventoy while preserving ISO files
+- Block downgrades and offer same-version boot-file repair
+- List exFAT images/free space and warn about zero-byte images
+- Support drives over 2 TiB with GPT; fix GPT BIOS boot pointers
+- Validate reserved space, sample written sectors, and show speed/ETA
