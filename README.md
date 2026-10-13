@@ -7,7 +7,7 @@
 
 ![Ventoid logo](docs/assets/ventoid-logo.png)
 
-Ventoid turns an Android phone into a practical Ventoy-style USB preparation tool. Plug in a USB drive over OTG, choose a layout, and prepare bootable USB media without needing a working PC.
+Ventoid turns an Android phone into a practical Ventoy-style USB preparation tool. Plug in a USB drive over OTG, choose a layout, and prepare bootable USB media without needing a working PC. The bundled payload is the checksum-verified Ventoy 1.1.18 release.
 
 It is built for offline Android OTG workflows, released on F-Droid, licensed as `GPL-3.0-only`, and includes no ads, no analytics, and no network dependency for normal use.
 
@@ -15,7 +15,9 @@ For the difference between tagged releases and development changes, see the
 [changelog](CHANGELOG.md). Upcoming work and remaining release checks are tracked
 in the [roadmap](ROADMAP.md).
 
-![Ventoid screenshot](docs/assets/ventoid-screenshot.jpg)
+| Drive setup and progress | Inspect and update |
+| --- | --- |
+| ![Drive setup, bundled EFI status, and five-step progress](docs/assets/ventoid-screenshot-drive-setup.png) | ![Read-only inspect and non-destructive update tools](docs/assets/ventoid-screenshot-inspect-update.png) |
 
 ## What Ventoid is for
 
@@ -113,9 +115,10 @@ Successful and failed hardware combinations can be submitted with the [device co
 - `GPL-3.0-only` source code
 
 Image listing identifies supported filename extensions; it does not prove that
-an image boots. Sampled readback can miss damage between samples. Current boot
-evidence reaches the BIOS menu in QEMU; ISO guest boots, UEFI/Secure Boot, and
-physical Android OTG workflows still need separate verification.
+an image boots. Sampled readback can miss damage between samples. QEMU checks
+reach the Ventoy 1.1.18 menu under both BIOS and UEFI for fresh and updated
+MBR/GPT layouts; ISO guest boots, Secure Boot enforcement, and physical Android
+OTG workflows still need separate verification.
 
 ## Install
 
