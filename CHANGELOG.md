@@ -4,7 +4,7 @@ Tagged releases and the entries below distinguish published behavior from change
 available only in a source checkout. GitHub and F-Droid builds use separate
 signing identities.
 
-## Unreleased — 0.4.0 candidate
+## 0.4.0 — 2026-10-13
 
 ### Bundled Ventoy
 
@@ -46,8 +46,10 @@ signing identities.
 - Add the F-Droid author name and website, a development roadmap, and explicit
   release-readiness and verification boundaries.
 
-The bundled Ventoy version is **1.1.18** and the app candidate is **0.4.0**,
-versionCode **16**. No release tag has been published for this development work.
+The bundled Ventoy version is **1.1.18** and the app version is **0.4.0**,
+versionCode **16**. Released as tag `v0.4.0` (release-source commit
+`edb2b2300b8b8d92ade26903b742306d4ed56869`); F-Droid packaging is tracked in
+fdroiddata merge request 52385.
 
 ## 0.3.3 — 2026-09-02
 

@@ -1,6 +1,6 @@
 # Ventoid development roadmap
 
-Updated: 2026-10-12. This is a development plan, not a list of released features.
+Updated: 2026-10-13. This is a development plan, not a list of released features.
 See [CHANGELOG.md](CHANGELOG.md) for implemented changes and
 [RECOVERY-HANDOFF.md](RECOVERY-HANDOFF.md) for historical verification evidence.
 
@@ -8,11 +8,11 @@ See [CHANGELOG.md](CHANGELOG.md) for implemented changes and
 
 | Item | State |
 | --- | --- |
-| Latest published Ventoid release | 0.3.3, versionCode 15 |
-| App version in this checkout | 0.4.0 candidate, versionCode 16; unreleased |
+| Latest published Ventoid release | 0.4.0, versionCode 16, tag `v0.4.0` |
+| App version in this checkout | 0.4.0, versionCode 16 |
 | Bundled Ventoy | 1.1.18 |
 | Latest upstream release checked | [Ventoy 1.1.18](https://github.com/ventoy/Ventoy/releases/tag/v1.1.18), published 2026-10-09 |
-| Next app release target | 0.4.0, versionCode 16 |
+| Next app release target | next feature release (unassigned) |
 
 Implemented development changes include drive inspection, non-destructive
 updates, ISO listing and free-space analysis, large-drive support, sampled
