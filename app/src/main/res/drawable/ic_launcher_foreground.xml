@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:inset="12%">
-    <bitmap
-        android:gravity="fill"
-        android:src="@drawable/ventoid_icon" />
-</inset>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group
+        android:scaleX="0.4"
+        android:scaleY="0.4"
+        android:translateX="32.4"
+        android:translateY="32.4">
+        <path
+            android:fillColor="#86D288"
+            android:pathData="M54,25 A29.5,29.7 0,0 0,24.5,54.7 L83.5,54.7 A29.5,29.7 0,0 0,54,25 Z M40.4,38.8 A2.34,2.39 0,1 1,40.4,43.58 A2.34,2.39 0,1 1,40.4,38.8 Z M67.3,38.8 A2.34,2.39 0,1 1,67.3,43.58 A2.34,2.39 0,1 1,67.3,38.8 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M32.4,56.2 L75.6,56.2 L75.6,87 L32.4,87 Z M38.3,69 L49,69 L49,76.5 L38.3,76.5 Z M58.7,69 L69.4,69 L69.4,76.5 L58.7,76.5 Z" />
+        <path
+            android:fillColor="#B22E29"
+            android:pathData="M62.4,31.8 L48,45.7 L33.9,32.4 L48,56.7 Z" />
+        <path
+            android:fillColor="#86D288"
+            android:pathData="M62.2,29.9 L61.7,29.6 A2.35,2.35 0,0 1,60.9,26.4 L65.4,19.1 A2.35,2.35 0,0 1,68.6,18.3 L69.1,18.6 A2.35,2.35 0,0 1,69.9,21.8 L65.4,29.1 A2.35,2.35 0,0 1,62.2,29.9 Z" />
+    </group>
+</vector>
