@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Keep the supplied artwork inside the adaptive icon's 66dp safe circle. -->
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:inset="12%">
+    android:inset="26%">
     <bitmap
+        android:filter="true"
         android:gravity="fill"
         android:src="@drawable/ventoid_icon" />
 </inset>

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ventoid_window">#090D0E</color>
+    <color name="ventoid_launcher_background">#222720</color>
     <color name="ventoid_surface">#111718</color>
     <color name="ventoid_surface_2">#182123</color>
     <color name="ventoid_surface_muted">#0D1314</color>
