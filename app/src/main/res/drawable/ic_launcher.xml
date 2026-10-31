@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
-    android:gravity="fill"
-    android:src="@drawable/ventoid_icon" />
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/ventoid_launcher_background" />
+    <item>
+        <bitmap
+            android:filter="true"
+            android:gravity="fill"
+            android:src="@drawable/ventoid_icon" />
+    </item>
+</layer-list>
