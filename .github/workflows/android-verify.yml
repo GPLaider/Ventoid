@@ -73,7 +73,11 @@ jobs:
           echo no | avdmanager create avd -n ventoid-ci -k "system-images;android-35;google_apis;x86_64"
           "$ANDROID_HOME/emulator/emulator" -avd ventoid-ci -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > emulator.log 2>&1 &
           timeout 180 adb -s emulator-5554 wait-for-device
-          timeout 180 bash -c 'until [ "$(adb -s emulator-5554 shell getprop sys.boot_completed | tr -d "\r")" = 1 ]; do sleep 2; done'
+          boot_deadline=$((SECONDS + 180))
+          until [ "$(adb -s emulator-5554 shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do
+            if (( SECONDS >= boot_deadline )); then exit 1; fi
+            sleep 2
+          done
           adb -s emulator-5554 shell input keyevent 82
 
       - name: Verify UI, rotation, confirmation, and diagnostic exports

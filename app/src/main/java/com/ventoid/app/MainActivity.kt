@@ -359,7 +359,7 @@ class MainActivity : AppCompatActivity() {
         } else if (state.disconnected || state.busy) {
             resetAnalysisState()
         }
-        val showOperation = state.busy || request?.deviceKey == selectedKey || deviceList.isEmpty()
+        val showOperation = state.busy || state.disconnected || request?.deviceKey == selectedKey || deviceList.isEmpty()
         if (state.id != 0L && showOperation) {
             textStageTitle.text = state.text.render(this)
         } else {
