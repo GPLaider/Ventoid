@@ -90,11 +90,12 @@ jobs:
           adb -s emulator-5554 shell input keyevent 82
 
       - name: Verify UI, rotation, confirmation, and diagnostic exports
+        shell: bash
         run: |
           adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
           adb -s emulator-5554 install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
           adb -s emulator-5554 shell am instrument -w com.ventoid.app.test/androidx.test.runner.AndroidJUnitRunner | tee android-ui.log
-          rg '^OK \([1-9][0-9]* tests?\)' android-ui.log
+          grep -E '^OK \([1-9][0-9]* tests?\)' android-ui.log
 
       - name: Retain emulator test logs
         if: always()
