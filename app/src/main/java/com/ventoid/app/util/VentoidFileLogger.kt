@@ -65,4 +65,14 @@ object VentoidFileLogger {
         val dir = context.getExternalFilesDir(null) ?: context.filesDir
         return File(dir, FILENAME).absolutePath
     }
+
+    @Synchronized
+    fun readTail(context: Context): String {
+        return try {
+            writer?.flush()
+            readLogTail(File(getLogPath(context)))
+        } catch (error: Exception) {
+            "Log unavailable: ${error.message}"
+        }
+    }
 }

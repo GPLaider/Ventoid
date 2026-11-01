@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-feature android:name="android.hardware.usb.host" android:required="false" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".VentoidApp"
@@ -12,6 +17,22 @@
         android:roundIcon="@drawable/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Ventoid">
+        <!-- USB permission, obtained before starting, satisfies the connectedDevice runtime prerequisite.
+             Lint 8.9 only checks the Bluetooth/network alternatives for this service type. -->
+        <service
+            android:name=".operation.UsbOperationService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice"
+            android:stopWithTask="false"
+            tools:ignore="ForegroundServicePermission" />
+        <receiver android:name=".operation.UsbPermissionReceiver" android:exported="false" />
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.diagnostics"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/diagnostic_paths" />
+        </provider>
         <activity
             android:name=".MainActivity"
             android:exported="true">

@@ -6,6 +6,7 @@ import com.ventoid.app.installer.VentoyUpdateResult
 import com.ventoid.app.installer.VentoyUpdater
 import com.ventoid.app.usb.UsbDeviceItem
 import com.ventoid.app.usb.UsbMassStorageHelper
+import com.ventoid.app.usb.ConnectedBlockDevice
 import java.io.IOException
 
 class VentoyInstallCoordinator(
@@ -15,6 +16,8 @@ class VentoyInstallCoordinator(
         device: UsbDeviceItem,
         partitionScheme: PartitionScheme,
         reserveSectors: Long = 0L,
+        expectedCapacity: Long? = null,
+        isConnected: () -> Boolean = { true },
         onProgress: (InstallProgress) -> Unit,
     ) {
         onProgress(InstallProgress.Log(InstallMessage.Starting))
@@ -29,7 +32,11 @@ class VentoyInstallCoordinator(
             val session = UsbMassStorageHelper.openBlockDevice(context, device)
             try {
                 try {
-                    VentoyInstaller(session.blockDevice).install(
+                    val blockDevice = ConnectedBlockDevice(session.blockDevice, isConnected)
+                    if (expectedCapacity != null &&
+                        blockDevice.blocks * blockDevice.blockSize.toLong() != expectedCapacity
+                    ) throw IOException("Drive capacity changed after confirmation")
+                    VentoyInstaller(blockDevice).install(
                         bootImg = assets.bootImg,
                         coreImg = assets.coreImg,
                         ventoyDiskImg = assets.ventoyDiskImg,
@@ -72,6 +79,7 @@ class VentoyInstallCoordinator(
      */
     suspend fun update(
         device: UsbDeviceItem,
+        isConnected: () -> Boolean = { true },
         onProgress: (InstallProgress) -> Unit,
     ): VentoyUpdateResult {
         onProgress(InstallProgress.Log(InstallMessage.UpdateStarting))
@@ -87,7 +95,7 @@ class VentoyInstallCoordinator(
             val result: VentoyUpdateResult
             try {
                 try {
-                    result = VentoyUpdater(session.blockDevice).update(
+                    result = VentoyUpdater(ConnectedBlockDevice(session.blockDevice, isConnected)).update(
                         bootImg = assets.bootImg,
                         coreImg = assets.coreImg,
                         ventoyDiskImg = assets.ventoyDiskImg,

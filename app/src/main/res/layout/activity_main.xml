@@ -411,5 +411,24 @@
                     android:text="@string/update_run" />
             </LinearLayout>
         </LinearLayout>
+        <Button
+            android:id="@+id/button_cancel_pending"
+            style="@style/VentoidButton.Secondary"
+            android:layout_width="match_parent"
+            android:layout_marginTop="@dimen/ventoid_space_standard"
+            android:visibility="gone"
+            android:text="@string/operation_cancel_pending" />
+        <Button
+            android:id="@+id/button_diagnostics"
+            style="@style/VentoidButton.Secondary"
+            android:layout_width="match_parent"
+            android:layout_marginTop="@dimen/ventoid_space_standard"
+            android:text="@string/diagnostics_title" />
+        <Button
+            android:id="@+id/button_help"
+            style="@style/VentoidButton.Secondary"
+            android:layout_width="match_parent"
+            android:layout_marginTop="@dimen/ventoid_space_compact"
+            android:text="@string/help_title" />
     </LinearLayout>
 </ScrollView>

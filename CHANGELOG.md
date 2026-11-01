@@ -4,6 +4,24 @@ Tagged releases and the entries below distinguish published behavior from change
 available only in a source checkout. GitHub and F-Droid builds use separate
 signing identities.
 
+## Unreleased — 0.4.1
+
+- Use the adaptive launcher artwork contributed in PR #21, including themed icons
+  and a contrasting background on older Android versions.
+- Keep USB work and progress in a connected-device foreground service across
+  screen rotation and app switching. Do not replay writes after process death.
+- Reserve one operation before requesting permission; reject duplicate service
+  starts and lock refresh, drive selection, and layout controls until it ends.
+- Read the actual drive capacity before showing an erase confirmation. Bind the
+  confirmed request to that connection and capacity, and keep Update/Repair separate.
+- Refresh USB connections automatically, invalidate stale analysis, and stop at
+  the next I/O boundary after a drive is detached.
+- Preview, save, and share diagnostics containing app/phone/drive details, status,
+  and a bounded recent log. Share only reports through a private FileProvider.
+- Add Korean UI strings and offline ISO-copying, first-boot, and MOK enrollment
+  help; translate the new controls for the existing Chinese UI.
+- Keep the bundled Ventoy 1.1.18 payload and existing release signing identities.
+
 ## 0.4.0 — 2026-10-13
 
 ### Bundled Ventoy

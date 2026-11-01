@@ -45,6 +45,68 @@ jobs:
       - name: Verify Android build and lint
         run: ./gradlew :app:lintRelease :app:testDebugUnitTest :app:assembleRelease :app:bundleRelease
 
+  android-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Set up Java
+        uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d
+
+      - name: Build app and UI tests
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
+
+      - name: Start Android 35 emulator
+        run: |
+          sudo chmod 666 /dev/kvm
+          export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+          export ANDROID_USER_HOME="$RUNNER_TEMP/ventoid-android"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "system-images;android-35;google_apis;x86_64"
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n ventoid-ci -p "$ANDROID_AVD_HOME/ventoid-ci.avd" -k "system-images;android-35;google_apis;x86_64"
+          test -f "$ANDROID_AVD_HOME/ventoid-ci.ini"
+          "$ANDROID_HOME/emulator/emulator" -avd ventoid-ci -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > emulator.log 2>&1 &
+          emulator_pid=$!
+          boot_deadline=$((SECONDS + 180))
+          until [ "$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; do
+            if ! kill -0 "$emulator_pid" 2>/dev/null || (( SECONDS >= boot_deadline )); then
+              cat emulator.log
+              exit 1
+            fi
+            sleep 2
+          done
+          adb -s emulator-5554 shell input keyevent 82
+
+      - name: Verify UI, rotation, confirmation, and diagnostic exports
+        shell: bash
+        run: |
+          adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk
+          adb -s emulator-5554 install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          adb -s emulator-5554 shell am instrument -w com.ventoid.app.test/androidx.test.runner.AndroidJUnitRunner | tee android-ui.log
+          grep -E '^OK \([1-9][0-9]* tests?\)' android-ui.log
+
+      - name: Retain emulator test logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-ui-logs
+          path: |
+            android-ui.log
+            emulator.log
+          retention-days: 7
+
   fdroid-release-preflight:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
