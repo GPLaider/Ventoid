@@ -4,7 +4,7 @@ Tagged releases and the entries below distinguish published behavior from change
 available only in a source checkout. GitHub and F-Droid builds use separate
 signing identities.
 
-## Unreleased — 0.4.1
+## 0.4.1 — 2026-11-01
 
 - Use the adaptive launcher artwork contributed in PR #21, including themed icons
   and a contrasting background on older Android versions.
