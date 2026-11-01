@@ -109,4 +109,24 @@
     <string name="secure_boot_check_failed">Bundled EFI marker scan failed: %1$s</string>
     <string name="secure_boot_log">Bundled EFI marker scan found the expected filenames.</string>
     <string name="secure_boot_limited_log">Bundled EFI image is missing one or more expected filenames.</string>
+    <string name="operation_channel">USB operations</string>
+    <string name="operation_waiting_permission">Waiting for USB permission…</string>
+    <string name="operation_cancel_pending">Cancel pending operation</string>
+    <string name="operation_cancelled">Operation cancelled. Nothing was written.</string>
+    <string name="operation_start_failed">Could not start the USB operation: %1$s</string>
+    <string name="operation_transfer">%1$s · %2$s · %3$s</string>
+    <string name="usb_disconnected">USB drive disconnected. Reconnect it and inspect the drive before trying again.</string>
+    <string name="install_preflight">Reading drive capacity before confirmation…</string>
+    <string name="install_confirm_title">Erase and prepare this USB drive?</string>
+    <string name="install_confirm_message">Device: %1$s\nCapacity: %2$s\nPartition scheme: %3$s\nReserved space: %4$d GiB\n\nAll existing files and partitions on this drive will be erased. To keep an existing Ventoy data partition, cancel and use Update instead.</string>
+    <string name="install_confirm_erase">Erase and prepare</string>
+    <string name="diagnostics_title">Diagnostics</string>
+    <string name="diagnostics_review">Review the report before saving or sharing. It contains device details and recent logs.</string>
+    <string name="diagnostics_header">Ventoid %1$s (%2$d)\nAndroid: %3$s\nPhone: %4$s\nUSB: %5$s\nOperation: %6$s\nStatus: %7$s</string>
+    <string name="diagnostics_share">Share report</string>
+    <string name="diagnostics_save">Save report</string>
+    <string name="diagnostics_saved">Diagnostic report saved.</string>
+    <string name="diagnostics_failed">Could not export diagnostics: %1$s</string>
+    <string name="help_title">USB and first-boot help</string>
+    <string name="help_body">1. Prepare a USB drive\nConnect a USB drive over OTG. Prepare USB erases it; Update or Repair preserves the existing data partition. Keep the drive connected until final checks finish.\n\n2. Copy your ISO files\nAfter preparation, reconnect the drive if needed. Use Android Files or another file manager to copy ISOs to the large exFAT partition, not VTOYEFI. Ventoid does not download ISOs.\n\n3. Boot your computer\nOpen its boot menu and select the USB drive. Choose an ISO in the Ventoy menu. MBR supports legacy BIOS and UEFI; GPT also has a BIOS boot path, but firmware support varies.\n\n4. Secure Boot and MOK enrollment\nSome Secure Boot computers show a verification error or MokManager on first boot. For the bundled Ventoy chain, select Enroll key from disk, open the VTOYEFI partition, and select ENROLL_THIS_KEY_IN_MOKMANAGER.cer. Review and confirm the certificate, then reboot. Menu wording varies. Only enroll a key you trust.\n\n5. If something fails\nTry another OTG adapter or a powered hub. Inspect the drive after a disconnect. Open Diagnostics to review and share the recent log. Successful preparation does not guarantee every ISO or firmware will boot.</string>
 </resources>

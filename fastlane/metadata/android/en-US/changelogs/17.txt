@@ -1,0 +1,10 @@
+Ventoid 0.4.1 — USB reliability and diagnostics.
+
+- Adaptive and themed app icons
+- Keep USB work across rotation and app switching
+- Prevent duplicate operations and lock USB/settings while busy
+- Confirm device capacity before erasing
+- Detect USB connection changes and stop after disconnect
+- Preview, save, and share recent diagnostics
+- Korean UI and offline USB/first-boot help
+- Continue bundling Ventoy 1.1.18

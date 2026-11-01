@@ -191,4 +191,9 @@ data class UsbDeviceItem(
     val usbInterface: UsbInterface,
     val inEndpoint: UsbEndpoint,
     val outEndpoint: UsbEndpoint,
-)
+) {
+    // Display names are not identities: identical drives can be attached together.
+    val connectionKey: String
+        get() = "${usbDevice.deviceName}:${usbDevice.deviceId}:${usbDevice.vendorId}:" +
+            "${usbDevice.productId}:${usbInterface.id}"
+}

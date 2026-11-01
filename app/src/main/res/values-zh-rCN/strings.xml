@@ -108,4 +108,24 @@
     <string name="secure_boot_check_failed">内置 EFI 标记扫描失败：%1$s</string>
     <string name="secure_boot_log">内置 EFI 标记扫描找到了预期文件名。</string>
     <string name="secure_boot_limited_log">内置 EFI 镜像缺少一个或多个预期文件名。</string>
+    <string name="operation_channel">USB 操作</string>
+    <string name="operation_waiting_permission">正在等待 USB 访问权限…</string>
+    <string name="operation_cancel_pending">取消待处理操作</string>
+    <string name="operation_cancelled">操作已取消，未写入任何数据。</string>
+    <string name="operation_start_failed">无法启动 USB 操作：%1$s</string>
+    <string name="operation_transfer">%1$s · %2$s · %3$s</string>
+    <string name="usb_disconnected">USB 驱动器已断开。请重新连接并分析驱动器，然后重试。</string>
+    <string name="install_preflight">正在读取驱动器容量以供确认…</string>
+    <string name="install_confirm_title">擦除并准备此 USB 驱动器？</string>
+    <string name="install_confirm_message">设备：%1$s\n容量：%2$s\n分区格式：%3$s\n保留空间：%4$d GiB\n\n此驱动器上的所有文件和分区都将被擦除。若要保留现有 Ventoy 数据分区，请取消并使用更新功能。</string>
+    <string name="install_confirm_erase">擦除并准备</string>
+    <string name="diagnostics_title">诊断报告</string>
+    <string name="diagnostics_review">保存或分享前请检查报告内容，其中包含设备信息和最近的日志。</string>
+    <string name="diagnostics_header">Ventoid %1$s (%2$d)\nAndroid：%3$s\n手机：%4$s\nUSB：%5$s\n操作：%6$s\n状态：%7$s</string>
+    <string name="diagnostics_share">分享报告</string>
+    <string name="diagnostics_save">保存报告</string>
+    <string name="diagnostics_saved">诊断报告已保存。</string>
+    <string name="diagnostics_failed">无法导出诊断报告：%1$s</string>
+    <string name="help_title">USB 使用与首次启动帮助</string>
+    <string name="help_body">1. 准备 USB 驱动器\n通过 OTG 连接驱动器。“准备 USB”会擦除驱动器；更新或修复会保留现有数据分区。请保持连接，直到最终检查完成。\n\n2. 复制 ISO 文件\n准备完成后，必要时重新连接驱动器。使用 Android 文件应用或其他文件管理器，将 ISO 复制到较大的 exFAT 分区，而非 VTOYEFI。Ventoid 不下载 ISO。\n\n3. 启动电脑\n在电脑启动菜单中选择 USB 驱动器，然后在 Ventoy 菜单中选择 ISO。MBR 支持传统 BIOS 和 UEFI；GPT 也具有 BIOS 启动路径，但固件支持情况有所不同。\n\n4. Secure Boot 与 MOK 注册\n部分启用 Secure Boot 的电脑首次启动时会显示验证错误或 MokManager。对于应用内附带的 Ventoy 启动链，选择 Enroll key from disk，在 VTOYEFI 分区中选择 ENROLL_THIS_KEY_IN_MOKMANAGER.cer。检查并确认该证书后重新启动。菜单文字可能不同。仅注册可信的密钥。\n\n5. 遇到问题\n尝试其他 OTG 适配器或带电源的 USB 集线器。断开连接后请重新分析驱动器。可在诊断报告中检查并分享最近日志。准备成功不代表所有 ISO 和固件都能启动。</string>
 </resources>

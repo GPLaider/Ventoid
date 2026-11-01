@@ -35,6 +35,9 @@ in the [roadmap](ROADMAP.md).
 4. Select the target USB device carefully.
 5. Choose MBR or GPT layout.
 6. Start USB preparation.
+   Check the device name, capacity, partition scheme, and reserved space in the
+   erase confirmation before proceeding. Use Update or Repair to preserve an
+   existing Ventoy data partition.
 7. After Ventoid prepares the drive, remount it if needed, then copy ISO files to the exFAT data partition with Android Files or another file manager.
 
 Ventoid writes to the selected USB drive. This can erase or overwrite existing data. Back up anything important first.
@@ -63,6 +66,15 @@ Ventoid writes to the selected USB drive. This can erase or overwrite existing d
 - Confirm that the Android device supports USB host / OTG mode.
 - Reconnect the drive after opening Ventoid and grant the USB permission prompt.
 - If the drive disconnects or repeatedly disappears, try a direct OTG adapter, a powered hub, or another USB port or drive.
+
+### Sharing a diagnostic report
+
+Open **Diagnostics**, review the device details and recent log, then choose
+**Save report** or **Share report**. Reports include the app version, Android/phone
+model, selected USB device, operation and status, available drive analysis, and
+up to 64 KiB of recent log text. Sharing happens only when you choose a target.
+The app also includes offline **USB and first-boot help**, including ISO copying
+and the bundled Ventoy MOK certificate enrollment path.
 
 ### The exFAT data partition is not visible after preparation
 
@@ -107,6 +119,14 @@ Successful and failed hardware combinations can be submitted with the [device co
 - Validate reserved space before writing, sample written core/EFI sectors for
   readback verification, and re-analyse the drive after installation
 - Show transfer speed and estimated remaining time while writing VTOYEFI
+- Keep one USB operation and its progress across screen rotation and app
+  switching using a foreground service and progress notification. Notification
+  permission can be declined; operations still work. Force-stop, process death,
+  and unplugging the drive do not automatically resume a write.
+- Lock USB/layout controls during an operation, confirm destructive preparation,
+  and detect USB attachment and removal automatically
+- Preview, save, or share a diagnostic report with a bounded recent log
+- Korean and Chinese UI, with offline USB and first-boot help
 - Keep five stable progress rows for the partition table, core image, exFAT data,
   Ventoy EFI, and final checks, with progress shown directly on the install action
 - No ads
@@ -119,6 +139,9 @@ an image boots. Sampled readback can miss damage between samples. QEMU checks
 reach the Ventoy 1.1.18 menu under both BIOS and UEFI for fresh and updated
 MBR/GPT layouts; ISO guest boots, Secure Boot enforcement, and physical Android
 OTG workflows still need separate verification.
+
+The 0.4.1 UI and operation-lifetime changes above are available in development
+until a corresponding release is tagged; see the changelog for release status.
 
 ## Install
 

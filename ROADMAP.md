@@ -1,6 +1,6 @@
 # Ventoid development roadmap
 
-Updated: 2026-10-13. This is a development plan, not a list of released features.
+Updated: 2026-11-01. This is a development plan, not a list of released features.
 See [CHANGELOG.md](CHANGELOG.md) for implemented changes and
 [RECOVERY-HANDOFF.md](RECOVERY-HANDOFF.md) for historical verification evidence.
 
@@ -9,10 +9,10 @@ See [CHANGELOG.md](CHANGELOG.md) for implemented changes and
 | Item | State |
 | --- | --- |
 | Latest published Ventoid release | 0.4.0, versionCode 16, tag `v0.4.0` |
-| App version in this checkout | 0.4.0, versionCode 16 |
+| App version in this checkout | 0.4.1, versionCode 17 |
 | Bundled Ventoy | 1.1.18 |
 | Latest upstream release checked | [Ventoy 1.1.18](https://github.com/ventoy/Ventoy/releases/tag/v1.1.18), published 2026-10-09 |
-| Next app release target | next feature release (unassigned) |
+| Next app release target | 0.4.1: USB operation reliability and diagnostics |
 
 Implemented development changes include drive inspection, non-destructive
 updates, ISO listing and free-space analysis, large-drive support, sampled
@@ -45,12 +45,14 @@ verified.
 
 ## Feature backlog
 
+The 0.4.1 candidate implements retained foreground USB work, duplicate-operation
+guards, erase confirmation, hotplug handling, diagnostics export, Korean UI, and
+offline first-boot help. Android emulator lifecycle checks use a synthetic USB
+target; they establish UI/state retention rather than physical OTG behavior.
+
 | Priority | Feature | Acceptance target |
 | --- | --- | --- |
-| P1 | Retain long-running work across UI recreation | Rotation and app switching preserve one USB operation and its progress; an appropriate foreground service owns long-running writes. |
 | P1 | Richer ISO browser | Show path and size, search and sort, and clearly report scan/list limits. |
-| P1 | Export diagnostics | Save or share a user-reviewed report containing app/device versions, drive details, operation stage, and the relevant log. |
-| P1 | Korean UI and first-boot help | Translate user-facing strings and provide offline MOK enrollment guidance without promising firmware compatibility. |
 | P2 | Optional full readback and ISO checksums | Verify the actual written regions and compare a streamed ISO SHA-256 against a supplied reference; handle cancellation and progress. |
 | P2 | Boot-region backup and recovery | Save the relevant boot regions before updating and restore only after matching the drive identity and partition layout. |
 | P2 | In-app ISO copying | Start with USB volumes exposed through Android's document provider; check space, handle interrupted copies, and verify completion. |
