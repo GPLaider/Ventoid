@@ -8,20 +8,20 @@ See [CHANGELOG.md](CHANGELOG.md) for implemented changes and
 
 | Item | State |
 | --- | --- |
-| Latest published Ventoid release | 0.4.0, versionCode 16, tag `v0.4.0` |
+| Latest published Ventoid release | 0.4.1, versionCode 17, tag `v0.4.1` |
 | App version in this checkout | 0.4.1, versionCode 17 |
 | Bundled Ventoy | 1.1.18 |
 | Latest upstream release checked | [Ventoy 1.1.18](https://github.com/ventoy/Ventoy/releases/tag/v1.1.18), published 2026-10-09 |
-| Next app release target | 0.4.1: USB operation reliability and diagnostics |
+| Next app release target | Not assigned; see the feature backlog |
 
-Implemented development changes include drive inspection, non-destructive
+Released features include drive inspection, non-destructive
 updates, ISO listing and free-space analysis, large-drive support, sampled
 readback verification, transfer estimates, reserved-space validation, and GPT
 BIOS boot repair. Updates now reject newer installed versions before writing.
 
-## Next release readiness
+## Release verification and remaining checks
 
-- [x] Consolidate the implemented changes into an Unreleased changelog.
+- [x] Track implemented changes and tagged releases in the changelog.
 - [x] Preserve the published F-Droid build history and release signing identities.
 - [x] Guard against downgrading a newer Ventoy installation and identify
   same-version repair in the UI.
@@ -37,6 +37,11 @@ BIOS boot repair. Updates now reject newer installed versions before writing.
 - [x] Assign app version 0.4.0/versionCode 16, write its store changelog, and
   prepare the append-only F-Droid recipe. The final stanza is appended in a
   separate metadata commit after committing the release sources.
+- [x] Release 0.4.1/versionCode 17 with retained USB work, confirmation,
+  diagnostics, Korean UI, offline help, and the contributed adaptive icon.
+- [x] Pass 126 unit tests, release lint, APK/AAB builds, and six UI/lifecycle/export
+  checks on Android 15 and 16 emulators. Four QEMU output-fixture tests are
+  skipped in the normal Android run; the bundled firmware is unchanged.
 
 Ventoy 1.1.18 upstream changes include Windows/WinPE Secure Boot version checking,
 Ubuntu persistence and Fedora boot fixes, and experimental SteamOS recovery-image
@@ -45,7 +50,7 @@ verified.
 
 ## Feature backlog
 
-The 0.4.1 candidate implements retained foreground USB work, duplicate-operation
+Version 0.4.1 implements retained foreground USB work, duplicate-operation
 guards, erase confirmation, hotplug handling, diagnostics export, Korean UI, and
 offline first-boot help. Android emulator lifecycle checks use a synthetic USB
 target; they establish UI/state retention rather than physical OTG behavior.
@@ -63,6 +68,14 @@ Normal use must remain offline, root-free, ad-free, and free of analytics. Any
 filesystem-writing addition needs explicit disk-boundary and interruption tests.
 
 ## Evidence boundaries
+
+The 2026-11-01 0.4.1 checks passed release lint, APK/AAB builds, 126 unit tests,
+and six emulator UI tests covering rotation, operation locking, confirmation,
+Korean help, diagnostics sharing/saving, and rejected service starts. Four unit
+tests that generate QEMU image fixtures were skipped. Android 16 was checked
+locally, and Android 15 was checked in CI. UI tests use a synthetic USB target;
+no physical drive was written. The signed release APK retains the existing
+GitHub signing identity. See [release PR #22](https://github.com/GPLaider/Ventoid/pull/22).
 
 The 2026-10-12 Ventoy 1.1.18 update checks passed Android release lint, unit tests,
 and APK/AAB builds. All 118 unit tests passed, with no skips, failures, or errors.

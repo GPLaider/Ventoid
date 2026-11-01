@@ -140,8 +140,9 @@ reach the Ventoy 1.1.18 menu under both BIOS and UEFI for fresh and updated
 MBR/GPT layouts; ISO guest boots, Secure Boot enforcement, and physical Android
 OTG workflows still need separate verification.
 
-The 0.4.1 UI and operation-lifetime changes above are available in development
-until a corresponding release is tagged; see the changelog for release status.
+The UI and operation-lifetime improvements above are included in
+[Ventoid 0.4.1](https://github.com/GPLaider/Ventoid/releases/tag/v0.4.1)
+(versionCode 17). F-Droid updates follow its separate review and build schedule.
 
 ## Install
 
