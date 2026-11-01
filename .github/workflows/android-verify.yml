@@ -70,14 +70,21 @@ jobs:
         run: |
           sudo chmod 666 /dev/kvm
           export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+          export ANDROID_USER_HOME="$RUNNER_TEMP/ventoid-android"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "system-images;android-35;google_apis;x86_64"
-          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n ventoid-ci -k "system-images;android-35;google_apis;x86_64"
-          "$ANDROID_HOME/emulator/emulator" -avd ventoid-ci -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > emulator.log 2>&1 &
-          timeout 180 adb -s emulator-5554 wait-for-device
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n ventoid-ci -p "$ANDROID_AVD_HOME/ventoid-ci.avd" -k "system-images;android-35;google_apis;x86_64"
+          test -f "$ANDROID_AVD_HOME/ventoid-ci.ini"
+          "$ANDROID_HOME/emulator/emulator" -avd ventoid-ci -port 5554 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect > emulator.log 2>&1 &
+          emulator_pid=$!
           boot_deadline=$((SECONDS + 180))
-          until [ "$(adb -s emulator-5554 shell getprop sys.boot_completed | tr -d '\r')" = 1 ]; do
-            if (( SECONDS >= boot_deadline )); then exit 1; fi
+          until [ "$(adb -s emulator-5554 shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; do
+            if ! kill -0 "$emulator_pid" 2>/dev/null || (( SECONDS >= boot_deadline )); then
+              cat emulator.log
+              exit 1
+            fi
             sleep 2
           done
           adb -s emulator-5554 shell input keyevent 82
