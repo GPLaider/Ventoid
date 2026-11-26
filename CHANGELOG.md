@@ -4,6 +4,10 @@ Tagged releases and the entries below distinguish published behavior from change
 available only in a source checkout. GitHub and F-Droid builds use separate
 signing identities.
 
+## Unreleased
+
+- Add a Traditional Chinese (Taiwan) translation of the app interface.
+
 ## 0.4.1 — 2026-11-01
 
 - Use the adaptive launcher artwork contributed in PR #21, including themed icons
